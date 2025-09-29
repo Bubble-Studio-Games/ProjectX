@@ -1,0 +1,5 @@
+outs:
+- md5: 3bb9775479fea5de58d0259517462b33
+  size: 67108908
+  hash: md5
+  path: T_Body_MetallicSmoothness.tga

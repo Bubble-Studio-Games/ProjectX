@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2885e8fa5af38d5498a0c7f15e29c30a, type: 3}
+  m_Name: Parasite Zombi
+  m_EditorClassIdentifier: 
+  ID: 1002
+  Name: Parasite Zombi
+  sprite: {fileID: 0}
+  m_sDescription: 
+  m_iMaxHP: 150
+  m_iCurrentHp: 150
+  m_iIsStepReduceHP: 0
+  m_iMaxMP: 0
+  m_iCurrentMP: 0
+  m_fMoveSpeed: 6
+  m_fChaseSpeed: 5
+  m_fPatrolSpeed: 4
+  m_iDefaultMoveRange: 0
+  m_iDetectRange: 4
+  m_iChaseRange: 4
+  m_iPhysicalDefence: 7
+  m_iMagicalDefence: 0
+  m_fCounterAttackChance: 0
+  m_fEvasionChance: 0
+  m_fKnockbackRegist: 0
+  m_iSpawnCost: 0
+  m_iRewardDownjam: 30
+  m_AttackPatterns:
+  - {fileID: 11400000, guid: 37b5b550f5f0e1741abd2a0bc9de4c63, type: 2}

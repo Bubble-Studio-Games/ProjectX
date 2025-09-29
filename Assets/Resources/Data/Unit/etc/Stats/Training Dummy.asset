@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2885e8fa5af38d5498a0c7f15e29c30a, type: 3}
+  m_Name: Training Dummy
+  m_EditorClassIdentifier: 
+  ID: 0
+  Name: Training Dummy
+  m_iMaxHP: 999
+  m_iCurrentHp: 999
+  m_iMaxMP: 0
+  m_iCurrentMP: 0
+  m_fMoveSpeed: 0
+  m_fChaseSpeed: 0
+  m_fPatrolSpeed: 0
+  m_iDefaultMoveRange: 0
+  m_iDetectRange: 0
+  m_iChaseRange: 0
+  m_iPhysicalDefence: 0
+  m_iMagicalDefence: 0
+  m_iSpawnCost: 0
+  m_iRewardCost: 0
+  attackPatterns: []

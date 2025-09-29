@@ -1,0 +1,72 @@
+#!/bin/sh
+
+# pre-push: 특정 확장자는 무조건 DVC, 조건부 확장자는 100MB 초과 시 DVC
+# pre-commit에서 걸러지지 않은 파일에 대한 2중 안전장치 + DVC push
+
+LIMIT=104857600  # 100MB
+found=false
+
+echo "[Husky] Running pre-push hook..."
+
+# 1) 커밋에 포함된 파일 검사
+git diff --cached --name-only -z --diff-filter=AM | \
+while IFS= read -r -d '' file; do
+    if [ -f "$file" ]; then
+        ext="${file##*.}"
+        size=$(wc -c <"$file")
+        process=false
+
+        # 확장자 규칙 적용
+        case "$ext" in
+            fbx|anim|wav|mp4|psd|exr|hdr|tga)  # 무조건 DVC
+                process=true ;;
+            png|jpg|obj|blend|prefab)          # 조건부: 100MB 초과
+                [ $size -gt $LIMIT ] && process=true ;;
+        esac
+
+        if [ "$process" = true ]; then
+            echo "⚠️ DVC 대상 파일 감지: $file (size: $size bytes)"
+
+            # 이미 DVC 추적 중인지 확인 (.dvc 메타 존재)
+            if [ -f "$file.dvc" ]; then
+                echo "ℹ️ Already tracked by DVC (.dvc exists): $file → skip"
+                continue
+            fi
+
+            # dvc add 실행
+            if dvc add "$file"; then
+                echo "✅ dvc add succeeded for $file"
+
+                # Git 추적에서 제거 (Git에 올라가 있을 때만)
+                if git ls-files --cached --error-unmatch "$file" >/dev/null 2>&1; then
+                    git rm --cached "$file"
+                fi
+
+                # .dvc 파일 및 .gitignore 자동 추적
+                [ -f "$file.dvc" ] && git add "$file.dvc"
+                dir=$(dirname "$file")
+                [ -f "$dir/.gitignore" ] && git add "$dir/.gitignore"
+
+                found=true
+            else
+                echo "❌ dvc add failed for $file, skipping..."
+            fi
+        fi
+    fi
+done
+
+# 2) 대형 파일이 걸렸으면 push 중단
+if [ "$found" = true ]; then
+    echo "❌ Push aborted. Some files were moved to DVC."
+    echo "   Please commit again (.dvc + .gitignore now included)."
+    exit 1
+fi
+
+# 3) DVC push 실행
+if dvc push; then
+    echo "✅ DVC push completed successfully."
+    exit 0
+else
+    echo "❌ DVC push failed. Push aborted."
+    exit 1
+fi

@@ -1,0 +1,194 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using UnityEngine;
+using static Define;
+
+[Serializable]
+public class AttackPatternInfoClip
+{
+    public AnimationClip AttackAnimationClip;
+}
+
+[Serializable]
+public class AttackPatternInfoClipWithReady : AttackPatternInfoClip
+{
+    public AnimationClip ReadyFailAnimationClip;
+}
+
+public class AttackPattern<TClip> : AttackPattern
+    where TClip : AttackPatternInfoClip
+{
+    // 원본 애니메이션 클립을 저장하기 위한 맵
+    private Dictionary<TClip, Dictionary<FieldInfo, AnimationClip>> _originalClips = new();
+
+    public override void Init()
+    {
+        base.Init();
+
+        foreach (var clipData in m_Clips)
+        {
+            if (clipData == null) continue;
+
+            var fields = clipData.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var field in fields)
+            {
+                if (field.FieldType == typeof(AnimationClip))
+                {
+                    var original = field.GetValue(clipData) as AnimationClip;
+                    if (original == null) continue;
+
+                    // 원본 저장
+                    if (!_originalClips.ContainsKey(clipData))
+                        _originalClips[clipData] = new Dictionary<FieldInfo, AnimationClip>();
+                    _originalClips[clipData][field] = original;
+
+                    // stepped로 교체
+                    var stepped = SettingManager.Instance.ReplaceOrLoadSteppedClip(original);
+                    field.SetValue(clipData, stepped);
+                }
+            }
+        }
+
+        SettingManager.Instance.OnEventApplicationQuit += (e, s) => OnEndGame();
+    }
+
+    public void OnEndGame()
+    {
+        foreach (var kvp in _originalClips)
+        {
+            var clipData = kvp.Key;
+            var fieldMap = kvp.Value;
+
+            foreach (var field in fieldMap.Keys)
+            {
+                var originalClip = fieldMap[field];
+                field.SetValue(clipData, originalClip);
+            }
+        }
+
+        _originalClips.Clear();
+
+    }
+
+
+    public TClip[] m_Clips;
+
+    public override AttackPatternInfoClip[] GetBaseClip() => m_Clips;
+}
+
+// 데이터
+public  class AttackPattern : ScriptableObject
+{
+    #region 공격 데이터
+
+    [Header("Base Info")]
+    public int ID;
+    public string AttackName;                    // 예: "전방3칸", "부채꼴" 등
+    public List<GridPosition> m_RangeOffset = new();   // 공격 범위 오프셋 (유닛 기준)
+    //public E_AttackEffectType E_AttackEffectType;
+    [HideInInspector] public E_AttackType m_EAttackType;
+
+    public AttackPattern[] m_iNextAttackPattern;
+    public AttackPattern m_iConditionPrevAttackPattern; // 
+
+    [Header("Condition")]
+    public float m_iCoolTime = 2f;
+    public float lastCooltime { get; private set; }
+    public bool m_bCoolTimeIsFinishied => Time.time - lastCooltime >= m_iCoolTime;
+    public int m_iManaCost;
+    public bool m_IsTwoHandAttack; // 두 손 행동인가?
+
+    [Header("Damage Info")]
+    public int m_iPhysicalAttackDamage;     // 물리 공격 데미지
+    public int m_iMagicAttackDamage;        // 미밥 공격 데미지
+    public int m_iPhysicalFixedDamage;      // 물리 고정 데미지
+    public int m_iMagicFixedDamage;         // 마법 고정 데미지
+    public float m_fPhysicalArmorPenetraion;    // 물리 방어구 관통력
+    public float m_fMagicalArmorPenetraion;     // 마법 방어구 관통력
+
+    [Header("Battle Attack Chance")]
+    public int m_iCriticalChance = 5;     // 치명타율
+    public float m_fCriticalDamageUp = 1.5f;   // 치명타 데미지 증가율
+    public int m_fAccuracy = 95;           // 명중률
+    public float m_fAttackSpeed = 1;        // 공격 속도
+    public int m_iKnockbackChance;    // 넉백 확률
+
+    [Header("Clip")]
+    public AudioClip AttackAudioClip;
+
+    public virtual AttackPatternInfoClip[] GetBaseClip() { return null; }
+
+    #endregion
+
+    #region 공격 로직
+
+    public virtual void Init()
+    {
+        lastCooltime = -m_iCoolTime;              // 쿨타임 끝난 상태로 시작
+    }
+
+    public virtual E_AttackCondition CanExecute(ControllableObject attacker, GameEntity target)
+    {
+        // Mana
+        if (attacker.m_StatSystem.m_Stat.m_iCurrentMP < m_iManaCost)
+            return E_AttackCondition.Fail_ManaCost;
+
+        // CoolTime
+        if (!m_bCoolTimeIsFinishied)
+            return E_AttackCondition.Fail_CoolTime;
+
+        //// 공격 패턴이 없는지 확인
+        //if (attacker.GetAction<CombatAction>().m_ThisTimeAttack == null)
+        //    return E_AttackCondition.Fail_IndividualCondition;
+
+        // 전 공격 준비 단계가 있어야 하는지 확인
+        if (m_iConditionPrevAttackPattern != null)
+        {
+            AttackPattern attack = attacker.GetAction<CombatAction>().m_ThisTimeAttack;
+            if (attack == null || attack.ID != m_iConditionPrevAttackPattern.ID)
+            {
+                return E_AttackCondition.Fail_NotHasPrevAttack;
+            }
+        }
+
+        return E_AttackCondition.Success;
+    }
+
+    public virtual void StartAttack(ControllableObject attacker, GameEntity target, AttackPattern prevAttackpatern) // 실행
+    {
+        // 쿨타임 갱신
+        lastCooltime = Time.time;
+
+        // 전 준비 단계가 있다면 해시에서 제거
+        if (prevAttackpatern != null && prevAttackpatern.m_iNextAttackPattern.Select(p => p.ID).ToArray().Contains(ID))
+        {
+            attacker.m_ControllableObjectCombatManager.m_ReadyAttackPattern.Remove(prevAttackpatern as AttackPattern_Ready);
+        }
+    }
+
+    public virtual void Attack(ControllableObject attacker, GameEntity target) { } // 종료
+
+    public virtual void EndAttack(ControllableObject attacker, GameEntity target) { } // 종료
+
+    public virtual void StartAttackFail(ControllableObject attacker, GameEntity target)
+    {
+        //Debug.Log($"{attacker.name}의 {AttackName} 공격 실패");
+    }
+
+    public void EndAttackFail()
+    {
+        // 쿨타임 갱신
+        lastCooltime = Time.time;
+    }
+
+    protected IEnumerator ObjectDestroy(GameObject go, float time)
+    {
+        yield return new WaitForSeconds(time);
+        Managers.Resource.Destroy(go);
+    }
+    #endregion
+}
+

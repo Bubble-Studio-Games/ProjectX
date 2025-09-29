@@ -1,0 +1,49 @@
+{
+    "slotId": 0,
+    "data": {
+        "objects": [
+            {
+                "instanceID": -31368
+            }
+        ],
+        "buildingCards": [
+            {
+                "instanceID": -10917628
+            },
+            {
+                "instanceID": -10917526
+            },
+            {
+                "instanceID": -10917424
+            },
+            {
+                "instanceID": -10917322
+            },
+            {
+                "instanceID": -10917220
+            },
+            {
+                "instanceID": -10917736
+            },
+            {
+                "instanceID": -10917838
+            },
+            {
+                "instanceID": -10917940
+            },
+            {
+                "instanceID": -10918042
+            },
+            {
+                "instanceID": -10918144
+            }
+        ],
+        "downJam": 0,
+        "CameraTransform": {
+            "instanceID": 34424
+        }
+    },
+    "createTime": "2025-09-20 01:51:58",
+    "lastSaveTime": "2025-09-20 01:56:21",
+    "totalPlaySeconds": 80.47782039642334
+}

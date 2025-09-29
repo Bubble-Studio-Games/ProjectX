@@ -1,0 +1,13 @@
+#!/bin/sh
+# post-merge: git pull/merge 후 dvc pull 실행
+
+echo "📥 Running dvc pull after merge/pull..."
+
+dvc pull
+if [ $? -ne 0 ]; then
+    echo "❌ dvc pull failed"
+    exit 1
+fi
+
+echo "✅ dvc pull completed"
+exit 0

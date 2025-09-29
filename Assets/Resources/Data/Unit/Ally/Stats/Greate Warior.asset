@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2885e8fa5af38d5498a0c7f15e29c30a, type: 3}
+  m_Name: Greate Warior
+  m_EditorClassIdentifier: 
+  ID: 2
+  Name: Greate Warior
+  sprite: {fileID: 21300000, guid: b8e4d902c9efb364ca3e182f67453b86, type: 3}
+  m_sDescription: 
+  m_iMaxHP: 150
+  m_iCurrentHp: 150
+  m_iIsStepReduceHP: 0
+  m_iMaxMP: 20
+  m_iCurrentMP: 20
+  m_fMoveSpeed: 2
+  m_fChaseSpeed: 4
+  m_fPatrolSpeed: 4
+  m_iDefaultMoveRange: 4
+  m_iDetectRange: 5
+  m_iChaseRange: 5
+  m_iPhysicalDefence: 20
+  m_iMagicalDefence: -10
+  m_fCounterAttackChance: 0
+  m_fEvasionChance: 15
+  m_fKnockbackRegist: 80
+  m_iSpawnCost: 15
+  m_iRewardCost: 0
+  m_AttackPatterns:
+  - {fileID: 11400000, guid: 37eac41f47d854948bb35b1c2e4f61c0, type: 2}
+  - {fileID: 11400000, guid: 414ad8ad51ce52b478e6afdc2fffc1cb, type: 2}
+  - {fileID: 11400000, guid: 22dbd95f594cd5d40a2e49d7875d5aa0, type: 2}

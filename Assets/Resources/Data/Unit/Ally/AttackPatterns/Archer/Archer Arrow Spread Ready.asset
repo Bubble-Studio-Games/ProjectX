@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e73c5523d7733e48b8f96dae88a24a6, type: 3}
+  m_Name: Archer Arrow Spread Ready
+  m_EditorClassIdentifier: 
+  ID: 301
+  AttackName: Archer Attack Ready
+  m_RangeOffset:
+  - x: 0
+    z: 2
+    floor: 0
+  m_EAttackType: 0
+  m_iNextAttackPattern:
+  - {fileID: 11400000, guid: 2a3be519b8409c848b6e77f33bc0f0f1, type: 2}
+  m_iConditionPrevAttackPattern: {fileID: 11400000, guid: 4473d3c84544fe44897429ddf891ceb1, type: 2}
+  m_iCoolTime: 5
+  m_iManaCost: 0
+  m_IsTwoHandAttack: 0
+  m_iPhysicalAttackDamage: 0
+  m_iMagicAttackDamage: 0
+  m_iPhysicalFixedDamage: 0
+  m_iMagicFixedDamage: 0
+  m_fPhysicalArmorPenetraion: 0
+  m_fMagicalArmorPenetraion: 0
+  m_iCriticalChance: 0
+  m_fCriticalDamageUp: 0
+  m_fAccuracy: 100
+  m_fAttackSpeed: 0
+  m_iKnockbackChance: 0
+  AttackAudioClip: {fileID: 8300000, guid: 6e2371b5c52011742a4b29d8f65f7f28, type: 3}
+  m_bIsChangeStepAnimation: 0
+  m_bIsRestoreAnimation: 1
+  m_Clips:
+  - AttackAnimationClip: {fileID: -203655887218126122, guid: bc2c5dd80f326764396ae283cca8b767, type: 3}
+    ReadyFailAnimationClip: {fileID: 0}
+  ReadyFailAudioClip: {fileID: 0}
+  m_ReadyGameObjectPrefab: {fileID: 0}
+  m_FailPrefab: {fileID: 0}
+  m_AttackReadyTime: 2
