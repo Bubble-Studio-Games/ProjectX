@@ -1,0 +1,5 @@
+outs:
+- md5: 32badc67d57afc92ba2c2f94d7598443
+  size: 43356
+  hash: md5
+  path: Target.fbx

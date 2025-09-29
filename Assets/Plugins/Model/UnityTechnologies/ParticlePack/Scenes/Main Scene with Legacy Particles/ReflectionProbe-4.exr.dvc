@@ -1,0 +1,5 @@
+outs:
+- md5: 123f35be0a933bef3607242779d02372
+  size: 318767
+  hash: md5
+  path: ReflectionProbe-4.exr

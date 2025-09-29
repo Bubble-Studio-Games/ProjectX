@@ -1,0 +1,5 @@
+outs:
+- md5: 548c1409f03b9f7a18bb4b0de01fb8f6
+  size: 26311
+  hash: md5
+  path: Lightmap-0_comp_light.exr

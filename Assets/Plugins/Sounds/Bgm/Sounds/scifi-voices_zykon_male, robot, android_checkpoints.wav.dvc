@@ -1,0 +1,5 @@
+outs:
+- md5: 9359b85ff6add68f977bfaa1e06900d8
+  size: 510816
+  hash: md5
+  path: scifi-voices_zykon_male, robot, android_checkpoints.wav

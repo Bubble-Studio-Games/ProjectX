@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: f188507cdb231cb49bc8f01aef6e1933
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 252678
+  packageName: Hierarchy Sorting Tool
+  packageVersion: 1.0
+  assetPath: Assets/DowntownGameStudio/Hierarchy Sorting Tool/Editor/HierarchySortingToolEditor.cs
+  uploadId: 577911
