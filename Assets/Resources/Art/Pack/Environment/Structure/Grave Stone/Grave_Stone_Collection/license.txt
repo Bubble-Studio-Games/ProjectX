@@ -1,0 +1,11 @@
+Model Information:
+* title:	Grave Stone Collection
+* source:	https://sketchfab.com/3d-models/grave-stone-collection-216711532d5a4078b9c0d5020af01eb1
+* author:	Kigha (https://sketchfab.com/Kigha)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Grave Stone Collection" (https://sketchfab.com/3d-models/grave-stone-collection-216711532d5a4078b9c0d5020af01eb1) by Kigha (https://sketchfab.com/Kigha) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
