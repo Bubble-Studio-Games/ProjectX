@@ -1,0 +1,15 @@
+{
+    "name": "com.tvender.arrayplacehelper",
+    "author": "pingqizhu",
+    "displayName": "ArrayPlaceHelper",
+    "version": "1.0.3",
+    "unity": "2024.5",
+    "description": "Array placement editor.",
+    "category": "Unity",
+    "keywords": [
+        "array",
+        "editor",
+        "extension"
+    ],
+    "dependencies": {}
+}

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 11d051643e9eb44408a319e010648e64
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 112000000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288436
+  packageName: Array Place (T-Vender)
+  packageVersion: 1.0
+  assetPath: Assets/Plugins/TVender_ArrayPlace/Example/Demo/LightingData.asset
+  uploadId: 676302

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 5033a11f19fe7294fb7378bae4d5ae50
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288436
+  packageName: Array Place (T-Vender)
+  packageVersion: 1.0
+  assetPath: Assets/Plugins/TVender_ArrayPlace/Example/Prefabs/Cube.prefab
+  uploadId: 676302

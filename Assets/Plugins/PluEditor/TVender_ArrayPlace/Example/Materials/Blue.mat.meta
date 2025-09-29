@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: ebfa0a9c77fc80741b1e56865717225b
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288436
+  packageName: Array Place (T-Vender)
+  packageVersion: 1.0
+  assetPath: Assets/Plugins/TVender_ArrayPlace/Example/Materials/Blue.mat
+  uploadId: 676302

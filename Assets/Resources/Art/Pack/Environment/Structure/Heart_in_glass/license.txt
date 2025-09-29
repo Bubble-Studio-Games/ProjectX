@@ -1,0 +1,11 @@
+Model Information:
+* title:	Heart in glass
+* source:	https://sketchfab.com/3d-models/heart-in-glass-1dacc91d294141658633cce0a79ecd97
+* author:	lukinu (https://sketchfab.com/lukinu)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Heart in glass" (https://sketchfab.com/3d-models/heart-in-glass-1dacc91d294141658633cce0a79ecd97) by lukinu (https://sketchfab.com/lukinu) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

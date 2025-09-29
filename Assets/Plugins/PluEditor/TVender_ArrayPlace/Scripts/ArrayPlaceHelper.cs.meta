@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 8404aed7a8acf694a90e7a46031c0f3c
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288436
+  packageName: Array Place (T-Vender)
+  packageVersion: 1.0
+  assetPath: Assets/Plugins/TVender_ArrayPlace/Scripts/ArrayPlaceHelper.cs
+  uploadId: 676302

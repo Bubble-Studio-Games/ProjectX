@@ -1,0 +1,5 @@
+outs:
+- md5: 00da101b8ac35f5511b64eb0facab1e3
+  size: 88244
+  hash: md5
+  path: HammerImpact10.wav

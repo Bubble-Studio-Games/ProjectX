@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: b88c7a920e2d9d243b6f8ea0726dfeec
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 278262
+  packageName: Missing Script Finder
+  packageVersion: 1.0
+  assetPath: Assets/Jouaid Technologies/Missing Script Finder/Editor/MissingScriptFinder.cs
+  uploadId: 647040

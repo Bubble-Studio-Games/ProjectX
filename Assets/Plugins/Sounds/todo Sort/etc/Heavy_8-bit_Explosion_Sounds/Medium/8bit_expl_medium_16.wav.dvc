@@ -1,0 +1,5 @@
+outs:
+- md5: 071ed46cdea185b28fea3de72d1f8c7c
+  size: 102640
+  hash: md5
+  path: 8bit_expl_medium_16.wav

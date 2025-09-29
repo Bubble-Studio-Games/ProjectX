@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static Define;
 using static Unity.VisualScripting.Member;
 
@@ -33,6 +34,9 @@ public class GameManager
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void InitAllRewards()
     {
+        if (CheckRunMethodThisScene() == false)
+            return;
+
         RewardData[] rewards = Resources.LoadAll<RewardData>("Data/Reward");
         foreach (var reward in rewards)
         {
@@ -44,12 +48,26 @@ public class GameManager
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void InitAttackAnimationStepAnimation()
     {
+        if (CheckRunMethodThisScene() == false)
+            return;
+
         AttackPattern[] attackPatterns = Resources.LoadAll<AttackPattern>("Data/Unit");
         foreach (var ap in attackPatterns)
         {
             ap.Init();
             //Debug.Log($"[RewardInitializer] {reward.name} initialized.");
         }
+    }
+
+    static bool CheckRunMethodThisScene()
+    {
+        if (Managers.Scene.CurrentScene == null)
+            return false;
+
+        if (Managers.Scene.CurrentScene.SceneType != Define.Scene.Game)
+            return false;
+
+        return true;
     }
 
     #endregion

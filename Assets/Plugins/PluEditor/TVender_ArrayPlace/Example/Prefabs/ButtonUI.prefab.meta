@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 9f34697f696c297409302d0ed4964276
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288436
+  packageName: Array Place (T-Vender)
+  packageVersion: 1.0
+  assetPath: Assets/Plugins/TVender_ArrayPlace/Example/Prefabs/ButtonUI.prefab
+  uploadId: 676302

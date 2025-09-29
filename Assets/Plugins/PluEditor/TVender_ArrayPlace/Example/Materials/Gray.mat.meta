@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 771c58b932def284c9f4c7e5fd43da5e
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 288436
+  packageName: Array Place (T-Vender)
+  packageVersion: 1.0
+  assetPath: Assets/Plugins/TVender_ArrayPlace/Example/Materials/Gray.mat
+  uploadId: 676302
