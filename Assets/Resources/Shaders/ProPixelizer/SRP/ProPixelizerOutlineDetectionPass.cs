@@ -1,4 +1,4 @@
-﻿// Copyright Elliot Bentine, 2018-
+// Copyright Elliot Bentine, 2018-
 using System;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -178,7 +178,7 @@ namespace ProPixelizer
             buffer.name = "ProPixelizer Outline Pass";
 
             // Preview cameras must unfortunately disable dither expansion
-            if (renderingData.cameraData.camera.cameraType == CameraType.Preview)
+            if (renderingData.cameraData.camera.cameraType == CameraType.SceneView || renderingData.cameraData.camera.cameraType == CameraType.Preview)
                 buffer.SetGlobalFloat("_ProPixelizer_Pixel_Scale", 0.01f);
             else 
                 buffer.SetGlobalFloat("_ProPixelizer_Pixel_Scale", 1f);
