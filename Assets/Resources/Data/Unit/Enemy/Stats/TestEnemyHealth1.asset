@@ -21,7 +21,7 @@ MonoBehaviour:
   m_iIsStepReduceHP: 0
   m_iMaxMP: 0
   m_iCurrentMP: 0
-  m_fChaseSpeed: 5
+  m_fChaseSpeed: 2
   m_fWalkSpeed: 0.5
   m_iDefaultMoveRange: 0
   m_iDetectRange: 4

@@ -50,6 +50,7 @@ public class MonsterSpawner : Building
         CheckCoolTimeSpawnObject();
     }
 
+    // 소환 범위 체크
     private void SetSpawnGridPosition()
     {
         // 스탯 긁어오기 소환 범위
@@ -83,6 +84,7 @@ public class MonsterSpawner : Building
             ));
     }
 
+    // 쿨타임 체크
     private void CheckCoolTimeSpawnObject()
     {
         if(m_StatSystem.m_IsDead) 
@@ -96,6 +98,7 @@ public class MonsterSpawner : Building
         }
     }
 
+    // 몬스터 소환
     private void SpawnObject()
     {
         // 소환 가능한 포지션을 랜덤으로 뽑아서 검사

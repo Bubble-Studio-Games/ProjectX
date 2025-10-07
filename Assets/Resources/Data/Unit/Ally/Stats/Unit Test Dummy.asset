@@ -21,10 +21,9 @@ MonoBehaviour:
   m_iIsStepReduceHP: 0
   m_iMaxMP: 0
   m_iCurrentMP: 0
-  m_fMoveSpeed: 0
   m_fChaseSpeed: 0
-  m_fPatrolSpeed: 0
-  m_iDefaultMoveRange: 0
+  m_fWalkSpeed: 0
+  m_iCommandMoveDistance: 4
   m_iDetectRange: 0
   m_iChaseRange: 0
   m_iPhysicalDefence: 0
@@ -32,6 +31,5 @@ MonoBehaviour:
   m_fCounterAttackChance: 0
   m_fEvasionChance: 0
   m_fKnockbackRegist: 0
-  m_iSpawnCost: 10
-  m_iRewardCost: 0
   m_AttackPatterns: []
+  m_iSpawnCost: 10

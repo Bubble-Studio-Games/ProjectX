@@ -17,22 +17,21 @@ MonoBehaviour:
   sprite: {fileID: 21300000, guid: 0eb97822fe65ec845bab1f50c0070257, type: 3}
   m_sDescription: 
   m_iMaxHP: 80
-  m_iCurrentHp: 0
+  m_iCurrentHp: 80
   m_iIsStepReduceHP: 0
   m_iMaxMP: 50
-  m_iCurrentMP: 0
+  m_iCurrentMP: 50
   m_fChaseSpeed: 4
   m_fWalkSpeed: 0
-  m_iDefaultMoveRange: 4
-  m_iDetectRange: 5
+  m_iCommandMoveDistance: 4
+  m_iDetectRange: 3
   m_iChaseRange: 5
   m_iPhysicalDefence: 0
   m_iMagicalDefence: 10
   m_fCounterAttackChance: 0
   m_fEvasionChance: 10
   m_fKnockbackRegist: 0
-  m_iSpawnCost: 20
-  m_iRewardDownjam: 0
   m_AttackPatterns:
   - {fileID: 11400000, guid: 6b3e633896ebf844e89cd94d991b5e3c, type: 2}
   - {fileID: 11400000, guid: 181cab53489cf9244a388f1efa1f61f1, type: 2}
+  m_iSpawnCost: 20

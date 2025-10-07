@@ -51,9 +51,9 @@ public class DamagedValueDisplayUI : MonoBehaviour
 
     private void OnEnable()
     {
-        foreach (GameObject child in transform)
+        foreach (Transform child in transform)
         {
-            Managers.Resource.Destroy(child);
+            Managers.Resource.Destroy(child.gameObject);
         }
     }
 

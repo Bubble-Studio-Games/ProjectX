@@ -124,6 +124,9 @@ public class GameManager
         Debug.Log("Dungeon Core destroyed! Game Over.");
         OnDungeonExplosionFail?.Invoke(this, EventArgs.Empty);
 
+        // 팝업 띄우기
+        Managers.UI.ShowPopupUI<GameOverUI>();
+
         DungeonExplosionFinish();
     }
 
@@ -150,7 +153,7 @@ public class GameManager
         Time.timeScale = 1f;
         m_IsGamePauseing = false;
 
-        Debug.Log("게임 일시 정지 해제");
+        //Debug.Log("게임 일시 정지 해제");
     }
 
     public async Task GameSave(Action action = null)

@@ -156,8 +156,10 @@ public class GameEntityAnimator : MonoBehaviour
         }
         else
         {
-            // Ragdoll
-            //AnimationStop();
+            if (m_GameEntity.m_IsDirectDesawnAtDeath)
+            {
+                m_GameEntity.DeSpawnStart();
+            }
         }
     }
 

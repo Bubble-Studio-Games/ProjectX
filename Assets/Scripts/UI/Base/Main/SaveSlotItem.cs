@@ -78,7 +78,7 @@ public class SaveSlotItem : UI_Base
 
     public override void RefreshUI()
     {
-        Debug.Log("Save Slot Item Refresh");
+        //Debug.Log("Save Slot Item Refresh");
 
         // Image
         if (m_SaveImage.sprite == null)

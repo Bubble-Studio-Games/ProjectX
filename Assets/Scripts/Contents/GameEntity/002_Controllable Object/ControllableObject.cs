@@ -37,6 +37,7 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
     [Header("Flag")]
     public bool IsAttackStand;
     public bool m_isDetectionsurroundingsEnabled = true; // 주위 적 탐색이 가능한가?
+    public bool m_isChaseCore = true; // 몬스터는 항상 코어를 찾는가? 임시
 
     protected override void Awake()
     {

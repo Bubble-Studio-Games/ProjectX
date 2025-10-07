@@ -31,13 +31,21 @@ public class ChaseAction : MoveAction
                 // 몬스터의 최종 목적지는 던전 핵!
                 if (m_BaseObject.m_TeamId == E_TeamId.Monster)
                 {
+
                     if (DungeonCore.instance == null || DungeonCore.instance.m_StatSystem.m_IsDead)
                     {
                         return m_BaseObject.GetAction<IdleAction>();
                     }
                     else
                     {
-                        m_BaseObject.SetTarget(DungeonCore.instance);
+                        if (m_BaseObject.m_isChaseCore)
+                        {
+                            m_BaseObject.SetTarget(DungeonCore.instance);
+                        }
+                        else
+                        {
+                            return m_BaseObject.GetAction<IdleAction>();
+                        }
                     }
                 }
                 else if (m_BaseObject.m_TeamId == E_TeamId.Player)

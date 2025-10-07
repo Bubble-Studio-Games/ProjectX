@@ -11,7 +11,7 @@ public class CommandMoveAction : MoveAction
     {
         base.Awake();
 
-        m_iMaxMoveDistance = m_StatSystem.m_Stat.m_iDefaultMoveRange;
+        m_iMaxMoveDistance = m_StatSystem.m_Stat.m_iCommandMoveDistance;
     }
 
     public override BaseAction TakeAction(GridPosition gridPosition, Action onActionComplete)

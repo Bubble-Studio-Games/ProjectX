@@ -23,7 +23,7 @@ public class BaseStat : ScriptableObject
     public float m_fChaseSpeed; //  추격 이동 속도
     public float m_fWalkSpeed; //   기본 걷기 속도 & 정찰 이동 속도
 
-    public int m_iDefaultMoveRange; // 기본 이동 거리
+    public int m_iCommandMoveDistance; // 기본 이동 거리
     public int m_iDetectRange; // 감지 거리
     public int m_iChaseRange; // 추격 거리
 

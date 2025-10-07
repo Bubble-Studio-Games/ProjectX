@@ -85,6 +85,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      propertyPath: m_SpawnAnimationClip.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_RunAnimationClip.Array.data[0]
       value: 
       objectReference: {fileID: -203655887218126122, guid: 6524bd3581443374687966f0de3305bd, type: 3}
@@ -120,6 +124,18 @@ PrefabInstance:
       propertyPath: m_DeathAnimationClip.Array.data[0]
       value: 
       objectReference: {fileID: -203655887218126122, guid: c0112509d1c69694d8609d011c635b94, type: 3}
+    - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      propertyPath: m_SpawnAnimationClip.Array.data[0]
+      value: 
+      objectReference: {fileID: -203655887218126122, guid: 654497631dd924942a60d41307ee62fe, type: 3}
+    - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      propertyPath: m_SpawnAnimationClip.Array.data[1]
+      value: 
+      objectReference: {fileID: -203655887218126122, guid: 35c3619f43f1a634191f05767c9180e8, type: 3}
+    - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      propertyPath: m_SpawnAnimationClip.Array.data[2]
+      value: 
+      objectReference: {fileID: -203655887218126122, guid: e5e4acbac5c2c774ca6349bbac8e80a7, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_DamagedAnimationClip.Array.data[0]
       value: 
@@ -319,6 +335,10 @@ PrefabInstance:
     - target: {fileID: 7601346721002605746, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_TeamId
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7601346721002605746, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      propertyPath: m_isChaseCore
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7601346721002605772, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_Name

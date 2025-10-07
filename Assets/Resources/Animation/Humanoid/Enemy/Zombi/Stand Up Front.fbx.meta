@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: e4eeca70a6352ba4392571c29219cad6
+guid: 89655c9d79c645c408d27a072dce1378
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -33,11 +33,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Stand Up_B
+      name: Stand Up Front
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 683
+      lastFrame: 496
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
