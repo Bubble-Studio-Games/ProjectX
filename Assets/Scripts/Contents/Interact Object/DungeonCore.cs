@@ -36,8 +36,8 @@ public class DungeonCore : PassiveObject
         instance = this;
 
         // Hit 효과에 관하여 (석상 색상 변화 + Volume + Camera Shake)
-        m_StatSystem.OnDamaged += (s, e) => Hit();
-        m_StatSystem.OnDead += (s, e) => HeartZero();
+        m_AttributeSystem.OnDamaged += (s, e) => Hit();
+        m_AttributeSystem.OnDead += (s, e) => HeartZero();
 
         m_AudioSource = GetComponent<AudioSource>();
 
@@ -75,7 +75,7 @@ public class DungeonCore : PassiveObject
 
         // Camera Shake
         // ShakeCamera 호출 부분
-        float healthFactor = 1f - m_StatSystem.GetHealthNormalized();
+        float healthFactor = 1f - m_AttributeSystem.GetHealthNormalized();
         // 0 ~ 1 사이 (체력이 적을수록 1에 가까움)
 
         // healthFactor 비율로 1 ~ maxForce 사이를 보간

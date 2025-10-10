@@ -2,8 +2,10 @@ using GLTF.Schema;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Properties;
 using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.TextCore.Text;
 using static Define;
 using static Table_Camera_Shake;
@@ -20,7 +22,7 @@ public class GameEntityAnimator : MonoBehaviour
     [SerializeField] protected float m_fCrossTime = 0f;
 
     [Header("Ref")]
-    StatSystem m_StatSystem;
+    AttributeSystem m_StatSystem;
     private GameEntity m_GameEntity;
     protected GameEntitySounder m_GameEntitySounder;
 
@@ -38,6 +40,9 @@ public class GameEntityAnimator : MonoBehaviour
     [Header("Oder")]
     public AnimationClip[] m_OrderAnimationClip;
 
+    [Header("Value")]
+    public  float m_AnimatorOriginalVale = 1f;
+
     protected virtual void Awake()
     {
         // 애니메이션을 fps 설정에 따라 스텝 애니메이션으로 전부 변경
@@ -53,7 +58,7 @@ public class GameEntityAnimator : MonoBehaviour
         m_GameEntity.OnObjectSpawned += Spawned;
         m_GameEntity.OnObjectDespawned += DeSpawned;
 
-        m_StatSystem = GetComponentInParent<StatSystem>();
+        m_StatSystem = GetComponentInParent<AttributeSystem>();
         m_StatSystem.OnDead += (s, e) => Dead();
         m_StatSystem.OnRevived += (s, e) => ChangeAnimationAtStart(E_GameEntityClipType.Revive.ToString(), m_ReviveAnimationClip);
         m_StatSystem.OnDamaged += Animation_Damaged;
@@ -71,7 +76,7 @@ public class GameEntityAnimator : MonoBehaviour
         AnimationPlay();
     }
 
-    protected virtual void Animation_Damaged(object sender, StatSystem.OnAttackInfoEventArgs e) { }
+    protected virtual void Animation_Damaged(object sender, AttributeSystem.OnAttackInfoEventArgs e) { }
     
     public  void StepSoundPlay()
     {
@@ -156,8 +161,10 @@ public class GameEntityAnimator : MonoBehaviour
         }
         else
         {
-            // Ragdoll
-            //AnimationStop();
+            if (m_GameEntity.m_IsDirectDesawnAtDeath)
+            {
+                m_GameEntity.DeSpawnStart();
+            }
         }
     }
 
@@ -170,4 +177,11 @@ public class GameEntityAnimator : MonoBehaviour
     {
         m_Animator.speed = 1f; // 모든 레이어 애니메이션 정지
     }
+
+    public void AnimatonSpeedRestoreOriginalSpeed()
+    {
+        m_Animator.speed = m_AnimatorOriginalVale;
+
+    }
+
 }

@@ -10,7 +10,7 @@ public  class GameEntitySounder : MonoBehaviour
     public Dictionary<string, AudioSource> m_DicAudioSources = new Dictionary<string, AudioSource> ();
 
     [Header("Ref")]
-    protected StatSystem m_StatSystem;
+    protected AttributeSystem m_StatSystem;
     private GameEntity m_GameEntity;
 
     [Header("Spawn And DeSpawn")]
@@ -37,7 +37,7 @@ public  class GameEntitySounder : MonoBehaviour
         m_GameEntity.OnSpawnObjectSelected += (s, e) => SoundPlay(SpawnObjectSelectedClipList, E_GameEntityClipType.Select.ToString());
         m_GameEntity.OnObjectDespawned += (s, e) => SoundPlay(DeSpawnClipList, E_GameEntityClipType.DeSpawn.ToString());
 
-        m_StatSystem = GetComponentInParent<StatSystem>();
+        m_StatSystem = GetComponentInParent<AttributeSystem>();
         m_StatSystem.OnRevived += (s, e) => SoundPlay(ReviveClipList, E_GameEntityClipType.Revive.ToString());
         m_StatSystem.OnDead += (s, e) => SoundPlay(DestroyClipList, E_GameEntityClipType.Death.ToString());
 
@@ -47,12 +47,12 @@ public  class GameEntitySounder : MonoBehaviour
     public virtual void StepSoundPlay() { }
 
 
-    public virtual void DamagedSoundPlay(object sender, StatSystem.OnAttackInfoEventArgs e) 
+    public virtual void DamagedSoundPlay(object sender, AttributeSystem.OnAttackInfoEventArgs e) 
     {
         if (e.AttackPattern != null)
             return;
 
-        if (m_GameEntity.m_StatSystem.m_IsDead)
+        if (m_GameEntity.m_AttributeSystem.m_IsDead)
             return;
 
         switch (e.EHitDeCisionType)
