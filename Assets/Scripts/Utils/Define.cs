@@ -126,14 +126,14 @@ public partial class Define
 
     public enum E_Dir
     {
-        North,
-        NorthEast,
-        NorthWest,
-        East,
-        South,
-        SouthEast,
-        SouthWest,
-        West
+        North = 0,
+        NorthEast = 4,
+        NorthWest = 5,
+        East = 1,
+        South = 2,
+        SouthEast = 6,
+        SouthWest =7,
+        West =  3
     }
 
     public enum E_MoveType

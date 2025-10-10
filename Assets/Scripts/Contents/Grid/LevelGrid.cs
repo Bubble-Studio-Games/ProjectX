@@ -1,9 +1,8 @@
 using System;
-using System.Collections;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Unity.VisualScripting;
 using UnityEngine;
 using static Define;
 using static UnityEngine.EventSystems.EventTrigger;
@@ -326,7 +325,20 @@ public class LevelGrid : MonoBehaviour
 
         return false;
     }
+    public bool TryGetGridCellInfo(GridPosition pos, out GridCellInfo info)
+    {
+        info = null;
 
+        // 캐시가 존재하는지 확인
+        if (!_floorGridCache.TryGetValue(pos.floor, out var floorCache))
+            return false;
+
+        // 해당 좌표 셀 존재 여부 확인
+        if (!floorCache.TryGetValue(pos, out info))
+            return false;
+
+        return true;
+    }
     #endregion
 
     #region Get Grid System Info

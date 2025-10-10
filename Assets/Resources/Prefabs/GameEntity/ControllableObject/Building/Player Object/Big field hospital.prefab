@@ -34914,7 +34914,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1922872826179673982, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2382093558584436961, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
       propertyPath: m_Name
@@ -34993,6 +34993,14 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5340124430013226917, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5340124430013226917, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5340124430013226917, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
@@ -35041,8 +35049,32 @@ PrefabInstance:
       value: -0.40374994
       objectReference: {fileID: 0}
     - target: {fileID: 7616306088834256756, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
+      propertyPath: objectID
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 7616306088834256756, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
+      propertyPath: buffID.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7616306088834256756, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
+      propertyPath: buffID.Array.data[0]
+      value: 202
+      objectReference: {fileID: 0}
+    - target: {fileID: 7616306088834256756, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
+      propertyPath: <ObjectID>k__BackingField
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 7616306088834256756, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
       propertyPath: m_GridPositionOffsets.Array.size
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7616306088834256756, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
+      propertyPath: <BuffID>k__BackingField.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7616306088834256756, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
+      propertyPath: <BuffID>k__BackingField.Array.data[0]
+      value: 202
       objectReference: {fileID: 0}
     - target: {fileID: 7616306088834256756, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
       propertyPath: m_GridPositionOffsets.Array.data[0].x
