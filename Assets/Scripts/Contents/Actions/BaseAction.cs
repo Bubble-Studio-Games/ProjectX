@@ -15,7 +15,7 @@ public abstract class BaseAction : MonoBehaviour
     }
 
     public ControllableObject m_BaseObject { get; protected set; }
-    protected StatSystem m_StatSystem;
+    protected AttributeSystem m_StatSystem;
     protected bool m_bIsActive;
     protected Action onActionComplete;
 
@@ -26,7 +26,7 @@ public abstract class BaseAction : MonoBehaviour
     protected virtual void Awake()
     {
         m_BaseObject = GetComponentInParent<ControllableObject>();
-        m_StatSystem = GetComponentInParent<StatSystem>();
+        m_StatSystem = GetComponentInParent<AttributeSystem>();
     }
 
     protected virtual void Start()

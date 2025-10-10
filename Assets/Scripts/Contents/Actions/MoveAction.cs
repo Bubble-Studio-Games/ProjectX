@@ -54,7 +54,7 @@ public class MoveAction : BaseAction
             return;
         }
 
-        if (m_BaseObject.m_StatSystem.m_IsDead)
+        if (m_BaseObject.m_AttributeSystem.m_IsDead)
             return;
 
         Vector3 targetPosition = forwardPosition;

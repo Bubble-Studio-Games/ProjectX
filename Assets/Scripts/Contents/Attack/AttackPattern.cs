@@ -89,32 +89,32 @@ public  class AttackPattern : ScriptableObject
     public string AttackName;                    // 예: "전방3칸", "부채꼴" 등
     public List<GridPosition> m_RangeOffset = new();   // 공격 범위 오프셋 (유닛 기준)
     //public E_AttackEffectType E_AttackEffectType;
-    [HideInInspector] public E_AttackType m_EAttackType;
+    public E_AttackType m_EAttackType;
 
     public AttackPattern[] m_iNextAttackPattern;
     public AttackPattern m_iConditionPrevAttackPattern; // 
 
     [Header("Condition")]
-    public float m_iCoolTime = 2f;
-    public float lastCooltime { get; private set; }
+    public StatValue m_iCoolTime = 2f;
+    public StatValue lastCooltime { get; private set; }
     public bool m_bCoolTimeIsFinishied => Time.time - lastCooltime >= m_iCoolTime;
-    public int m_iManaCost;
+    public StatValue m_iManaCost;
     public bool m_IsTwoHandAttack; // 두 손 행동인가?
 
     [Header("Damage Info")]
-    public int m_iPhysicalAttackDamage;     // 물리 공격 데미지
-    public int m_iMagicAttackDamage;        // 미밥 공격 데미지
-    public int m_iPhysicalFixedDamage;      // 물리 고정 데미지
-    public int m_iMagicFixedDamage;         // 마법 고정 데미지
-    public float m_fPhysicalArmorPenetraion;    // 물리 방어구 관통력
-    public float m_fMagicalArmorPenetraion;     // 마법 방어구 관통력
+    public StatValue m_iPhysicalAttackDamage = new StatValue(0, false);     // 물리 공격 데미지
+    public StatValue m_iMagicAttackDamage = new StatValue(0, false);        // 미밥 공격 데미지
+    public StatValue m_iPhysicalFixedDamage = new StatValue(0, false);      // 물리 고정 데미지
+    public StatValue m_iMagicFixedDamage = new StatValue(0, false);         // 마법 고정 데미지
+    public StatValue m_fPhysicalArmorPenetraion = new StatValue(0, false);    // 물리 방어구 관통력
+    public StatValue m_fMagicalArmorPenetraion = new StatValue(0, false);     // 마법 방어구 관통력
 
     [Header("Battle Attack Chance")]
-    public int m_iCriticalChance = 5;     // 치명타율
-    public float m_fCriticalDamageUp = 1.5f;   // 치명타 데미지 증가율
-    public int m_fAccuracy = 95;           // 명중률
-    public float m_fAttackSpeed = 1;        // 공격 속도
-    public int m_iKnockbackChance;    // 넉백 확률
+    public StatValue m_iCriticalChance = new StatValue(0, false);     // 치명타율
+    public StatValue m_fCriticalDamageUp = new StatValue(1, false);   // 치명타 데미지 증가율
+    public StatValue m_fAccuracy = new StatValue(0, false);           // 명중률
+    public StatValue m_fAttackSpeed = new StatValue(1, false);        // 공격 속도
+    public StatValue m_iKnockbackChance = new StatValue(0, false);    // 넉백 확률
 
     [Header("Clip")]
     public AudioClip AttackAudioClip;
@@ -133,7 +133,7 @@ public  class AttackPattern : ScriptableObject
     public virtual E_AttackCondition CanExecute(ControllableObject attacker, GameEntity target)
     {
         // Mana
-        if (attacker.m_StatSystem.m_Stat.m_iCurrentMP < m_iManaCost)
+        if (attacker.m_AttributeSystem.m_Stat.m_iCurrentMP < m_iManaCost)
             return E_AttackCondition.Fail_ManaCost;
 
         // CoolTime

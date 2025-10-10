@@ -18,6 +18,7 @@ public class ASM_Controllable : StateMachineBehaviour
         if (stateInfo.IsName("Attack"))
         {
             m_ControllableObject.GetAction<CombatAction>().OnEndAttackEventInvoke();
+            m_ControllableObject.GetAnimationManager().AnimatonSpeedRestoreOriginalSpeed();
         }
         else if (stateInfo.IsName("AttackReadyFail"))
         {

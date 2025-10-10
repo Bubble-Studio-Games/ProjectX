@@ -105,7 +105,7 @@ public class DataManager
                 SaveSlot slot = JsonUtility.FromJson<SaveSlot>(json);
                 wrapper.slots[slotId] = slot;
 
-                Debug.Log($"{slotId}번 슬롯 데이터를 불러왔습니다.");
+                //Debug.Log($"{slotId}번 슬롯 데이터를 불러왔습니다.");
             }
         }
     }

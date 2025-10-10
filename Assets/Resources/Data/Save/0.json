@@ -3,47 +3,77 @@
     "data": {
         "objects": [
             {
-                "instanceID": -31368
+                "instanceID": -38652
+            },
+            {
+                "instanceID": -3391396
+            },
+            {
+                "instanceID": -3394320
+            },
+            {
+                "instanceID": -21976
+            },
+            {
+                "instanceID": -18936
+            },
+            {
+                "instanceID": -17108
+            },
+            {
+                "instanceID": 41672
+            },
+            {
+                "instanceID": -3384784
+            },
+            {
+                "instanceID": -7348
+            },
+            {
+                "instanceID": -3388004
+            },
+            {
+                "instanceID": -4586
+            },
+            {
+                "instanceID": -3388630
+            },
+            {
+                "instanceID": -3390874
+            },
+            {
+                "instanceID": -3384260
+            },
+            {
+                "instanceID": -3383736
             }
         ],
         "buildingCards": [
             {
-                "instanceID": -10917628
+                "instanceID": -3366554
             },
             {
-                "instanceID": -10917526
+                "instanceID": -3366350
             },
             {
-                "instanceID": -10917424
+                "instanceID": -3366866
             },
             {
-                "instanceID": -10917322
+                "instanceID": -3366968
             },
             {
-                "instanceID": -10917220
+                "instanceID": -3367070
             },
             {
-                "instanceID": -10917736
-            },
-            {
-                "instanceID": -10917838
-            },
-            {
-                "instanceID": -10917940
-            },
-            {
-                "instanceID": -10918042
-            },
-            {
-                "instanceID": -10918144
+                "instanceID": -3367274
             }
         ],
-        "downJam": 0,
+        "downJam": 610,
         "CameraTransform": {
-            "instanceID": 34424
+            "instanceID": 34350
         }
     },
     "createTime": "2025-09-20 01:51:58",
-    "lastSaveTime": "2025-09-20 01:56:21",
-    "totalPlaySeconds": 80.47782039642334
+    "lastSaveTime": "2025-10-01 19:19:54",
+    "totalPlaySeconds": 368.1988410949707
 }

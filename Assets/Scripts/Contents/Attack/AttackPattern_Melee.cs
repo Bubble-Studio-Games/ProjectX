@@ -9,12 +9,6 @@ using static Define;
 [CreateAssetMenu(menuName = "Attack Pattern/Melee")]
 public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
 {
-
-    public AttackPattern_Melee()
-    {
-        m_EAttackType = Define.E_AttackType.Melee;
-    }
-
     public override void StartAttack(ControllableObject attacker, GameEntity target, AttackPattern prevAttackpatern)
     {
         base.StartAttack(attacker, target, prevAttackpatern);
@@ -50,7 +44,7 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
         //if (E_AttackEffectType == E_AttackEffectType.Damage)
         {
             foreach (var t in targets)
-                t.m_StatSystem.Hit(this, attacker);
+                t.m_AttributeSystem.Hit(this, attacker);
         }
     }
 }

@@ -44,7 +44,6 @@ public class ControllableObjectAnimator : GameEntityAnimator
             combatAction.OnStartAttack += CombatAction_OnAttack;
         }
 
-
         #endregion
 
         // Idle
@@ -122,9 +121,14 @@ public class ControllableObjectAnimator : GameEntityAnimator
 
 
         ChangeAnimationAtStart(E_GameEntityClipType.Attack.ToString(), m_TempInfo.AttackAnimationClip);
+
+        // 선택한 공격 패턴의 공격 스피드를 애니메이터 스테이트의 스피드를 조정함.
+        // 공격 스피드 조정
+        // 런타임 중에 state의 speed 값 변경은 불가함.
+        m_Animator.speed =  e.attackPattern.m_fAttackSpeed;
     }
 
-    protected override void Animation_Damaged(object sender, StatSystem.OnAttackInfoEventArgs e)
+    protected override void Animation_Damaged(object sender, AttributeSystem.OnAttackInfoEventArgs e)
     {
         base.Animation_Damaged(sender, e);
 
@@ -136,7 +140,7 @@ public class ControllableObjectAnimator : GameEntityAnimator
         if (m_ControllableObject.GetAction<CombatAction>().m_ThisTimeAttack != null)
             return;
 
-        if (m_ControllableObject.m_StatSystem.m_IsDead)
+        if (m_ControllableObject.m_AttributeSystem.m_IsDead)
             return;
 
         // 공격 미스라면 넘기기
@@ -152,7 +156,7 @@ public class ControllableObjectAnimator : GameEntityAnimator
             ChangeAnimationAtStart(E_GameEntityClipType.Damaged.ToString(), m_DamagedAnimationClip);
     }
 
-    protected void OnAttackReadyFail(object sender, StatSystem.OnAttackInfoEventArgs e)
+    protected void OnAttackReadyFail(object sender, AttributeSystem.OnAttackInfoEventArgs e)
     {
         AttackReadyFail();
     }
@@ -194,7 +198,7 @@ public class ControllableObjectAnimator : GameEntityAnimator
             return;
         }
         // Success
-        else if (m_ControllableObject.m_Target != null && !m_ControllableObject.m_Target.m_StatSystem.m_IsDead)
+        else if (m_ControllableObject.m_Target != null && !m_ControllableObject.m_Target.m_AttributeSystem.m_IsDead)
         {
             combatAction.m_ThisTimeAttack.Attack(m_ControllableObject, m_ControllableObject.m_Target);
         }
@@ -203,6 +207,7 @@ public class ControllableObjectAnimator : GameEntityAnimator
         m_ControllableObject.GetSounderManager().AttackSoundPlay(combatAction.m_ThisTimeAttack);
 
         // Reduce Mana
-        m_ControllableObject.m_StatSystem.ReduceMP(combatAction.m_ThisTimeAttack.m_iManaCost);
+        m_ControllableObject.m_AttributeSystem.ReduceMP((int)combatAction.m_ThisTimeAttack.m_iManaCost.Value);
     }
+
 }

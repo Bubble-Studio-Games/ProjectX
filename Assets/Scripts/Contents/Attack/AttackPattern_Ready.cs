@@ -24,11 +24,6 @@ public class AttackPattern_Ready : AttackPattern<AttackPatternInfoClipWithReady>
     protected float lastAttackReadytime;
     public bool m_ISAttackReadyFinished => Time.time - lastAttackReadytime >= m_AttackReadyTime;
 
-    public AttackPattern_Ready()
-    {
-        m_EAttackType = Define.E_AttackType.Ready;
-    }
-
     public override void Init()
     {
         base.Init();
