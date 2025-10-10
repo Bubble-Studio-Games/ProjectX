@@ -51,8 +51,8 @@ public class DeveloperTool_BaseObject : MonoBehaviour
         attack.m_iMagicAttackDamage = TryParseInt(m_iMagicAttackDamage.text);
         attack.m_iPhysicalFixedDamage = TryParseInt(m_iPhysicalFixedDamage.text);
         attack.m_iMagicFixedDamage = TryParseInt(m_iMagicFixedDamage.text);
-        attack.m_fPhysicalArmorPenetraion = TryParseFloat(m_iPhysicalArmorPenetraion.text);
-        attack.m_fMagicalArmorPenetraion = TryParseFloat(m_iMagicalArmorPenetraion.text);
+        attack.m_fPhysicalArmorPenetraion = TryParseInt(m_iPhysicalArmorPenetraion.text);
+        attack.m_fMagicalArmorPenetraion = TryParseInt(m_iMagicalArmorPenetraion.text);
 
         attack.m_fAccuracy = 100;
         attack.m_iCriticalChance = TryParseInt(m_impCriticalChance.text);
@@ -65,7 +65,7 @@ public class DeveloperTool_BaseObject : MonoBehaviour
 
         foreach (ControllableObject obj in units)
         {
-            obj.m_StatSystem.ApplyDamage(attack, type, null);
+            obj.m_AttributeSystem.ApplyDamage(attack, type, null);
         }
     }
 

@@ -18,7 +18,7 @@ public interface IAccessories<TAnimator, TSounder>
     public  TSounder GetSounderManager();
 }
 
-[RequireComponent(typeof(StatSystem))]
+[RequireComponent(typeof(AttributeSystem))]
 public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameEntitySounder>
 {
     // Event
@@ -30,11 +30,12 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     [Header("Ref")]
     protected GameEntityAnimator m_AnimatorManager;
     protected GameEntitySounder m_SounderManager;
-    [SerializeField] public StatSystem m_StatSystem;
+    [SerializeField] public AttributeSystem m_AttributeSystem;
     public Collider m_HitCollider { get; protected set; }
-    [SerializeField] public Transform[] m_ModelTransforms;
     public SetupAnimation m_SetupAnimation { get; private set; }
-    public RewardData m_RewardData;
+
+    [SerializeField] public Transform[] m_ModelTransforms;
+    protected HashSet<(Material mat, GameObject obj)> m_ModelMaterials = new();
 
     [Header("Info")]
     public GridPosition[] m_GridPositionOffsets;
@@ -55,8 +56,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
     protected virtual void Awake()
     {
-        m_StatSystem = GetComponent<StatSystem>();
-        m_StatSystem.OnDead += (s, e) => Reward();
+        m_AttributeSystem = GetComponent<AttributeSystem>();
 
         if(m_AnimatorManager == null)
             m_AnimatorManager = GetComponentInChildren<GameEntityAnimator>();
@@ -91,6 +91,29 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     {
 
     }
+
+    public IEnumerable<(Material mat, GameObject obj)> GetModelsMaterial()
+    {
+        if (m_ModelMaterials == null || m_ModelMaterials.Count == 0)
+        {
+            // 렌더러 리스트를 먼저 구해서 즉시 평가
+            var renderers = m_ModelTransforms
+                .Where(t => t != null)
+                .SelectMany(t => t.GetComponentsInChildren<Renderer>(true))
+                .ToArray(); // ✅ ToArray()로 즉시 평가 (지연 실행 방지)
+
+            // 이제 renderer.materials로 개별 인스턴스 생성
+            m_ModelMaterials = renderers
+                .SelectMany(r => r.materials   // ✅ 인스턴스화 발생
+                    .Where(m => m != null)
+                    .Select(m => (mat: m, obj: r.gameObject)))
+                .ToHashSet();
+        }
+
+        return m_ModelMaterials;
+    }
+
+
 
     public List<Collider> GetChildColliders()
     {
@@ -321,80 +344,6 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
 
     #endregion
-
-
-    // 보물 상자, 몬스터 처치 등으로 보상 수령 가능
-    public void Reward()
-    {
-        if (m_RewardData == null)
-            return;
-
-        // --- 카드 보상 ---
-        if (Random.value <= m_RewardData.CardProb) // 0~1 범위 확률 체크
-        {
-            if (m_RewardData.rewardCards.Count > 0)
-            {
-                RewardCard selected = WeightedRandomSelect(m_RewardData.rewardCards);
-                //Debug.Log($"카드 획득: {selected.m_GameEntity.m_StatSystem.m_Stat.Name}");
-
-                BuildingTypeSelectUI.Instance.AddCard(selected.m_GameEntity, transform.position);
-                // TODO: 카드 인벤토리 추가 처리
-            }
-        }
-
-        // --- 잼 보상 ---
-        if (Random.value <= m_RewardData.downJamProb)
-        {
-            int jam = Random.Range(m_RewardData.downJamMin, m_RewardData.downJamMax + 1);
-            Inventory.Instance.AddDownJam(jam);
-            //Debug.Log($"다운잼 획득: {jam}");
-        }
-
-        // --- 버프 보상 ---
-        if (Random.value <= m_RewardData.BuffProb)
-        {
-            if (m_RewardData.rewardBuffs.Count > 0)
-            {
-                RewardBuff selected = WeightedRandomSelect(m_RewardData.rewardBuffs);
-                Debug.Log($"버프 획득: {selected.buffId}");
-                // TODO: 대상 오브젝트에 버프 적용
-            }
-        }
-
-        //// --- 이펙트 보상 ---
-        if (Random.value <= m_RewardData.EffectProb)
-        {
-            if (m_RewardData.rewardEffects.Count > 0)
-            {
-                RewardEffect selected = WeightedRandomSelect(m_RewardData.rewardEffects);
-                Debug.Log($"이펙트 발동: {selected.effectId}");
-                // TODO: 이펙트 실행
-            }
-        }
-    }
-
-    /// <summary>
-    /// 리스트 내부 확률이 합=1인 것을 전제하고 랜덤 선택
-    /// </summary>
-    private T WeightedRandomSelect<T>(List<T> list) where T : class
-    {
-        float roll = UnityEngine.Random.value;
-        float cumulative = 0f;
-
-        foreach (var item in list)
-        {
-            float prob = 0f;
-            if (item is RewardCard rc) prob = rc.Probability;
-            else if (item is RewardBuff rb) prob = rb.Probability;
-            else if (item is RewardEffect re) prob = re.Probability;
-
-            cumulative += prob;
-            if (roll <= cumulative)
-                return item;
-        }
-
-        return list[list.Count - 1]; // 안전장치
-    }
 
 
 

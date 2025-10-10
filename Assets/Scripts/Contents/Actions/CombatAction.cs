@@ -67,7 +67,7 @@ public class CombatAction : BaseAction
         var target = m_BaseObject.m_Target;
 
         // 2.1 Live or Dead?
-        if (target == null || target.m_StatSystem.m_IsDead)
+        if (target == null || target.m_AttributeSystem.m_IsDead)
         {
             target = null;
             return;
@@ -82,7 +82,7 @@ public class CombatAction : BaseAction
         if (m_ThisTimeAttack != null)
             todoAttackList = m_BaseObject.GetAttacksBaseByIDs(m_ThisTimeAttack.m_iNextAttackPattern);
         else
-            todoAttackList = m_BaseObject.m_StatSystem.m_Stat.m_AttackPatterns;
+            todoAttackList = m_BaseObject.m_AttributeSystem.m_AttackPatterns;
 
         todoAttack = SelectAttackPattern(todoAttackList);
 
@@ -153,7 +153,7 @@ public class CombatAction : BaseAction
     {
        // if (m_BaseObject.m_TeamId == E_TeamId.Player)
         {
-            if (m_BaseObject.m_Target == null || m_BaseObject.m_Target.m_StatSystem.m_IsDead)
+            if (m_BaseObject.m_Target == null || m_BaseObject.m_Target.m_AttributeSystem.m_IsDead)
             {
                 // 커맨드 어택 수행 도중 적이 죽어 있다면 초기화
                 m_BaseObject.m_isDetectionsurroundingsEnabled = true;

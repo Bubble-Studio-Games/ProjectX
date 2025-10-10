@@ -73,7 +73,7 @@ public class ControllableObjectSounder : GameEntitySounder
         SoundPlay(readyPattern.ReadyFailAudioClip, E_GameEntityClipType.Attack.ToString());
     }
 
-    public override void DamagedSoundPlay(object sender, StatSystem.OnAttackInfoEventArgs e)
+    public override void DamagedSoundPlay(object sender, AttributeSystem.OnAttackInfoEventArgs e)
     {
         if (e.AttackPattern != null)
             return;

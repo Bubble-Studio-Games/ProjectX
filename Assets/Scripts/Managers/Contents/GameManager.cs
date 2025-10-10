@@ -315,4 +315,25 @@ public class GameManager
         File.Copy(srcPath, dstPath, overwrite: true);
         Debug.Log($"파일 복사 완료: {originalName} → {newName}");
     }
+
+    public void GameEntityModelsSetLayer(GameEntity gameEntity, int layerID)
+    {
+        if (gameEntity == null)
+            return;
+
+        foreach (var (mat, obj) in gameEntity.GetModelsMaterial())
+        {
+            if (obj != null)
+                obj.layer = layerID;
+        }
+    }
+
+    public void GameEntityModelsSetColor(GameEntity gameEntity, Color color)
+    {
+        foreach (var (mat, obj) in gameEntity.GetModelsMaterial())
+        {
+            if (mat != null)
+                mat.color = color;
+        }
+    }
 }

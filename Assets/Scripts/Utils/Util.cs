@@ -114,4 +114,49 @@ public static class Util
         rest = list.Where((_, i) => i != index); // index만 제외한 새로운 시퀀스
         return pick;
     }
+
+
+
+    /// <summary>
+    /// min ~ max 범위에서 지정한 단위(step)만큼 간격을 두고 랜덤 값을 반환합니다.
+    /// 예: (1.2, 1.5, 0.1) → 1.2, 1.3, 1.4, 1.5 중 하나
+    /// 예: (20, 50, 10) → 20, 30, 40, 50 중 하나
+    /// </summary>
+    public static float GetRandomValue(float min, float max, float step)
+    {
+        if (step <= 0f)
+        {
+            Debug.LogWarning("Step must be greater than 0.");
+            return min;
+        }
+
+        int stepCount = Mathf.FloorToInt((max - min) / step);
+        if (stepCount < 0)
+        {
+            Debug.LogWarning("Invalid range: max must be greater than min.");
+            return min;
+        }
+
+        int randomIndex = UnityEngine.Random.Range(0, stepCount + 1);
+        float result = min + (randomIndex * step);
+
+        // 부동소수점 오차 방지용 (예: 1.299999 → 1.3)
+        result = (float)System.Math.Round(result, GetDecimalPlaces(step));
+
+        return result;
+    }
+
+    /// <summary>
+    /// step 값의 소수점 자릿수를 계산 (0.1 → 1, 0.01 → 2)
+    /// </summary>
+    private static int GetDecimalPlaces(float value)
+    {
+        int places = 0;
+        while (value * Mathf.Pow(10, places) % 1 != 0)
+        {
+            places++;
+            if (places > 5) break; // 안전장치
+        }
+        return places;
+    }
 }

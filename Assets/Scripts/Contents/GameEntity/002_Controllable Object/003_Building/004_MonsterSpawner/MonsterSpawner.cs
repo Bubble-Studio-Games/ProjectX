@@ -54,7 +54,7 @@ public class MonsterSpawner : Building
     private void SetSpawnGridPosition()
     {
         // 스탯 긁어오기 소환 범위
-        m_MSS = m_StatSystem.m_Stat as MonsterSpawnerStat;
+        m_MSS = m_AttributeSystem.m_Stat as MonsterSpawnerStat;
 
         GridPosition coreGridPosition = LevelGrid.Instance.GetGridPosition(Core.transform.position);
 
@@ -87,7 +87,7 @@ public class MonsterSpawner : Building
     // 쿨타임 체크
     private void CheckCoolTimeSpawnObject()
     {
-        if(m_StatSystem.m_IsDead) 
+        if(m_AttributeSystem.m_IsDead) 
             return;
 
         m_currentSpawnTimer += Time.deltaTime;
@@ -124,6 +124,12 @@ public class MonsterSpawner : Building
             var spawnObj = Managers.Resource.Instantiate<GameEntity>(pickObj.gameObject);
             spawnObj.transform.position = LevelGrid.Instance.GetWorldPosition(spawnPos);
             spawnObj.SpawnStart();
+            
+            // 등급 업 시도
+            if(spawnObj is ControllableObject cobj)
+            {
+                cobj.TryEnhanceGrade();
+            }
 
             // valid에서 제외
             validSpawnPosList.Remove(spawnPos);

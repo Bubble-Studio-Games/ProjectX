@@ -20,7 +20,7 @@ public class IdleAction : BaseAction
             if (m_BaseObject.m_TeamId == E_TeamId.Monster)
             {
 
-                if(DungeonCore.instance == null || DungeonCore.instance.m_StatSystem.m_IsDead)
+                if(DungeonCore.instance == null || DungeonCore.instance.m_AttributeSystem.m_IsDead)
                 {
                     return this;
                 }
@@ -49,7 +49,7 @@ public class IdleAction : BaseAction
 
         // 현재 위치에서 바로 공격 가능하다면 CombatAction으로
         // 1. 현재 가능한 공격 패턴 가져오기
-        var attackPatterns = m_BaseObject.m_StatSystem.m_Stat.m_AttackPatterns;
+        var attackPatterns = m_BaseObject.m_AttributeSystem.m_AttackPatterns;
 
         // 2. 모든 공격 위치 오프셋 가져오기
         E_Dir dir = LevelGrid.Instance.GetDirGridPosition(m_BaseObject.GetGridPosition(), m_BaseObject.m_Target.GetGridPosition());
