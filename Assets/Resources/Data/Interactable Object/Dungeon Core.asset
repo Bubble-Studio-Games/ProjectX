@@ -16,21 +16,33 @@ MonoBehaviour:
   Name: Dungeon Core
   sprite: {fileID: 0}
   m_sDescription: 
-  m_iMaxHP: 5
-  m_iCurrentHp: 0
+  m_iMaxHP:
+    _value: 5
+  m_iCurrentHp:
+    _value: 0
   m_iIsStepReduceHP: 1
-  m_iMaxMP: 0
-  m_iCurrentMP: 0
-  m_fChaseSpeed: 0
-  m_fWalkSpeed: 0
-  m_iDefaultMoveRange: 0
+  m_fHPRegenrate:
+    _value: 0
+  m_fMPRegenrate:
+    _value: 0
+  m_iMaxMP:
+    _value: 0
+  m_iCurrentMP:
+    _value: 0
+  m_fChaseSpeed:
+    _value: 0
+  m_fWalkSpeed:
+    _value: 0
+  m_iCommandMoveDistance: 0
   m_iDetectRange: 0
   m_iChaseRange: 0
-  m_iPhysicalDefence: 0
-  m_iMagicalDefence: 0
-  m_fCounterAttackChance: 0
-  m_fEvasionChance: 0
-  m_fKnockbackRegist: 0
-  m_iSpawnCost: 0
-  m_iRewardDownjam: 0
-  m_AttackPatterns: []
+  m_iPhysicalDefence:
+    _value: 0
+  m_iMagicalDefence:
+    _value: 0
+  m_fCounterAttackChance:
+    _value: 0
+  m_fEvasionChance:
+    _value: 0
+  m_fKnockbackRegist:
+    _value: 0

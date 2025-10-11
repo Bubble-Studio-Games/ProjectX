@@ -78,6 +78,3 @@ crashlytics-build.properties
 # 언제든 생성할 수 있는 스텝 애니메이션 이하의 폴더
 Assets/Resources/Data/Animation/SteppedClips/
 Assets/Resources/Data/Animation/SteppedClips.meta
-
-
-

@@ -26,7 +26,7 @@ public class UnitRagdoll : MonoBehaviour
     // 초기 포즈 저장 (Ragdoll 전환 전)
     private Dictionary<Transform, Pose> originalPoseMap = new();
 
-    StatSystem m_StatSystem;
+    AttributeSystem m_StatSystem;
 
     private void Awake()
     {
@@ -48,7 +48,7 @@ public class UnitRagdoll : MonoBehaviour
 
         // Event
         GetComponentInParent<Unit>().OnObjectSpawned += DisableRagdollAndRestorePose;
-        m_StatSystem = GetComponentInParent<StatSystem>();
+        m_StatSystem = GetComponentInParent<AttributeSystem>();
         m_StatSystem.OnDead += EnableRagdoll;
     }
 
@@ -60,7 +60,7 @@ public class UnitRagdoll : MonoBehaviour
     }
 
     // 레그돌 활성화
-    public void EnableRagdoll(object sender, StatSystem.OnAttackInfoEventArgs e)
+    public void EnableRagdoll(object sender, AttributeSystem.OnAttackInfoEventArgs e)
     {
         // 애니메이터 끄기
         //m_Animator.enabled = false;

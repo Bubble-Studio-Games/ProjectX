@@ -4,6 +4,43 @@ using UnityEngine;
 
 public partial class Define
 {
+    #region Attack Pattern
+
+    public enum E_AttackType
+    {
+        None,           // 비공격형
+        Physical,       // 물리 공격 (근접, 투사체 등)
+        Magic,          // 마법 공격 (MP 소비, 마법 방어 계산)
+        Dot,            // 지속 피해 (DoT)
+        Buff,           // 강화/보조형
+        Debuff,         // 약화형 (적에게 상태이상 or 디버프)
+        Heal,           // 회복형 (아군 회복)
+        Summon,         // 소환형 (새로운 유닛 생성)
+        Knockback,      // 밀치기 등 위치 이동
+    }
+
+    #endregion
+
+
+    public enum E_ObjectEnhanceType
+    {
+        Health, 
+        Magic, 
+        Physical, 
+        Defense, 
+        Speed, 
+        Critical, 
+        Range, 
+        Skill
+    }
+
+    public enum E_ObjectGrade
+    {
+        Normal,
+        Elite,
+        Boss
+    }
+
     public enum E_BuildingType
     {
         None,
@@ -59,14 +96,6 @@ public partial class Define
         Fail_IndividualCondition,
         Fail_ManaCost,
         Fail_NotHasPrevAttack,
-    }
-
-    public enum E_AttackType
-    {
-        Ready,
-        Melee,   // 무기 휘두름, 칸 밀착, 애니메이션 실행
-        Ranged,  // 투사체 발사, 일정 거리 안에서 공격
-        Summon   // 유닛 소환
     }
 
     public enum E_AttackEffectType
@@ -152,6 +181,7 @@ public partial class Define
         Interact = 3, 
         AutoTrigger = 4,
         Obstacle,
+        Skill,
     }
 
     #region Base

@@ -382,6 +382,10 @@ PrefabInstance:
       propertyPath: m_Stat
       value: 
       objectReference: {fileID: 11400000, guid: ff4d4203de4dcde4a91a9e6757bbcdf7, type: 2}
+    - target: {fileID: 5940122002470990004, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
+      propertyPath: m_originalStat
+      value: 
+      objectReference: {fileID: 11400000, guid: ff4d4203de4dcde4a91a9e6757bbcdf7, type: 2}
     - target: {fileID: 6907851944178665908, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -418,6 +422,10 @@ PrefabInstance:
       propertyPath: m_CurrentEDir
       value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 7616306088834256756, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
+      propertyPath: m_AttributeSystem
+      value: 
+      objectReference: {fileID: 5381617775191971133}
     - target: {fileID: 7616306088834256756, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
       propertyPath: m_GridPositionOffsets.Array.size
       value: 1
@@ -479,3 +487,14 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 80441506840520776, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
   m_PrefabInstance: {fileID: 1783660366899520905}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5381617775191971133 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5940122002470990004, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
+  m_PrefabInstance: {fileID: 1783660366899520905}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c347f21394851804cbdfd5dd3f0642a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
