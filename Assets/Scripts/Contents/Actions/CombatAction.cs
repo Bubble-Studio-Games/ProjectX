@@ -1,14 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using static Define;
-using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
-using Random = System.Random;
 
 public class CombatAction : BaseAction
 {
@@ -213,9 +207,15 @@ public class CombatAction : BaseAction
         var validPatterns = patterns
             .Where(attack => attack.CanExecute(m_BaseObject, m_BaseObject.m_Target) == E_AttackCondition.Success)
             .ToList();
-        validPatterns = validPatterns.Where(attack => attack.m_RangeOffset.Any(offset =>
-                LevelGrid.Instance.ToGridPosition(offset, m_BaseObject.GetGridPosition(), dir) == m_BaseObject.m_Target.GetGridPosition()
-                )).ToList();
+        
+        validPatterns = validPatterns.Where(attack =>
+        {
+            if (attack.m_EAttackType == E_AttackType.Summon)
+                return true;
+            
+            return attack.m_RangeOffset.Any(offset =>
+                LevelGrid.Instance.ToGridPosition(offset, m_BaseObject.GetGridPosition(), dir) == m_BaseObject.m_Target.GetGridPosition());
+        }).ToList();
 
         if (validPatterns.Count == 0)
             return null; // 공격 가능한 패턴이 없다면 null

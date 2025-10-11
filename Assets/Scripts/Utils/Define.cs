@@ -65,7 +65,8 @@ public partial class Define
     {
         Ready,
         Melee,   // 무기 휘두름, 칸 밀착, 애니메이션 실행
-        Ranged   // 투사체 발사, 일정 거리 안에서 공격
+        Ranged,  // 투사체 발사, 일정 거리 안에서 공격
+        Summon   // 유닛 소환
     }
 
     public enum E_AttackEffectType

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Poolable), typeof(Rigidbody))]
@@ -40,6 +41,9 @@ public class Projectile : Item
 
         // 콜라이더 끄기
         m_Collider.enabled = false;
+
+        foreach (Transform child in transform)
+            child.gameObject.SetActive(true);
     }
 
     public override void OnDisable()
@@ -62,23 +66,37 @@ public class Projectile : Item
         }
         else
         {
-            // 자식들 모두 setactieve false로 바꾸기
             foreach (Transform child in transform)
-            {
                 child.gameObject.SetActive(false);
-            }
 
             StartCoroutine(ObjectDestroy());
         }
     }
 
+    public void Update()
+    {
+        foreach (Transform child in transform)
+            child.gameObject.SetActive(true);
+    }
+
+    public void LateUpdate()
+    {
+        foreach (Transform child in transform)
+            child.gameObject.SetActive(true);
+    }
+
+
     public void AttackReady(ControllableObject owner, AttackPattern attack)
     {
+        foreach (Transform child in transform)
+            child.gameObject.SetActive(true);
+
         // Audio
         m_AudioSource.PlayOneShot(m_ProjectileFlyingAudioClip);
 
         // 콜라이더 켜기
         m_Collider.enabled = true;
+        
         m_Owner = owner;
         m_AttackPattern = attack;
     }

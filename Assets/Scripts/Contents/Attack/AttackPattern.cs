@@ -115,6 +115,7 @@ public  class AttackPattern : ScriptableObject
     public int m_fAccuracy = 95;           // 명중률
     public float m_fAttackSpeed = 1;        // 공격 속도
     public int m_iKnockbackChance;    // 넉백 확률
+    [Range(0.0f, 2.0f)] public float m_fLifeStealPercent = 0f;  // 흡혈 비율 - 피해량 대비
 
     [Header("Clip")]
     public AudioClip AttackAudioClip;

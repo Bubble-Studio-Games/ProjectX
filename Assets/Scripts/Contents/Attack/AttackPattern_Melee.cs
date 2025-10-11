@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using static Define;
 
 [CreateAssetMenu(menuName = "Attack Pattern/Melee")]
 public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
 {
+    private int _totalDamageDealt = 0;      
 
     public AttackPattern_Melee()
     {
@@ -17,6 +16,7 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
 
     public override void StartAttack(ControllableObject attacker, GameEntity target, AttackPattern prevAttackpatern)
     {
+        Clear();
         base.StartAttack(attacker, target, prevAttackpatern);
         
         // 전 준비 단계가 있다면 해시에서 제거
@@ -48,9 +48,32 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
             .ToList();
 
         //if (E_AttackEffectType == E_AttackEffectType.Damage)
+        foreach (var t in targets)
         {
-            foreach (var t in targets)
-                t.m_StatSystem.Hit(this, attacker);
+            int hpBefore = t.m_StatSystem.m_Stat.m_iCurrentHp;
+            t.m_StatSystem.Hit(this, attacker);
+            int hpAfter = t.m_StatSystem.m_Stat.m_iCurrentHp;
+            
+            _totalDamageDealt += hpBefore - hpAfter;
         }
+    }
+
+    public override void EndAttack(ControllableObject attacker, GameEntity target)
+    {
+        base.EndAttack(attacker, target);
+
+        if (m_fLifeStealPercent <= 0 || _totalDamageDealt <= 0)
+            return;
+        
+        // 흡혈 적용
+        int healAmount = Mathf.RoundToInt(_totalDamageDealt * m_fLifeStealPercent);
+        attacker.m_StatSystem.Heal(healAmount);
+
+        Clear();
+    }
+
+    private void Clear()
+    {
+        _totalDamageDealt = 0;
     }
 }

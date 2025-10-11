@@ -119,7 +119,13 @@ public class ControllableObjectAnimator : GameEntityAnimator
         {
             m_TempInfo = e.attackPattern.GetBaseClip().RandomPick();
         }
+        else if (e.attackPattern is AttackPattern_Summon summon)
+        {
+            m_TempInfo = e.attackPattern.GetBaseClip().RandomPick();
+        }
 
+        if (m_TempInfo == null)
+            return;
 
         ChangeAnimationAtStart(E_GameEntityClipType.Attack.ToString(), m_TempInfo.AttackAnimationClip);
     }
@@ -193,8 +199,9 @@ public class ControllableObjectAnimator : GameEntityAnimator
             //combatAction.OnEndAttackEventInvoke();
             return;
         }
+
         // Success
-        else if (m_ControllableObject.m_Target != null && !m_ControllableObject.m_Target.m_StatSystem.m_IsDead)
+        if (m_ControllableObject.m_Target != null && !m_ControllableObject.m_Target.m_StatSystem.m_IsDead)
         {
             combatAction.m_ThisTimeAttack.Attack(m_ControllableObject, m_ControllableObject.m_Target);
         }

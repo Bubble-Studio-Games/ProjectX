@@ -177,6 +177,14 @@ public class StatSystem : MonoBehaviour
         OnMPUsed?.Invoke(this, EventArgs.Empty);
     }
 
+    public void Heal(int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        health = Math.Min(healthMax, health + amount);
+    }
+
     public float GetHealthNormalized()
     {
         return (float)health / healthMax;

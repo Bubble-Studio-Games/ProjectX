@@ -12,6 +12,7 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
     private Projectile m_SpawnProjectile;
 
     [Header("Projectile Property")]
+    [SerializeField] private bool m_bUseProjectileLaunch = false; // Projectile.Launch 사용 여부
     [SerializeField] private float StraighSpeed = 10f;
     [SerializeField] private float PalabolaSpeed = 5f;
     [SerializeField] private float detectionHitRadius = 2f;
@@ -69,7 +70,14 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
 
         Transform spawnTransform = null;
 
-        if(attacker is Unit unit)
+        if (attacker is Unit u &&
+                u.m_UnitWeaponSlotManager.m_RightHandSlot == null &&
+                u.m_UnitWeaponSlotManager.m_LeftHandSlot == null)
+        {
+            spawnTransform = u.transform;
+        }
+
+        if(attacker is Unit unit && spawnTransform == null)
         {
             var slot = unit.m_UnitWeaponSlotManager;
 
@@ -99,12 +107,28 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
         // 교체할 오브젝트가 있는가?
         if (m_ProjectilePrefab != null)
         {
-            attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject.Destroy();
+            if (attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject != null)
+            {
+                attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject.Destroy();
+            }
 
             // 새로운 발사 오브젝트를 생성
             m_SpawnProjectile = Managers.Resource.Instantiate<Projectile>(m_ProjectilePrefab, spawnTransform);
             m_SpawnProjectile.transform.localPosition = Vector3.zero;
             m_SpawnProjectile.transform.localRotation = Quaternion.identity;
+
+            // Projectile.Launch 사용하는 경우 바로 발사
+            if (m_bUseProjectileLaunch)
+            {
+                m_SpawnProjectile.AttackReady(attacker, this);
+                m_SpawnProjectile.transform.SetParent(null);
+                
+                Vector3 baseCenter = target.m_HitCollider.bounds.center;
+                float height = target.m_HitCollider.bounds.size.y;
+                Vector3 targetPos = baseCenter + Vector3.up * (height * (1f / 6f));
+                
+                attacker.StartCoroutine(LaunchStraight(m_SpawnProjectile, targetPos));
+            }
         }
         else
         {
@@ -122,49 +146,56 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
 
     public override void Attack(ControllableObject attacker, GameEntity target)
     {
-        // 부모 분리 (손에서 떨어뜨림)
-        m_SpawnProjectile.transform.SetParent(null);
+        if (m_bUseProjectileLaunch)
+            return;
 
-        Vector3 ProjectileStartPosition = m_SpawnProjectile.transform.position;
+        Projectile projectile = m_SpawnProjectile;
+        
+        if (projectile == null)
+            return;
+
+        projectile.AttackReady(attacker, this);
+
+        // 부모 분리 (손에서 떨어뜨림)
+        projectile.transform.SetParent(null);
+
+        Vector3 ProjectileStartPosition = projectile.transform.position;
 
         // 콜라이더의 y축 기준 2/3 지점으로
         Vector3 baseCenter = target.m_HitCollider.bounds.center;
         float height = target.m_HitCollider.bounds.size.y;
         Vector3 ProjectileEndPosition = baseCenter + Vector3.up * (height * (1f / 6f));
 
-
-        m_SpawnProjectile.AttackReady(attacker, this);
-
         if (!m_iIsLaunchProjectileParabola)
-            attacker.StartCoroutine(LaunchStraight(attacker, ProjectileEndPosition));
+            attacker.StartCoroutine(LaunchStraight(projectile, ProjectileEndPosition));
         else
-            attacker.StartCoroutine(LaunchParabola(attacker, ProjectileStartPosition, ProjectileEndPosition));
+            attacker.StartCoroutine(LaunchParabola(projectile, ProjectileStartPosition, ProjectileEndPosition));
     }
 
-    private IEnumerator LaunchStraight(ControllableObject attacker, Vector3 targetPos)
+    private IEnumerator LaunchStraight(Projectile projectile, Vector3 targetPos)
     {
-        while (Vector3.Distance(m_SpawnProjectile.transform.position, targetPos) > 0.1f)
+        while (projectile != null && Vector3.Distance(projectile.transform.position, targetPos) > 0.1f)
         {
             Vector3 nextPos = Vector3.MoveTowards(
-                m_SpawnProjectile.transform.position, targetPos, StraighSpeed * Time.deltaTime);
-            m_SpawnProjectile.m_Rigidbody.MovePosition(nextPos);
+                projectile.transform.position, targetPos, StraighSpeed * Time.deltaTime);
+            projectile.m_Rigidbody.MovePosition(nextPos);
             yield return new WaitForFixedUpdate(); // 반드시 FixedUpdate 주기로
         }
     }
 
-    private IEnumerator LaunchParabola(ControllableObject attacker, Vector3 start, Vector3 end)
+    private IEnumerator LaunchParabola(Projectile projectile, Vector3 start, Vector3 end)
     {
         float t = 0;
         float duration = Vector3.Distance(start, end) / PalabolaSpeed;
 
-        while (t < 1f)
+        while (t < 1f && projectile != null)
         {
             t += Time.deltaTime / duration;
 
             Vector3 currentPos = Vector3.Lerp(start, end, t);
             currentPos.y += boundHeight * Mathf.Sin(t * Mathf.PI);
 
-            m_SpawnProjectile.m_Rigidbody.MovePosition(currentPos);
+            projectile.m_Rigidbody.MovePosition(currentPos);
             yield return new WaitForFixedUpdate(); // FixedUpdate 주기
         }
     }
