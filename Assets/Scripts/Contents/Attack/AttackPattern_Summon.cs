@@ -32,7 +32,7 @@ public class AttackPattern_Summon : AttackPattern<AttackPatternInfoClip>
         if (ret != E_AttackCondition.Success)
             return ret;
 
-        _summonInstances.RemoveAll(unit => unit == null || unit.m_StatSystem.m_IsDead);
+        _summonInstances.RemoveAll(unit => unit == null || unit.m_AttributeSystem.m_IsDead);
 
         if (_summonInstances.Count >= _maxSummonCount)
             return E_AttackCondition.Fail_IndividualCondition;

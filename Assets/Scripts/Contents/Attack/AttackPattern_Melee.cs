@@ -23,7 +23,6 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
 
     public override void Attack(ControllableObject attacker, GameEntity target) // 종료
     {
-
         // 기본적으로 범위 내의 모든 적들을 공격함.
         GridPosition selfPos = attacker.GetGridPosition();
         GridPosition targetPos = target.GetGridPosition();
@@ -45,9 +44,9 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
         //if (E_AttackEffectType == E_AttackEffectType.Damage)
         foreach (var t in targets)
         {
-            int hpBefore = t.m_AttributeSystem.m_Stat.m_iCurrentHp;
+            int hpBefore = (int)t.m_AttributeSystem.m_Stat.m_iCurrentHp;
             t.m_AttributeSystem.Hit(this, attacker);
-            int hpAfter = t.m_AttributeSystem.m_Stat.m_iCurrentHp;
+            int hpAfter = (int)t.m_AttributeSystem.m_Stat.m_iCurrentHp;
             
             _totalDamageDealt += hpBefore - hpAfter;
         }
@@ -62,7 +61,9 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
         
         // 흡혈 적용
         int healAmount = Mathf.RoundToInt(_totalDamageDealt * m_fLifeStealPercent);
-        attacker.m_AttributeSystem.Heal(healAmount);
+        StatValue currentHp = attacker.m_AttributeSystem.m_Stat.m_iCurrentHp;
+        StatValue maxHp = attacker.m_AttributeSystem.m_Stat.m_iMaxHP;
+        attacker.m_AttributeSystem.m_Stat.m_iCurrentHp = Mathf.Min(currentHp + healAmount, maxHp);
 
         Clear();
     }
