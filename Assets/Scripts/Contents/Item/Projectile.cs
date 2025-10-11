@@ -134,7 +134,7 @@ public class Projectile : Item
             if (target != null && m_Owner.IsEnemy(target))
             {
                 // 타격 처리
-                target.m_StatSystem.Hit(m_AttackPattern, m_Owner);
+                target.m_AttributeSystem.Hit(m_AttackPattern, m_Owner);
                 HitEffect(col.contacts[0].point);
 
                 Destroy();

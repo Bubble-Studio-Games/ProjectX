@@ -9,11 +9,6 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
 {
     private int _totalDamageDealt = 0;      
 
-    public AttackPattern_Melee()
-    {
-        m_EAttackType = Define.E_AttackType.Melee;
-    }
-
     public override void StartAttack(ControllableObject attacker, GameEntity target, AttackPattern prevAttackpatern)
     {
         Clear();
@@ -50,9 +45,9 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
         //if (E_AttackEffectType == E_AttackEffectType.Damage)
         foreach (var t in targets)
         {
-            int hpBefore = t.m_StatSystem.m_Stat.m_iCurrentHp;
-            t.m_StatSystem.Hit(this, attacker);
-            int hpAfter = t.m_StatSystem.m_Stat.m_iCurrentHp;
+            int hpBefore = t.m_AttributeSystem.m_Stat.m_iCurrentHp;
+            t.m_AttributeSystem.Hit(this, attacker);
+            int hpAfter = t.m_AttributeSystem.m_Stat.m_iCurrentHp;
             
             _totalDamageDealt += hpBefore - hpAfter;
         }
@@ -67,7 +62,7 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
         
         // 흡혈 적용
         int healAmount = Mathf.RoundToInt(_totalDamageDealt * m_fLifeStealPercent);
-        attacker.m_StatSystem.Heal(healAmount);
+        attacker.m_AttributeSystem.Heal(healAmount);
 
         Clear();
     }

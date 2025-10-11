@@ -21,12 +21,6 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
     [SerializeField] private float boundHeight;
     public bool m_iIsLaunchProjectileParabola { get; private set; }
 
-
-    public AttackPattern_Range()
-    {
-        m_EAttackType = Define.E_AttackType.Ranged;
-    }
-
     public override E_AttackCondition CanExecute(ControllableObject attacker, GameEntity target)
     {
         if (base.CanExecute(attacker, target) >= E_AttackCondition.Fail_None)

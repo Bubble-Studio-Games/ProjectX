@@ -228,7 +228,7 @@ public class LevelGrid : MonoBehaviour
                 continue;
 
             // 죽은 놈패스
-            if (serch == null || serch.m_StatSystem.m_IsDead)
+            if (serch == null || serch.m_AttributeSystem.m_IsDead)
                 continue;
 
             // (옵션) 자동 탐지가 아닌 것들 Spanwer 같은 것들
@@ -321,7 +321,7 @@ public class LevelGrid : MonoBehaviour
         ControllableObject attacker = GetObjectAtGridPosition<ControllableObject>(gridPosition);
 
         int pos = gridPosition.x - targetPosition.x + gridPosition.z - targetPosition.z;
-        if (attacker.m_StatSystem.m_Stat.m_iChaseRange <= pos)
+        if (attacker.m_AttributeSystem.m_Stat.m_iChaseRange <= pos)
             return true;
 
         return false;

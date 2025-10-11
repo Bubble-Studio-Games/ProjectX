@@ -1,7 +1,13 @@
 #!/bin/sh
+# ===============================================================
+# pre-commit: 대용량 및 특정 확장자 파일을 자동으로 DVC로 이관
+# - 특정 확장자는 무조건 DVC로 관리
+# - 조건부 확장자는 100MB 초과 시 DVC로 관리
+# - 이미 DVC 추적 중이면 건너뜀
+# - Git에서 추적 중이면 자동으로 추적 해제 후 DVC 전환
+# ===============================================================
 
-# pre-commit: 특정 확장자는 무조건 DVC, 조건부 확장자는 100MB 초과 시 DVC
-# 이미 DVC로 추적 중이면 건너뜀, dvc add 실패 시 git rm 및 gitignore 조작도 하지 않음
+echo "[husky] pre-commit running" >&2
 
 LIMIT=104857600  # 100MB
 found=false
@@ -23,19 +29,25 @@ while IFS= read -r -d '' file; do
         esac
 
         if [ "$process" = true ]; then
-            echo "⚠️ DVC 대상 파일 감지: $file (size: $size bytes)"
+            echo "⚠️  DVC 대상 파일 감지: $file (size: $size bytes)"
 
             # 이미 DVC에서 추적 중인지 확인 (.dvc 메타 존재)
             if [ -f "$file.dvc" ]; then
-                echo "ℹ️ Already tracked by DVC (.dvc exists): $file → skip"
+                echo "ℹ️  Already tracked by DVC (.dvc exists): $file → skip"
                 continue
+            fi
+
+            # Git이 이미 추적 중이면 자동 untrack
+            if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+                echo "⚠️  Git에서 이미 추적 중: $file → 추적 해제 후 DVC로 전환"
+                git rm --cached "$file"
             fi
 
             # dvc add 실행
             if dvc add "$file"; then
-                echo "✅ dvc add succeeded for $file"
+                echo "✅  dvc add succeeded for $file"
 
-                # Git 추적에서 제거 (Git에 올라가 있을 때만)
+                # 혹시 남아 있는 Git 추적이 있으면 한 번 더 해제
                 if git ls-files --cached --error-unmatch "$file" >/dev/null 2>&1; then
                     git rm --cached "$file"
                 fi
@@ -49,15 +61,15 @@ while IFS= read -r -d '' file; do
 
                 found=true
             else
-                echo "❌ dvc add failed for $file, skipping..."
+                echo "❌  dvc add failed for $file, skipping..."
             fi
         fi
     fi
 done
 
-# 커밋 중단 처리
+# 커밋 중단 처리 (DVC 전환된 파일이 있으면 재커밋 유도)
 if [ "$found" = true ]; then
-    echo "❌ Commit aborted. Some files were moved to DVC."
+    echo "❌  Commit aborted. Some files were moved to DVC."
     echo "   Please commit again (.dvc + .gitignore now included)."
     exit 1
 fi

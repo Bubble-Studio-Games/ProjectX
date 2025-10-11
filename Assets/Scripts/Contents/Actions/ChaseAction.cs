@@ -42,13 +42,21 @@ public class ChaseAction : MoveAction
                 // 몬스터의 최종 목적지는 던전 핵!
                 if (m_BaseObject.m_TeamId == E_TeamId.Monster)
                 {
-                    if (DungeonCore.instance == null || DungeonCore.instance.m_StatSystem.m_IsDead)
+
+                    if (DungeonCore.instance == null || DungeonCore.instance.m_AttributeSystem.m_IsDead)
                     {
                         return m_BaseObject.GetAction<IdleAction>();
                     }
                     else
                     {
-                        m_BaseObject.SetTarget(DungeonCore.instance);
+                        if (m_BaseObject.m_isChaseCore)
+                        {
+                            m_BaseObject.SetTarget(DungeonCore.instance);
+                        }
+                        else
+                        {
+                            return m_BaseObject.GetAction<IdleAction>();
+                        }
                     }
                 }
                 else if (m_BaseObject.m_TeamId == E_TeamId.Player)
@@ -62,7 +70,7 @@ public class ChaseAction : MoveAction
         else
         {
             // 커맨드 어택 수행 도중 적이 죽어 있다면 초기화
-            if(m_BaseObject.m_Target == null || m_BaseObject.m_Target.m_StatSystem.m_IsDead)
+            if(m_BaseObject.m_Target == null || m_BaseObject.m_Target.m_AttributeSystem.m_IsDead)
             {
                 m_BaseObject.m_isDetectionsurroundingsEnabled = true;
                 //m_BaseObject.SetTarget(null);
@@ -102,7 +110,7 @@ public class ChaseAction : MoveAction
     private List<GridPosition> GetAttackGridPosition(GridPosition gridPosition, GridPosition targetPosition)
     {
         // 1. 현재 가능한 공격 패턴 가져오기
-        var attackPatterns = m_BaseObject.m_StatSystem.m_Stat.m_AttackPatterns;
+        var attackPatterns = m_BaseObject.m_AttributeSystem.m_AttackPatterns;
         List<GridPosition> bestPosition = new();
 
         attackPatterns = attackPatterns
