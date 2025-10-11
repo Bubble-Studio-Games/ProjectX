@@ -48,6 +48,7 @@ MonoBehaviour:
     _value: 1
   m_iKnockbackChance:
     _value: 0
+  m_fLifeStealPercent: 0
   AttackAudioClip: {fileID: 8300000, guid: 1785fff83652f42399d9b2017b05656c, type: 3}
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: fac33952d7f717a49a944fd678ff1b6b, type: 2}
+  - AttackAnimationClip: {fileID: 7400000, guid: fa2b00ce4d7033b4a96e7549cc0a8532, type: 2}

@@ -70,17 +70,37 @@ public class AttackPattern<TClip> : AttackPattern
         }
 
         _originalClips.Clear();
-
     }
 
 
     public TClip[] m_Clips;
 
     public override AttackPatternInfoClip[] GetBaseClip() => m_Clips;
+
+    public override bool Validate(bool log = false)
+    {
+        if (m_Clips == null || m_Clips.Length <= 0 ||
+                m_Clips.Any(clip => clip == null) ||
+                m_Clips.Any(clip => clip.AttackAnimationClip == null))
+        {
+            if (log)
+                Debug.LogError($"{nameof(TClip)}: 공격 패턴 '{name}'에 클립 배열이 존재하지 않거나 Missing이 존재합니다", this);
+            return false;
+        }
+
+        if (m_fAttackSpeed.Value <= 0f)
+        {
+            if (log)
+                Debug.LogError($"{nameof(TClip)}: 공격 패턴 '{name}'의 m_fAttackSpeed가 {m_fAttackSpeed.Value}입니다! 1.0 이상으로 설정하세요.", this);
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // 데이터
-public  class AttackPattern : ScriptableObject
+public abstract class AttackPattern : ScriptableObject
 {
     #region 공격 데이터
 
@@ -115,7 +135,7 @@ public  class AttackPattern : ScriptableObject
     public StatValue m_fAccuracy = new StatValue(0, false);           // 명중률
     public StatValue m_fAttackSpeed = new StatValue(1, false);        // 공격 속도
     public StatValue m_iKnockbackChance = new StatValue(0, false);    // 넉백 확률
-    [Range(0.0f, 2.0f)] public float m_fLifeStealPercent = 0f;  // 흡혈 비율 - 피해량 대비
+    public StatValue m_fLifeStealPercent = new StatValue(0, false);  // 흡혈 비율 - 피해량 대비
 
     [Header("Clip")]
     public AudioClip AttackAudioClip;
@@ -191,5 +211,8 @@ public  class AttackPattern : ScriptableObject
         Managers.Resource.Destroy(go);
     }
     #endregion
+
+
+    public abstract bool Validate(bool log = false);
 }
 

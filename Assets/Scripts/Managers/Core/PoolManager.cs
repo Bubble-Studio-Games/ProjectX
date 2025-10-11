@@ -34,7 +34,7 @@ public class PoolManager
             if (poolable == null)
                 return;
 
-            poolable.transform.parent = Root;
+            poolable.transform.SetParent(Root);
             poolable.gameObject.SetActive(false);
             poolable.IsUsing = false;
 

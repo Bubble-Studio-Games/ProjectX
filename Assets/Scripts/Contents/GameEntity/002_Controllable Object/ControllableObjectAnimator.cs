@@ -94,6 +94,12 @@ public class ControllableObjectAnimator : GameEntityAnimator
 
     private void CombatAction_OnAttack(object sender, CombatAction.OnAttackBaseEventArgs e)
     {
+        if (e.attackPattern.Validate(true) == false)
+        {
+            Debug.LogError($"{m_ControllableObject.name} 공격 애니메이션 검증 오류");
+            return;
+        }
+
         AttackPatternInfoClip m_TempInfo = null;
 
         if (e.attackPattern is  AttackPattern_Range range)
@@ -122,9 +128,6 @@ public class ControllableObjectAnimator : GameEntityAnimator
         {
             m_TempInfo = e.attackPattern.GetBaseClip().RandomPick();
         }
-
-        if (m_TempInfo == null)
-            return;
 
         ChangeAnimationAtStart(E_GameEntityClipType.Attack.ToString(), m_TempInfo.AttackAnimationClip);
 

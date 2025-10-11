@@ -25,7 +25,7 @@ public class AttributeSystem : MonoBehaviour
 
     [Header("Stat")]
     [SerializeField] private BaseStat m_originalStat;
-    public BaseStat m_Stat
+    public BaseStat m_Stat 
     {
         get 
         { 
@@ -57,8 +57,27 @@ public class AttributeSystem : MonoBehaviour
 
     #endregion
 
+    public bool Validate()
+    {
+        if (m_Stat == null)
+        {
+            Debug.LogError($"{this.gameObject.name}: 스텟이 존재하지 않습니다.- AttributeSystem - Stat");
+            return false;
+        }
+
+        if (m_AttackPatterns == null || m_AttackPatterns.Count <= 0)
+        {
+            Debug.LogError($"{this.gameObject.name}: 공격 패턴이 존재하지 않습니다.- AttributeSystem - AttackPatterns");
+            return false;
+        }
+
+        return true;
+    }
+
     private void Awake()
     {
+        Validate();
+        
         m_GameEntity = GetComponent<GameEntity>();
 
         // Event
@@ -84,7 +103,6 @@ public class AttributeSystem : MonoBehaviour
         {
             cobj.OnChangeGrade += UpdateStatOfGrade;
         }
-
     }
 
     private void Start()
@@ -92,7 +110,13 @@ public class AttributeSystem : MonoBehaviour
 
         Init();
 
-        UnitActionSystem.Instance.OnUpdateActionTick += (s, e) => UpdateTickStat();
+        UnitActionSystem.Instance.OnUpdateActionTick += UpdateTickStat;
+    }
+
+    private void OnDestroy()
+    {
+        if (UnitActionSystem.Instance != null)
+            UnitActionSystem.Instance.OnUpdateActionTick -= UpdateTickStat;
     }
 
     protected virtual void OnEnable()
@@ -267,7 +291,7 @@ public class AttributeSystem : MonoBehaviour
     }
 
     // Tick 당 이뤄지는 함수
-    private void UpdateTickStat()
+    private void UpdateTickStat(object sender, GridPosition args)
     {
         if(m_IsDead) 
             return;

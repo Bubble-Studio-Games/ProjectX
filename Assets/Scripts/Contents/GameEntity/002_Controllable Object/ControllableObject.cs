@@ -91,6 +91,12 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
         UnitActionSystem.Instance.OnUpdateActionTick += ExecuteAction;
     }
 
+    public void OnDestroy()
+    {
+        if (UnitActionSystem.Instance != null)
+            UnitActionSystem.Instance.OnUpdateActionTick -= ExecuteAction;
+    }
+
     protected override void Update()
     {
         base.Update();
