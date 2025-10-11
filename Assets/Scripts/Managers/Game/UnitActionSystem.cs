@@ -47,7 +47,14 @@ public class UnitActionSystem : MonoBehaviour
         }
 
         Instance = this;
+    }
 
+    private void OnDestroy()
+    {
+        OnSelectedUnitChanged = null;
+        OnSelectedActionChanged = null;
+        OnCommandAction = null;
+        OnUpdateActionTick = null;
     }
 
     private void Update()
@@ -58,8 +65,6 @@ public class UnitActionSystem : MonoBehaviour
             return;
 
         HandleSelectedAction();
-
-
     }
 
     private void HandleTick()

@@ -24,20 +24,33 @@ MonoBehaviour:
   m_EAttackType: 3
   m_iNextAttackPattern: []
   m_iConditionPrevAttackPattern: {fileID: 0}
-  m_iCoolTime: 20
-  m_iManaCost: 30
+  m_iCoolTime:
+    _value: 2
+  m_iManaCost:
+    _value: 0
   m_IsTwoHandAttack: 0
-  m_iPhysicalAttackDamage: 0
-  m_iMagicAttackDamage: 0
-  m_iPhysicalFixedDamage: 0
-  m_iMagicFixedDamage: 0
-  m_fPhysicalArmorPenetraion: 0
-  m_fMagicalArmorPenetraion: 0
-  m_iCriticalChance: 0
-  m_fCriticalDamageUp: 0
-  m_fAccuracy: 100
-  m_fAttackSpeed: 1
-  m_iKnockbackChance: 0
+  m_iPhysicalAttackDamage:
+    _value: 0
+  m_iMagicAttackDamage:
+    _value: 0
+  m_iPhysicalFixedDamage:
+    _value: 0
+  m_iMagicFixedDamage:
+    _value: 0
+  m_fPhysicalArmorPenetraion:
+    _value: 0
+  m_fMagicalArmorPenetraion:
+    _value: 0
+  m_iCriticalChance:
+    _value: 0
+  m_fCriticalDamageUp:
+    _value: 0
+  m_fAccuracy:
+    _value: 0
+  m_fAttackSpeed:
+    _value: 1
+  m_iKnockbackChance:
+    _value: 0
   m_fLifeStealPercent: 0
   AttackAudioClip: {fileID: 0}
   m_Clips:

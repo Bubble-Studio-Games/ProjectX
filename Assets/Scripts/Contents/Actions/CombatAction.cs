@@ -210,17 +210,23 @@ public class CombatAction : BaseAction
         
         validPatterns = validPatterns.Where(attack =>
         {
+            // Summon: 소환 가능한 위치 체크
             if (attack.m_EAttackType == E_AttackType.Summon)
-                return true;
+            {
+                return attack.m_RangeOffset.Any(offset =>
+                {
+                    GridPosition summonPos = LevelGrid.Instance.ToGridPosition(offset, m_BaseObject.GetGridPosition(), dir);
+                    return LevelGrid.Instance.IsValidGridPosition(summonPos) && 
+                           !LevelGrid.Instance.HasAnyUnitOnGridPosition(summonPos);
+                });
+            }
             
             return attack.m_RangeOffset.Any(offset =>
                 LevelGrid.Instance.ToGridPosition(offset, m_BaseObject.GetGridPosition(), dir) == m_BaseObject.m_Target.GetGridPosition());
         }).ToList();
 
         if (validPatterns.Count == 0)
-            return null; // 공격 가능한 패턴이 없다면 null
-
-        Console.WriteLine("가능한 공격들 : " + string.Join(" ", validPatterns));
+            return null;
 
         // 무작위로 하나 선택
         int index = UnityEngine.Random.Range(0, validPatterns.Count);
