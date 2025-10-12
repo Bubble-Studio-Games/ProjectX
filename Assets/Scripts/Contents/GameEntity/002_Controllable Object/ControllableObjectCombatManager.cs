@@ -66,7 +66,7 @@ public class ControllableObjectCombatManager : MonoBehaviour
         attack.StartAttackFail(m_ControllableObject, m_ControllableObject.m_Target);
 
         // Animation
-        m_ControllableObject.GetAnimationManager().AttackReadyFail();
+        m_ControllableObject.GetAnimationsManager()[0].AttackReadyFail();
 
         // Sound
         m_ControllableObject.GetSounderManager().AttackReadyFailPlay();

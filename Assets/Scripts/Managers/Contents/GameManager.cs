@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -10,6 +11,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using static Define;
 using static Unity.VisualScripting.Member;
+using Scene = Define.Scene;
 
 public class GameManager
 {
@@ -22,6 +24,17 @@ public class GameManager
     [Header("Data")]
     public int m_PlaySlotId;
     public float sessionStartTime;
+
+    // 패턴별로, (owner, field, originalClip) 목록을 저장
+    private static readonly Dictionary<AttackPattern, List<ClipBackup>> _attackPatternOriginals = new();
+
+    private sealed class ClipBackup
+    {
+        public object Owner;          // 필드의 실제 소유자 (패턴이 아닐 수 있음)
+        public FieldInfo Field;       // AnimationClip 필드 자체
+        public AnimationClip Original; // 원본 클립
+    }
+
 
     #region Init
 
@@ -45,29 +58,109 @@ public class GameManager
         }
     }
 
+    /// <summary>
+    /// AttackPattern 내부의 모든 AnimationClip을 스텝 애니메이션으로 변환
+    /// 중복 변환 방지 및 캐시 기반 로드
+    /// </summary>
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    static void InitAttackAnimationStepAnimation()
+    private static void InitAttackAnimationStepAnimation()
     {
-        if (CheckRunMethodThisScene() == false)
-            return;
+        if (!CheckRunMethodThisScene()) return;
 
-        AttackPattern[] attackPatterns = Resources.LoadAll<AttackPattern>("Data/Unit");
-        foreach (var ap in attackPatterns)
+        var patterns = Resources.LoadAll<AttackPattern>("Data/Unit");
+        int convertedCount = 0;
+
+        foreach (var pattern in patterns)
         {
-            ap.Init();
-            //Debug.Log($"[RewardInitializer] {reward.name} initialized.");
+            if (pattern == null) continue;
+
+            // 백업용 사전 초기화
+            if (!_attackPatternOriginals.ContainsKey(pattern))
+                _attackPatternOriginals[pattern] = new();
+
+            // 모든 AnimationClip 필드 검색 (배열/리스트/Serializable 내부 포함)
+            var clipFields = Util.FindAllFieldsOfType<AnimationClip>(pattern);
+
+            foreach (var (field, owner, clip) in clipFields)
+            {
+                if (clip == null) continue;
+                if (clip.name.Contains("_stepped_")) continue;
+
+                // 🔸 (owner, field) 단위로 한 번만 백업
+                if (!_attackPatternOriginals[pattern].Exists(b => ReferenceEquals(b.Owner, owner) && b.Field == field))
+                {
+                    _attackPatternOriginals[pattern].Add(new ClipBackup
+                    {
+                        Owner = owner,
+                        Field = field,
+                        Original = clip
+                    });
+                }
+
+                // 스텝 애니메이션 로드 or 변환
+                var stepped = SettingManager.Instance.ReplaceOrLoadSteppedClip(clip);
+                if (stepped != null && stepped != clip)
+                {
+                    // 실제 필드 값 교체
+                    Util.ReplaceFieldValue(owner, field, stepped);
+                    convertedCount++;
+                }
+            }
         }
+
+        Debug.Log($"✅ AttackPattern 스텝 애니메이션 변환 완료: {convertedCount}개 변환됨 ({patterns.Length}개 패턴)");
     }
+
+    // 🔹 게임 종료 시 원본 복원
+    public static void RestoreOriginalClips()
+    {
+        int restoreCount = 0;
+
+        foreach (var kvp in _attackPatternOriginals)
+        {
+            var pattern = kvp.Key;
+            var backups = kvp.Value;
+
+            foreach (var b in backups)
+            {
+                try
+                {
+                    // 🔸 원래의 owner와 field를 사용해 되돌린다
+                    b.Field.SetValue(b.Owner, b.Original);
+                    restoreCount++;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning($"⚠️ 복원 실패: {pattern.name} :: {b.Owner?.GetType().Name}.{b.Field?.Name} - {e.Message}");
+                }
+            }
+        }
+
+        Debug.Log($"♻️ AttackPattern 원본 복원 완료: {restoreCount}개 필드 복원 (패턴 {_attackPatternOriginals.Count}개)");
+    }
+
+
+
 
     static bool CheckRunMethodThisScene()
     {
         if (Managers.Scene.CurrentScene == null)
             return false;
 
-        if (Managers.Scene.CurrentScene.SceneType != Define.Scene.Game)
-            return false;
+        if (Managers.Scene.CurrentScene.SceneType == Scene.Game)
+            return true;
 
-        return true;
+        if (Managers.Scene.CurrentScene.SceneType == Scene.Test)
+            return true;
+
+        return false;
+    }
+
+
+    // 🔹 게임 종료 시 Restore 호출
+    public void OnApplicationQuit()
+    {
+        RestoreOriginalClips();
     }
 
     #endregion
@@ -336,4 +429,6 @@ public class GameManager
                 mat.color = color;
         }
     }
+
+
 }

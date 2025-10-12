@@ -47,7 +47,8 @@ public class MouseWorld : MonoBehaviour
         Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
 
         // effect
-        UnitActionSystem.Instance.OnCommandAction += InstantiateMouseEffect;
+        if(UnitActionSystem.Instance != null)
+            UnitActionSystem.Instance.OnCommandAction += InstantiateMouseEffect;
     }
 
     public static Vector3 GetPosition()
@@ -209,6 +210,9 @@ public class MouseWorld : MonoBehaviour
 
         // 카드 드로우 중일 때 선택하지 못 하게
         if (BuildingTypeSelectUI.Instance.m_IsDrawing)
+            return;
+
+        if (Managers.Scene.CurrentScene.SceneType != Define.Scene.Game)
             return;
 
         if (Input.GetMouseButtonDown(0))

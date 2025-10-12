@@ -50,4 +50,4 @@ MonoBehaviour:
     _value: 0
   AttackAudioClip: {fileID: 8300000, guid: 1785fff83652f42399d9b2017b05656c, type: 3}
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: 0fc28a3ea03b69c4db03cbfeda3e6afe, type: 2}
+  - AttackAnimationClip: {fileID: 7400000, guid: ecdf7b780a26ee345a2964d36949e686, type: 2}

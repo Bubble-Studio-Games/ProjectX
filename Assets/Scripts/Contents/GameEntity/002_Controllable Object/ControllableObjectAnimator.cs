@@ -191,7 +191,7 @@ public class ControllableObjectAnimator : GameEntityAnimator
         var combatAction = m_ControllableObject.GetAction<CombatAction>();
 
         // Fail
-        if(combatAction.m_ThisTimeAttack == null)
+        if (combatAction.m_ThisTimeAttack == null)
         {
             Debug.Log("attack null " + m_ControllableObject.name);
             //combatAction.OnEndAttackEventInvoke();
@@ -202,6 +202,7 @@ public class ControllableObjectAnimator : GameEntityAnimator
         {
             combatAction.m_ThisTimeAttack.Attack(m_ControllableObject, m_ControllableObject.m_Target);
         }
+
 
         // 사운드
         m_ControllableObject.GetSounderManager().AttackSoundPlay(combatAction.m_ThisTimeAttack);
