@@ -19,6 +19,9 @@ public class UnitWeaponSlotManager : MonoBehaviour
     public RightHandIKTarget rightHandIKTarget;
     public LeftHandIKTarget leftHandIKTarget;
 
+    [Header("Projectile Spawn Transform")]
+    public List<Transform> m_ProjectileSpawnTransforms;
+
     protected virtual void Awake()
     {
         m_Unit = GetComponent<Unit>();

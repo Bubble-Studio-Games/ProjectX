@@ -22,16 +22,6 @@ public class ChaseAction : MoveAction
     {
         GridPosition selfPos = m_BaseObject.GetGridPosition();
 
-        // 소환 스킬이 사용 가능하면 바로 CombatAction으로 전환
-        var attackPatterns = m_BaseObject.m_AttributeSystem.m_AttackPatterns;
-        bool hasSummonSkill = attackPatterns.Any(x => 
-            x.m_EAttackType == E_AttackType.Summon && 
-            x.CanExecute(m_BaseObject, m_BaseObject.m_Target) == E_AttackCondition.Success);
-        
-        if (hasSummonSkill)
-        {
-            return m_BaseObject.GetAction<CombatAction>();
-        }
 
         if(m_BaseObject.m_isDetectionsurroundingsEnabled)
         {

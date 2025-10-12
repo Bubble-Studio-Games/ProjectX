@@ -22,11 +22,13 @@ namespace ProPixelizer
         private void Start()
         {
             _camera = GetComponent<Camera>();
-            if (!_camera.orthographic)
-            {
-                Debug.LogWarning("Camera snap is designed to prevent pixel creep in orthographic projection. It is not possible to fix creep using perspective projection, as object pixel size can change.");
-                return;
-            }
+
+            // 기능에는 문제없는 단순 오류 메시지 따라서 주석처리함.
+            // if (!_camera.orthographic)
+            // {
+            //     Debug.LogWarning("Camera snap is designed to prevent pixel creep in orthographic projection. It is not possible to fix creep using perspective projection, as object pixel size can change.");
+            //     return;
+            // }
         }
 
         public enum PixelSizeMode

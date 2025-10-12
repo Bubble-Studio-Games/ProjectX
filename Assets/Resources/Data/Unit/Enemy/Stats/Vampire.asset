@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Vampire
   m_EditorClassIdentifier: 
   ID: 1004
-  Name: "\uBC40\uD30C\uC774\uC5B4"
+  Name: Vampire
   sprite: {fileID: 0}
   m_sDescription: 
   m_iMaxHP:

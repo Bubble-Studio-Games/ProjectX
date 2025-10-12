@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4226118623197566}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Bone002
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,7 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4777461600425180}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Bone001
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -74,7 +74,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4105486914630632}
   - component: {fileID: 137889828543149406}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Bat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -168,7 +168,7 @@ GameObject:
   - component: {fileID: 8116329385127179271}
   - component: {fileID: 1545352973570257749}
   - component: {fileID: 8498010318640330181}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Monster_Bat_Prefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -411,7 +411,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4517809633083002}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: Bone003
   m_TagString: Untagged
   m_Icon: {fileID: 0}

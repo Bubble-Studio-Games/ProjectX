@@ -22,12 +22,12 @@ MonoBehaviour:
   m_iNextAttackPattern: []
   m_iConditionPrevAttackPattern: {fileID: 0}
   m_iCoolTime:
-    _value: 2
+    _value: 3
   m_iManaCost:
     _value: 0
   m_IsTwoHandAttack: 0
   m_iPhysicalAttackDamage:
-    _value: 0
+    _value: 15
   m_iMagicAttackDamage:
     _value: 0
   m_iPhysicalFixedDamage:
@@ -43,7 +43,7 @@ MonoBehaviour:
   m_fCriticalDamageUp:
     _value: 0
   m_fAccuracy:
-    _value: 0
+    _value: 90
   m_fAttackSpeed:
     _value: 1
   m_iKnockbackChance:
