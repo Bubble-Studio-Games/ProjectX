@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -38,7 +39,7 @@ public class Item : MonoBehaviour
 
     protected IEnumerator ObjectDestroy()
     {
-        yield return new WaitForSeconds(3f);
+        yield return new WaitForSeconds(3.0f);
         Managers.Resource.Destroy(gameObject);
     }
 }

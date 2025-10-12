@@ -1,5 +1,98 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &762144516425861302
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7747356497031725151}
+  m_Layer: 0
+  m_Name: Bat
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7747356497031725151
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 762144516425861302}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -1, z: -0, w: 0}
+  m_LocalPosition: {x: 0.805, y: 1.468, z: -0.3353405}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4166812853502322991}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7445238773991606793
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2467558896032954897}
+  m_Layer: 0
+  m_Name: Bat
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2467558896032954897
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7445238773991606793}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -1, z: -0, w: 0}
+  m_LocalPosition: {x: -0.768, y: 1.047, z: -0.3353405}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4166812853502322991}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8479280703623119905
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2635360734469533329}
+  m_Layer: 0
+  m_Name: Bat
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2635360734469533329
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8479280703623119905}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -1, z: -0, w: 0}
+  m_LocalPosition: {x: 0.759, y: 0.65, z: -0.3353405}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4166812853502322991}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &6245318686559487677
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -214,6 +307,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Vampire
       objectReference: {fileID: 0}
+    - target: {fileID: 2629986875760989179, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      propertyPath: m_ProjectileSpawnTransforms.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 2629986875760989179, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      propertyPath: m_ProjectileSpawnTransforms.Array.data[0]
+      value: 
+      objectReference: {fileID: 2635360734469533329}
+    - target: {fileID: 2629986875760989179, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      propertyPath: m_ProjectileSpawnTransforms.Array.data[1]
+      value: 
+      objectReference: {fileID: 2467558896032954897}
+    - target: {fileID: 2629986875760989179, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      propertyPath: m_ProjectileSpawnTransforms.Array.data[2]
+      value: 
+      objectReference: {fileID: 7747356497031725151}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_ActionsTransform
       value: 
@@ -1225,6 +1334,15 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 5341500004312695255, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7747356497031725151}
+    - targetCorrespondingSourceObject: {fileID: 5341500004312695255, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2467558896032954897}
+    - targetCorrespondingSourceObject: {fileID: 5341500004312695255, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2635360734469533329}
     - targetCorrespondingSourceObject: {fileID: 83024174552036922, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5846073899590197590}
@@ -1233,6 +1351,11 @@ PrefabInstance:
 --- !u!4 &826490784558949094 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8686290568000752158, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+  m_PrefabInstance: {fileID: 8355214984653302008}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &4166812853502322991 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5341500004312695255, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
   m_PrefabInstance: {fileID: 8355214984653302008}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &8274618611288923842 stripped

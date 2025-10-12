@@ -134,6 +134,13 @@ public class LevelGrid : MonoBehaviour
             ListGridPosition = gridPositions,
             isNotGrid = true
         });
+
+        OnChangeGrid?.Invoke(this, new OnChangeGridAgrs
+        {
+            type = E_GridCheckType.HasUnit,
+            ListGridPosition = gridPositions,
+            isNotGrid = true
+        });
     }
 
     public void RemoveUnitAtGridPosition(List<GridPosition> gridPositions, GameEntity unit)

@@ -104,17 +104,7 @@ public class ControllableObjectAnimator : GameEntityAnimator
 
         if (e.attackPattern is  AttackPattern_Range range)
         {
-            if (range.m_iIsLaunchProjectileParabola)
-            {
-                m_TempInfo = e.attackPattern.GetBaseClip().FirstOrDefault(clip => clip.AttackAnimationClip.name.Contains("Parabola"));
-            }
-
-            // 위로 던지는 애니메이션이 없다면 그냥 일반 공격으로 대체
-            if (range.m_iIsLaunchProjectileParabola == false || m_TempInfo == null)
-            {
-                var clips = e.attackPattern.GetBaseClip().Where(clip => !clip.AttackAnimationClip.name.Contains("Parabola"));
-                m_TempInfo = clips.RandomPick();
-            }
+            m_TempInfo = range.GetAttackPatternInfoClip(e);
         }
         else if (e.attackPattern is AttackPattern_Melee melee )
         {

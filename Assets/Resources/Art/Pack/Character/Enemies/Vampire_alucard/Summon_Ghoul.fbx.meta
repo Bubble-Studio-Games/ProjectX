@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 0fa5a049b7d322e4387be29e999242f1
+guid: 59d23756b5cd61f40bb39d293fa46ba4
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -37,18 +37,18 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: Summon
+      name: Summon_Ghoul
       takeName: mixamo.com
       internalID: -203655887218126122
       firstFrame: 0
-      lastFrame: 126
+      lastFrame: 30
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 0
+      loopTime: 1
       loopBlend: 0
       loopBlendOrientation: 1
       loopBlendPositionY: 1
@@ -61,7 +61,7 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 0.3458843
+      - time: 0.21989249
         functionName: AttackPoint
         data: 
         objectReferenceParameter: {instanceID: 0}

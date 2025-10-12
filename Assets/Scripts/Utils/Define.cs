@@ -6,6 +6,14 @@ public partial class Define
 {
     #region Attack Pattern
 
+    public enum E_Projectile
+    {
+        Multiple,
+        Parabola,
+        Straight,
+    }
+
+
     public enum E_AttackType
     {
         None,           // 비공격형

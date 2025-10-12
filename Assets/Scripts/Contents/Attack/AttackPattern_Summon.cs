@@ -45,6 +45,9 @@ public class AttackPattern_Summon : AttackPattern<AttackPatternInfoClip>
         base.StartAttack(attacker, target, prevAttackpatern);
     }
 
+    /// <summary>
+    /// 소환하는 용도로 사용
+    /// </summary>
     public override void Attack(ControllableObject attacker, GameEntity target)
     {
         GridPosition selfPos = attacker.GetGridPosition();
