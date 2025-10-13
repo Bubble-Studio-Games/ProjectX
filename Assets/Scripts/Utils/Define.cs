@@ -188,6 +188,7 @@ public partial class Define
         Start = 1,
         Lobby = 2,
         Game = 3,
+        Test = 4,
     }
 
     public enum Sound

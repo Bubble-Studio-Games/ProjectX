@@ -1,3 +1,4 @@
+using GLTF.Schema;
 using RootMotion.FinalIK;
 using System;
 using System.Collections.Generic;
@@ -8,13 +9,14 @@ using Unity.Mathematics;
 using UnityEngine;
 using static Define;
 using static UnityEngine.UI.Image;
+using Material = UnityEngine.Material;
 using Random = UnityEngine.Random;
 
 public interface IAccessories<TAnimator, TSounder> 
     where TAnimator : GameEntityAnimator 
     where TSounder : GameEntitySounder
 {
-    public  TAnimator GetAnimationManager();
+    public  List<TAnimator> GetAnimationsManager();
     public  TSounder GetSounderManager();
 }
 
@@ -28,7 +30,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
     // Ref
     [Header("Ref")]
-    protected GameEntityAnimator m_AnimatorManager;
+    protected List<GameEntityAnimator> m_AnimatorManagers;
     protected GameEntitySounder m_SounderManager;
     [SerializeField] public AttributeSystem m_AttributeSystem;
     public Collider m_HitCollider { get; protected set; }
@@ -58,8 +60,8 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     {
         m_AttributeSystem = GetComponent<AttributeSystem>();
 
-        if(m_AnimatorManager == null)
-            m_AnimatorManager = GetComponentInChildren<GameEntityAnimator>();
+        if(m_AnimatorManagers == null)
+            m_AnimatorManagers = GetComponentsInChildren<GameEntityAnimator>().ToList();
         if(m_SounderManager == null)
             m_SounderManager = GetComponent<GameEntitySounder>();
 
@@ -170,9 +172,9 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         return transform.position;
     }
 
-    public GameEntityAnimator GetAnimationManager()
+    public List<GameEntityAnimator> GetAnimationsManager()
     {
-        return m_AnimatorManager;
+        return m_AnimatorManagers;
     }
 
     public GameEntitySounder GetSounderManager()
@@ -265,7 +267,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     public virtual void SpawnComplete()
     {
         m_IsSetuping = false;
-        m_AnimatorManager?.AnimationPlay();
+        m_AnimatorManagers.ToList().ForEach(animator => animator.AnimationPlay());
     }
 
     // 보통은 디스폰을 사망 애니메이션이 끝나면 바로 호출.
@@ -302,12 +304,12 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
         OnSpawnObjectSelected?.Invoke(this, EventArgs.Empty);
 
-        if (m_AnimatorManager == null)
-            m_AnimatorManager = GetComponentInChildren<GameEntityAnimator>();
+        if (m_AnimatorManagers == null)
+            m_AnimatorManagers = GetComponentsInChildren<GameEntityAnimator>().ToList();
         if (m_SounderManager == null)
             m_SounderManager = GetComponent<GameEntitySounder>();
 
-        m_AnimatorManager.AnimationStop();
+        m_AnimatorManagers.ToList().ForEach(a => a.AnimationStop());
     }
 
     public (int Min, int Max) GetGridPositionYOffset()
