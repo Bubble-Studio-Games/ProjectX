@@ -288,6 +288,14 @@ public class SettingManager : MonoBehaviour
         };
         steppedCacheData.stepped_cache.Add(entry);
     }
+
+    public void ClearSteppedCache()
+    {
+        //steppedCache.Clear();
+        //if (File.Exists(cachePath))
+        //    File.Delete(cachePath);
+    }
+
 }
 
 [System.Serializable]

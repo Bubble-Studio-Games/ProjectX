@@ -6,6 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using static Define;
 
 [RequireComponent(typeof(Poolable))]
 public class BuildingCard : UI_Base,
@@ -39,8 +40,18 @@ public class BuildingCard : UI_Base,
     public void Init(GameEntity gameEntity)
     {
         m_GameEntity = gameEntity;
-        var stat = gameEntity.m_StatSystem.m_Stat;
-        m_objectImage.sprite = stat.sprite;
+        var stat = gameEntity.m_AttributeSystem.m_Stat;
+
+        if (stat.sprite == null)
+        {
+            int RandomValue = Random.Range(1, 5);
+            m_objectImage.sprite = Managers.Resource.Load<Sprite>($"Art/UI/Card/Game Entity/Unreleased_{gameEntity.m_ObjectType.ToString()}_0{RandomValue}");
+        }
+        else
+        {
+            m_objectImage.sprite = stat.sprite;
+        }
+
         cardName.text = stat.Name;
         m_SpawnCost.text = (stat as ControllableObjectStat).m_iSpawnCost.ToString();
         m_Type.text = $"Type : {gameEntity.m_ObjectType.ToString()}";

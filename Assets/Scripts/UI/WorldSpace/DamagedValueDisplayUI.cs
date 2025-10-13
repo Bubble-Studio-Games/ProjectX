@@ -13,7 +13,7 @@ public class DamagedValueDisplayUI : MonoBehaviour
     public E_DamagedValueTextDisplayType m_EDamagedValueTextDisplayType;
 
     GameEntity m_GameEntity;
-    StatSystem StatSystem;
+    AttributeSystem StatSystem;
 
     [SerializeField] TextMeshProUGUI m_DamageValuePrefab;
 
@@ -33,7 +33,7 @@ public class DamagedValueDisplayUI : MonoBehaviour
     void Awake()
     {
         m_GameEntity = GetComponentInParent<GameEntity>();
-        StatSystem = GetComponentInParent<StatSystem>();
+        StatSystem = GetComponentInParent<AttributeSystem>();
 
         StatSystem.OnDamaged += DisplayDamagedValueText;
 
@@ -51,13 +51,13 @@ public class DamagedValueDisplayUI : MonoBehaviour
 
     private void OnEnable()
     {
-        foreach (GameObject child in transform)
+        foreach (Transform child in transform)
         {
-            Managers.Resource.Destroy(child);
+            Managers.Resource.Destroy(child.gameObject);
         }
     }
 
-    private void DisplayDamagedValueText(object sender, StatSystem.OnAttackInfoEventArgs e)
+    private void DisplayDamagedValueText(object sender, AttributeSystem.OnAttackInfoEventArgs e)
     {
         string text = "";
 
@@ -82,8 +82,9 @@ public class DamagedValueDisplayUI : MonoBehaviour
         }
 
 
-        m_DamageValuePrefab.text = text;
-        var prefab = Managers.Resource.Instantiate(m_DamageValuePrefab.gameObject, transform);
+        var prefab = Managers.Resource.Instantiate<TextMeshProUGUI>(m_DamageValuePrefab.gameObject, transform);
+        prefab.text = text;
+
         var col = m_GameEntity.m_HitCollider;
 
         if (m_EDamagedValueTextDisplayType == E_DamagedValueTextDisplayType.Up)
@@ -98,7 +99,7 @@ public class DamagedValueDisplayUI : MonoBehaviour
             Vector3 start = new Vector3(Random.Range(minX, maxX), maxY, Random.Range(minZ, maxZ));
             prefab.transform.position = start;
 
-            StartCoroutine(PlayUp(start, prefab));
+            StartCoroutine(PlayUp(start, prefab.gameObject));
         }
         else if (m_EDamagedValueTextDisplayType == E_DamagedValueTextDisplayType.MiddleBounce)
         {
@@ -113,7 +114,7 @@ public class DamagedValueDisplayUI : MonoBehaviour
             Vector3 bounceStart = start + initialOffset;
             prefab.transform.position = bounceStart;
 
-            StartCoroutine(PlayBounceSequence(bounceStart, prefab));
+            StartCoroutine(PlayBounceSequence(bounceStart, prefab.gameObject));
         }
     }
 

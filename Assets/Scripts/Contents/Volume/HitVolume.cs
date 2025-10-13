@@ -12,7 +12,7 @@ public class HitVolume : MonoBehaviour
     [SerializeField] private float m_fMaxIntensity = 0.45f;
     [SerializeField] private float m_fFadeDuration = 0.5f; // 서서히 줄어드는 시간
 
-    private StatSystem _StatSystem;
+    private AttributeSystem _StatSystem;
     private Coroutine _fadeCoroutine;
 
     private void Start()
@@ -20,7 +20,7 @@ public class HitVolume : MonoBehaviour
         if (DungeonCore.instance == null)
             return;
 
-        _StatSystem = DungeonCore.instance.GetComponent<StatSystem>();
+        _StatSystem = DungeonCore.instance.GetComponent<AttributeSystem>();
         _StatSystem.OnDamaged += OnDamaged;
 
         m_Volume = GetComponent<Volume>();
