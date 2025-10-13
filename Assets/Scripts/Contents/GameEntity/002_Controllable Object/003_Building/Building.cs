@@ -67,7 +67,7 @@ public class Building : ControllableObject, IBuffReceiver, IBuffSender
     private void IssueRequest(RequestType requestType, in IBuffReceiver receiver, int id, in IBuff instance = null)
     {
         Request request = new Request(requestType, this, in receiver, id, null);
-        Managers.Buff.SubmitRequest(in request);
+        BuffManager.Instance.SubmitRequest(in request);
     }
     private void RemoveBuff(IBuff buff)
     {

@@ -117,6 +117,6 @@ public interface IBuffSender
     void IssueRequest(RequestType requestType, in IBuffReceiver receiver, int id, in IBuff instance = null)
     {
         Request request = new Request(requestType, this, in receiver, id, null);
-        Managers.Buff.SubmitRequest(in request);
+        BuffManager.Instance.SubmitRequest(in request);
     }
 }

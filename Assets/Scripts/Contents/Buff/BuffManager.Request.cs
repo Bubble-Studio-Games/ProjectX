@@ -17,12 +17,14 @@ public partial class BuffManager
         {
             request = new();
         }
+
+        Debug.Log("BuffManaer :  Request Init");
     }
 
     // 요청처리 Update
     private void OnUpdateRequest()
     {
-        if(request.Count > 0)
+        if(request?.Count > 0)
         {
             ExecuteRequest();
         }

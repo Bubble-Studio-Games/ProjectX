@@ -127,12 +127,15 @@ public class LevelGrid : MonoBehaviour
             SetFloorCheckCache(gridPosition, E_GridCheckType.HasUnit, true, unit);
         }
 
-        OnChangeGrid?.Invoke(this, new OnChangeGridAgrs
+        OnChangeGridAgrs agrs = new OnChangeGridAgrs
         {
             type = E_GridCheckType.HasUnit,
             ListGridPosition = gridPositions,
             isNotGrid = true
-        });
+        };
+
+        OnChangeGrid?.Invoke(this, agrs);
+        BuffManager.Instance.InvokeOnChangeGrid(this, agrs);
     }
 
     public void RemoveUnitAtGridPosition(List<GridPosition> gridPositions, GameEntity unit)
@@ -145,13 +148,15 @@ public class LevelGrid : MonoBehaviour
             // 캐시 삭제
             _floorGridCache[gridPosition.floor].Remove(gridPosition);
         }
-
-        OnChangeGrid?.Invoke(this, new OnChangeGridAgrs
+        OnChangeGridAgrs agrs = new OnChangeGridAgrs
         {
             type = E_GridCheckType.HasUnit,
             ListGridPosition = gridPositions,
             isNotGrid = false
-        });
+        };
+
+        OnChangeGrid?.Invoke(this, agrs);
+        BuffManager.Instance.InvokeOnChangeGrid(this, agrs);
     }
 
     public void UnitMovedGridPosition(GameEntity unit, List<GridPosition> fromGridPositions, List<GridPosition> toGridPositions)

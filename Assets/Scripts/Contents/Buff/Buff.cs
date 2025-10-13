@@ -16,13 +16,14 @@ public class Buff : IBuff
     public BuffData Data { get; private set; }
     public bool IsExpired { get; set; }
 
-    #region Methods
     public Buff(BuffData data)
     {
         Data = data;
         IsExpired = false;
         _tickTimer = 0f;
         _elapsed = 0f;
+
+        Debug.Log("Buff 객체 생성되었음");
     }
     public void SetOwner(IBuffSender owner)
     {
@@ -58,7 +59,6 @@ public class Buff : IBuff
         _tickTimer = 0f;
         _elapsed = 0f;
     }
-    #endregion
 }
 public class PeriodicBuff : IBuff
 {
@@ -81,6 +81,8 @@ public class PeriodicBuff : IBuff
         IsExpired = false;
         _tickTimer = 0f;
         _elapsed = 0f;
+
+        Debug.Log("PeriodicBuff 객체 생성되었음");
     }
     public void SetOwner(IBuffSender owner)
     {

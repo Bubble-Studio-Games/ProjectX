@@ -8,18 +8,23 @@ using static Define;
 
 public partial class BuffManager
 {
+    private event Action<LevelGrid, LevelGrid.OnChangeGridAgrs> OnChangeGrid;
     private readonly Dictionary<GridPosition, CellBuffContainer> _activeContainers = new();
 
     #region Unity Lifecycle
     private void OnAwakeGrid()
     {
-        // LevelGrid 이벤트 구독
-        LevelGrid.Instance.OnChangeGrid += HandleGridChange;
+        OnChangeGrid += HandleGridChange;
+        Debug.Log("BuffManaer :  Grid Init");
     }
     #endregion
 
+    public void InvokeOnChangeGrid(LevelGrid sender, LevelGrid.OnChangeGridAgrs args)
+    {
+        OnChangeGrid?.Invoke(sender, args);
+    }
     // 합본
-    private void HandleGridChange(object _, LevelGrid.OnChangeGridAgrs e)
+    private void HandleGridChange(LevelGrid _, LevelGrid.OnChangeGridAgrs e)
     {
         if (e.type != E_GridCheckType.HasUnit || e.ListGridPosition == null || e.ListGridPosition.Count == 0) return;
 

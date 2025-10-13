@@ -3,20 +3,37 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public partial class BuffManager
+public partial class BuffManager : MonoBehaviour
 {
+    public static BuffManager Instance { get; private set; }
+
     #region Unity Lifecycle
-    // 라이프 사이클 돌려야 함.
-       // 나중에 Mono로 바꾸고 Instance는 Manager.Buff 에 연결해두자
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else 
+        { 
+            if(Instance != this) Destroy(gameObject);
+            return;
+        }
+
+        DontDestroyOnLoad(this);
+
+
+        OnAwakeProcess();
+        OnAwakePool();
+        OnAwakeRequest();
+        OnAwakeGrid();
+    }
+
+    private void Update()
+    {
+        OnUpdateRequest();
+    }
     #endregion
 
     #region Public Methods
-    public void Init()
-    {
-    }
-    public void Clear()
-    {
-    }
+
     #endregion
 
 }

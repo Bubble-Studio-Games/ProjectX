@@ -14,6 +14,8 @@ public partial class BuffManager
     private void OnAwakeProcess()
     {
         _pathCollection = Managers.Resource.Load<BuffPathCollection>("Data/Buff/BuffPathRegistry");
+
+        Debug.Log("BuffManaer :  Process Init");
     }
 
     #endregion
@@ -48,21 +50,29 @@ public partial class BuffManager
         BuffConfig buffConfig = Managers.Resource.Load<BuffConfig>(_pathCollection.GetPath(id));
         BuffData buffData = new(buffConfig);
         _useableBuffs.Add(id, buffData);
+
+        Debug.Log("BuffLoad 호출");
     }
     private void BuffUnLoad(int id)
     {
         if (_useableBuffs.ContainsKey(id))
             _useableBuffs.Remove(id);
         else return;
+
+        Debug.Log("BuffUnLoad 호출");
     }
     private void BuffApply(int id, ref IBuffReceiver receiver)
     {
         if (receiver != null)
             receiver.ApplyBuff(_buffPool.Get(id));
+
+        Debug.Log("BuffApply 호출");
     }
     private void BuffRemove(IBuff buff)
     {
         _buffPool.Release(buff);
+
+        Debug.Log("BuffRemove 호출");
     }
     #endregion
 }

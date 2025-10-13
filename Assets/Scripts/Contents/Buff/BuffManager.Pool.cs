@@ -14,6 +14,8 @@ public partial class BuffManager
     {
         _buffPool = new(this);
         _cellPool = new(this);
+
+        Debug.Log("BuffManaer :  Pool Init");
     }
     #endregion
 
@@ -124,7 +126,7 @@ public partial class BuffManager
         }
         public CellBuffContainer Get()
         {
-            if (_pool.Count > 0)
+            if (_pool?.Count > 0)
             {
                 var container = _pool.Pop();
                 container.Init();
