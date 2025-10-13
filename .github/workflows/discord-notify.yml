@@ -1,0 +1,162 @@
+name: Discord Notify
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    types: [opened, reopened, closed]
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (PR에서 diff 링크 계산에 유용)
+        uses: actions/checkout@v4
+
+      - name: Build Discord payload (unified)
+        id: build
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const ev = context.eventName;
+
+            // 공통 유틸
+            const repo = `${context.payload.repository.full_name}`;
+            const repoUrl = context.payload.repository.html_url;
+            const actor = context.actor;
+            const actorAvatar = `https://github.com/${actor}.png?size=80`;
+            const ts = new Date().toISOString();
+
+            // 디스코드 색상 (십진수)
+            const COLORS = {
+              green: 3066993,
+              blue: 3447003,
+              orange: 15105570,
+              red: 15158332,
+              purple: 10181046,
+              gray: 9807270
+            };
+
+            // 기본 메시지 (fallback)
+            let username = "GitHub ▶ Discord";
+            let content = "";      // 일반 텍스트 (멘션용 등)
+            let embeds = [];       // 임베드 배열
+
+            if (ev === "push") {
+              const ref = context.ref; // refs/heads/main
+              const branch = ref.split("/").slice(2).join("/");
+              const head = context.sha.slice(0,7);
+              const compareUrl = context.payload.compare; // compare 링크
+              const commits = context.payload.commits || [];
+              // 최대 5개 커밋
+              const lines = commits.slice(0,5).map(c => {
+                const short = c.id.substring(0,7);
+                const firstLine = (c.message || "").split("\n")[0];
+                return `• [\`${short}\`](${c.url}) ${firstLine} — ${c.author?.name || "unknown"}`;
+              }).join("\n") || "No commits listed.";
+
+              embeds.push({
+                title: `📦 Push to ${branch}`,
+                url: compareUrl,
+                color: COLORS.blue,
+                author: { name: `${repo}`, url: repoUrl, icon_url: actorAvatar },
+                description:
+                  `**Pusher:** ${context.payload.pusher?.name || actor}\n` +
+                  `**Branch:** \`${branch}\`\n` +
+                  `**Head:** \`${head}\`\n` +
+                  `**Compare:** [diff](${compareUrl})`,
+                fields: [
+                  { name: "Commits (latest 5)", value: lines }
+                ],
+                timestamp: ts,
+                footer: { text: `Repo: ${repo}` }
+              });
+
+            } else if (ev === "pull_request") {
+              const pr = context.payload.pull_request;
+              const isMerged = !!pr.merged;
+              const state = isMerged ? "merged" : pr.state; // open/closed
+              const color = isMerged ? COLORS.purple
+                           : (state === "open" ? COLORS.green : COLORS.red);
+
+              // PR 본문이 길면 1,024자 제한을 고려해 자름
+              const body = (pr.body || "").substring(0, 1024) || "_No description_";
+
+              embeds.push({
+                title: `🔀 PR #${pr.number} ${isMerged ? "Merged" : state === "open" ? "Opened" : "Closed"}`,
+                url: pr.html_url,
+                color,
+                author: { name: `${repo}`, url: repoUrl, icon_url: actorAvatar },
+                description:
+                  `**Title:** ${pr.title}\n` +
+                  `**Author:** ${pr.user?.login}\n` +
+                  `**Base:** \`${pr.base?.ref}\` ⟵ **Head:** \`${pr.head?.ref}\`\n` +
+                  `**Commits:** ${pr.commits}\n` +
+                  `**Files changed:** ${pr.changed_files}`,
+                fields: [
+                  { name: "Description", value: body }
+                ],
+                timestamp: ts,
+                footer: { text: `Repo: ${repo}` }
+              });
+
+              // merged면 머지 커밋/머지자 정보 추가
+              if (isMerged) {
+                embeds[0].fields.push({
+                  name: "Merged by",
+                  value: pr.merged_by?.login || actor
+                });
+              }
+
+            } else if (ev === "release") {
+              const rel = context.payload.release;
+              const tag = rel.tag_name;
+              const name = rel.name || tag;
+              const notes = (rel.body || "").substring(0, 2048) || "_No release notes_";
+
+              embeds.push({
+                title: `🏷️ Release ${name}`,
+                url: rel.html_url,
+                color: COLORS.orange,
+                author: { name: `${repo}`, url: repoUrl, icon_url: actorAvatar },
+                description:
+                  `**Tag:** \`${tag}\`\n` +
+                  `**Author:** ${rel.author?.login}\n` +
+                  `**Draft/Prerelease:** ${rel.draft ? "Draft" : (rel.prerelease ? "Prerelease" : "Stable")}`,
+                fields: [
+                  { name: "Notes", value: notes }
+                ],
+                timestamp: ts,
+                footer: { text: `Repo: ${repo}` }
+              });
+            } else {
+              // 다른 이벤트가 들어왔을 때의 안전장치
+              embeds.push({
+                title: `ℹ️ Unsupported event: ${ev}`,
+                color: COLORS.gray,
+                timestamp: ts
+              });
+            }
+
+            return {
+              payload: JSON.stringify({ username, content, embeds })
+            };
+          result-encoding: string
+
+      - name: Send to Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          PAYLOAD: ${{ steps.build.outputs.result }}
+        run: |
+          # actions/github-script 의 결과(JSON 문자열)를 바로 전송
+          curl -sS -X POST \
+            -H "Content-Type: application/json" \
+            -d "${PAYLOAD}" \
+            "${DISCORD_WEBHOOK}" \
+          | sed -e 's/\\n/\n/g' || true
