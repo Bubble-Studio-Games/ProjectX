@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static Define;
-using static StatSystem;
+using static AttributeSystem;
 using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCounters;
 
 public class ControllableObjectCombatManager : MonoBehaviour
@@ -17,7 +17,7 @@ public class ControllableObjectCombatManager : MonoBehaviour
     private void Awake()
     {
         m_ControllableObject = GetComponent<ControllableObject>();
-        GetComponent<StatSystem>().OnDamaged +=(s, e) => AttackReadyFailStart();
+        GetComponent<AttributeSystem>().OnDamaged +=(s, e) => AttackReadyFailStart();
     }
 
     protected virtual void Update()
@@ -66,7 +66,7 @@ public class ControllableObjectCombatManager : MonoBehaviour
         attack.StartAttackFail(m_ControllableObject, m_ControllableObject.m_Target);
 
         // Animation
-        m_ControllableObject.GetAnimationManager().AttackReadyFail();
+        m_ControllableObject.GetAnimationsManager()[0].AttackReadyFail();
 
         // Sound
         m_ControllableObject.GetSounderManager().AttackReadyFailPlay();

@@ -33,8 +33,8 @@ public static class RequireChildComponentValidator
 
                     if (child == null)
                     {
-                        Debug.LogWarningFormat(mb,
-                            $"[RequireChildComponent] {mb.GetType().Name} requires a child GameObject with component: {type.Name}, but none was found under {mb.gameObject.name}.");
+                        //Debug.LogWarningFormat(mb,
+                        //    $"[RequireChildComponent] {mb.GetType().Name} requires a child GameObject with component: {type.Name}, but none was found under {mb.gameObject.name}.");
                     }
                 }
             }

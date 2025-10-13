@@ -16,24 +16,40 @@ MonoBehaviour:
   Name: Grave
   sprite: {fileID: 0}
   m_sDescription: Spawn Skeleton Type Monster
-  m_iMaxHP: 300
-  m_iCurrentHp: 0
+  m_iMaxHP:
+    _value: 300
+  m_iCurrentHp:
+    _value: 0
   m_iIsStepReduceHP: 0
-  m_iMaxMP: 0
-  m_iCurrentMP: 0
-  m_fChaseSpeed: 0
-  m_fWalkSpeed: 0
-  m_iDefaultMoveRange: 0
+  m_fHPRegenrate:
+    _value: 0
+  m_fMPRegenrate:
+    _value: 0
+  m_iMaxMP:
+    _value: 0
+  m_iCurrentMP:
+    _value: 0
+  m_fChaseSpeed:
+    _value: 0
+  m_fWalkSpeed:
+    _value: 0
+  m_iCommandMoveDistance: 0
   m_iDetectRange: 0
   m_iChaseRange: 0
-  m_iPhysicalDefence: 0
-  m_iMagicalDefence: 0
-  m_fCounterAttackChance: 0
-  m_fEvasionChance: 0
-  m_fKnockbackRegist: 0
-  m_iSpawnCost: 0
-  m_iRewardDownjam: 1000
+  m_iPhysicalDefence:
+    _value: 0
+  m_iMagicalDefence:
+    _value: 0
+  m_fCounterAttackChance:
+    _value: 0
+  m_fEvasionChance:
+    _value: 0
+  m_fKnockbackRegist:
+    _value: 0
   m_AttackPatterns: []
+  m_iSpawnCost: 0
+  m_iReconstructionCost: 0
+  m_iDestructionCost: 0
   m_iSpawnPosX: 2
   m_iSpawnPosZ: 2
   m_iSpawnPosFloor: 0

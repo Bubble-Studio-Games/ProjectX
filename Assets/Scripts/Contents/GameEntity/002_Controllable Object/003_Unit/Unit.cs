@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using static Define;
@@ -15,7 +16,7 @@ public class Unit : ControllableObject, IAccessories<UnitAnimationManager, Contr
     public bool isUsingLeftHand;
 
     [Header("Ref")]
-    protected UnitAnimationManager m_UnitAnimationManager;
+    protected List<UnitAnimationManager> m_UnitAnimationManager;
     public UnitEquipEquipmentManager m_UnitEquipEquipmentManager;
     public UnitWeaponSlotManager m_UnitWeaponSlotManager;
 
@@ -23,7 +24,7 @@ public class Unit : ControllableObject, IAccessories<UnitAnimationManager, Contr
     {
         base.Awake();
 
-        m_UnitAnimationManager = GetComponentInChildren<UnitAnimationManager>();
+        m_UnitAnimationManager = GetComponentsInChildren<UnitAnimationManager>().ToList();
         m_UnitEquipEquipmentManager = GetComponent<UnitEquipEquipmentManager>();
         m_UnitWeaponSlotManager = GetComponent<UnitWeaponSlotManager>();
     }
@@ -33,7 +34,7 @@ public class Unit : ControllableObject, IAccessories<UnitAnimationManager, Contr
         m_ObjectType = E_ObjectType.Unit;
     }
 
-    public new UnitAnimationManager GetAnimationManager()
+    public new List<UnitAnimationManager> GetAnimationsManager()
     {
         return m_UnitAnimationManager;
     }

@@ -62,7 +62,11 @@ public class MenuUI : UI_Popup
     private void InitButtons()
     {
         // Play 계속하기
-        PressButtonSetAction(PlayBtn, () => Managers.Game.ResumeGame());
+        PressButtonSetAction(PlayBtn, () =>
+        {
+            Managers.Game.ResumeGame();
+            Managers.UI.ClosePopupUI<MenuUI>(); 
+        });
 
         // Save 수동 세이브
         PressButtonSetAction(SaveBtn, () =>
