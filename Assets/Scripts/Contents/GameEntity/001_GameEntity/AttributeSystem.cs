@@ -92,7 +92,8 @@ public class AttributeSystem : MonoBehaviour
 
         Init();
 
-        UnitActionSystem.Instance.OnUpdateActionTick += (s, e) => UpdateTickStat();
+        if(UnitActionSystem.Instance != null)
+            UnitActionSystem.Instance.OnUpdateActionTick += (s, e) => UpdateTickStat();
     }
 
     protected virtual void OnEnable()
@@ -289,7 +290,7 @@ public class AttributeSystem : MonoBehaviour
         if(args.isSuccessGrade == false)
         {
             m_Stat = m_originalStat;
-            m_GameEntity.GetAnimationManager().AnimatonSpeedRestoreOriginalSpeed();
+            m_GameEntity.GetAnimationsManager().ForEach(a => a.AnimatonSpeedRestoreOriginalSpeed());
             return;
         }
 
