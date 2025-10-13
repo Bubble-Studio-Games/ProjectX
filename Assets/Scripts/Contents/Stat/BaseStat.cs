@@ -111,6 +111,8 @@ public class BaseStat : ScriptableObject
     public int m_iChaseRange; // 추격 거리
 
     [Header("Battle")]
+    public StatValue m_iPhysicalBaseDamamge = new StatValue(0, true); // 물리 방어력
+    public StatValue m_iMagicalBaseDamamge = new StatValue(0, true); // 물리 방어력
     public StatValue m_iPhysicalDefence = new StatValue(0, true); // 물리 방어력
     public StatValue m_iMagicalDefence = new StatValue(0, true); // 마법 방어력
     public StatValue m_fCounterAttackChance = new StatValue(0, true); // 반격 확률
