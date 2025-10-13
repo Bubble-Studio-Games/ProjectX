@@ -12,9 +12,9 @@ using static Define;
 /// - Animator와 AttackPattern 애니메이션/사운드를 테스트 가능
 /// - AttackPattern 클릭 시 CombatAction.m_ThisTimeAttack 자동 설정
 /// </summary>
-public class GameEntityAnimationTester : EditorWindow
+public partial class CustomToolWindow : EditorWindow
 {
-    private Vector2 scrollPos;
+    private Vector2 GameEntityAnimationTester_scrollPos;
     private GameEntity activeEntity;
     private List<GameEntityAnimator> animators = new();
     private List<AttackPattern> attackPatterns = new();
@@ -22,17 +22,7 @@ public class GameEntityAnimationTester : EditorWindow
 
     private bool isEventRegistered = false;
 
-    //────────────────────────────────────────────
-    // 🔹 윈도우 초기화 및 자동 감시 등록
-    //────────────────────────────────────────────
-    [MenuItem("Window/GameEntity/Animation Tester")]
-    public static void ShowWindow()
-    {
-        var window = GetWindow<GameEntityAnimationTester>("🎬 Animation Tester");
-        window.Show();
-    }
-
-    private void OnEnable()
+    private void OnEnable_GameEntityAnimationTester()
     {
         // 최초 또는 다시 열릴 때 한 번만 이벤트 등록
         if (!isEventRegistered)
@@ -102,8 +92,12 @@ public class GameEntityAnimationTester : EditorWindow
     //────────────────────────────────────────────
     // 🔹 메인 GUI
     //────────────────────────────────────────────
-    private void OnGUI()
+    private void Handle_DrawGameEntityAnimation()
     {
+        DrawLine();
+        EditorGUILayout.LabelField("키보드 화살표 <- ->를 이용하여 오브젝트를 활성화 시킵니다.", EditorStyles.boldLabel);
+        DrawLine();
+
         EditorGUILayout.Space(5);
         if (GUILayout.Button("🔄 Refresh", GUILayout.Height(25)))
             RefreshActiveEntity();
@@ -123,7 +117,7 @@ public class GameEntityAnimationTester : EditorWindow
         };
         EditorGUILayout.LabelField($"🎯 활성 오브젝트: {activeEntity.name}", header);
 
-        scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
+        GameEntityAnimationTester_scrollPos = EditorGUILayout.BeginScrollView(GameEntityAnimationTester_scrollPos);
 
         // ───── 기본 애니메이션 ─────
         DrawSectionTitle("💡 기본 행동 애니메이션");
