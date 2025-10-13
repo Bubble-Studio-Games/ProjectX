@@ -28,7 +28,6 @@ public class Managers : MonoBehaviour
     UIManager _ui = new UIManager();
     TableManager _table = new TableManager();
     DataManager _data = new DataManager();
-    BuffManager _buff = new BuffManager();  
 
     public static PoolManager Pool { get { return Instance._pool; } }
     public static ResourceManager Resource { get { return Instance._resource; } }
@@ -37,7 +36,6 @@ public class Managers : MonoBehaviour
     public static UIManager UI { get { return Instance._ui; } }
     public static TableManager Table { get { return Instance._table; } }
     public static DataManager Data { get { return Instance._data; } }
-    public static BuffManager Buff { get { return Instance._buff; } }
     #endregion
 
     static public string m_strHttp = "http://58.78.211.147:3000/";
@@ -66,7 +64,6 @@ public class Managers : MonoBehaviour
             s_instance._game.Init();
             s_instance._data.Init();
             //s_instance._table.Init();
-            s_instance._buff.Init();
 
             Application.targetFrameRate = 60;
         }
@@ -79,6 +76,10 @@ public class Managers : MonoBehaviour
         UI.Clear();
         Pool.Clear();
         //Table.Clear();
-        //Buff.Clear();
+    }
+
+    public void OnApplicationQuit()
+    {
+        Game.OnApplicationQuit();
     }
 }

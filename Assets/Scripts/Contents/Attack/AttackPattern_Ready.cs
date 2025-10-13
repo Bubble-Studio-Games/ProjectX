@@ -24,11 +24,6 @@ public class AttackPattern_Ready : AttackPattern<AttackPatternInfoClipWithReady>
     protected float lastAttackReadytime;
     public bool m_ISAttackReadyFinished => Time.time - lastAttackReadytime >= m_AttackReadyTime;
 
-    public AttackPattern_Ready()
-    {
-        m_EAttackType = Define.E_AttackType.Ready;
-    }
-
     public override void Init()
     {
         base.Init();
@@ -86,7 +81,7 @@ public class AttackPattern_Ready : AttackPattern<AttackPatternInfoClipWithReady>
         var slot = unit.m_UnitWeaponSlotManager;
         var currentRightWeapon = slot.m_RightHandSlot.currentWeapon;
         var currentLeftWeapon = slot.m_LeftHandSlot.currentWeapon;
-        var animator = unit.GetAnimationManager();
+        var animator = unit.GetAnimationsManager()[0];
 
         // 1. 두 손 무기 착용 중이라면 → 반드시 오른손 기준
         if (unit.isTwoHandingWeapon && currentRightWeapon != null)

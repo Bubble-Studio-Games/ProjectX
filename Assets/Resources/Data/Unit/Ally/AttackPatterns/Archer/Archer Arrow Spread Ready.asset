@@ -18,29 +18,40 @@ MonoBehaviour:
   - x: 0
     z: 2
     floor: 0
-  m_EAttackType: 0
+  m_EAttackType: 1
   m_iNextAttackPattern:
   - {fileID: 11400000, guid: 2a3be519b8409c848b6e77f33bc0f0f1, type: 2}
   m_iConditionPrevAttackPattern: {fileID: 11400000, guid: 4473d3c84544fe44897429ddf891ceb1, type: 2}
-  m_iCoolTime: 5
-  m_iManaCost: 0
+  m_iCoolTime:
+    _value: 2
+  m_iManaCost:
+    _value: 0
   m_IsTwoHandAttack: 0
-  m_iPhysicalAttackDamage: 0
-  m_iMagicAttackDamage: 0
-  m_iPhysicalFixedDamage: 0
-  m_iMagicFixedDamage: 0
-  m_fPhysicalArmorPenetraion: 0
-  m_fMagicalArmorPenetraion: 0
-  m_iCriticalChance: 0
-  m_fCriticalDamageUp: 0
-  m_fAccuracy: 100
-  m_fAttackSpeed: 0
-  m_iKnockbackChance: 0
+  m_iPhysicalAttackDamage:
+    _value: 0
+  m_iMagicAttackDamage:
+    _value: 0
+  m_iPhysicalFixedDamage:
+    _value: 0
+  m_iMagicFixedDamage:
+    _value: 0
+  m_fPhysicalArmorPenetraion:
+    _value: 0
+  m_fMagicalArmorPenetraion:
+    _value: 0
+  m_iCriticalChance:
+    _value: 0
+  m_fCriticalDamageUp:
+    _value: 0
+  m_fAccuracy:
+    _value: 95
+  m_fAttackSpeed:
+    _value: 1
+  m_iKnockbackChance:
+    _value: 0
   AttackAudioClip: {fileID: 8300000, guid: 6e2371b5c52011742a4b29d8f65f7f28, type: 3}
-  m_bIsChangeStepAnimation: 0
-  m_bIsRestoreAnimation: 1
   m_Clips:
-  - AttackAnimationClip: {fileID: -203655887218126122, guid: bc2c5dd80f326764396ae283cca8b767, type: 3}
+  - AttackAnimationClip: {fileID: 7400000, guid: b32edf9e60c6cb9469ece4fd0054fece, type: 2}
     ReadyFailAnimationClip: {fileID: 0}
   ReadyFailAudioClip: {fileID: 0}
   m_ReadyGameObjectPrefab: {fileID: 0}

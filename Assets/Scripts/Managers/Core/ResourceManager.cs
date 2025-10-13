@@ -6,6 +6,9 @@ public class ResourceManager
 {
     public T Load<T>(string path) where T : Object
     {
+        // 🔹 경로 확인 로그
+        //Debug.Log($"[Resource Load] Type: {typeof(T).Name}, Path: {path}");
+
         if (typeof(T) == typeof(GameObject))
         {
             string name = path;
@@ -18,7 +21,15 @@ public class ResourceManager
                 return go as T;
         }
 
-        return Resources.Load<T>(path);
+        T resource = Resources.Load<T>(path);
+
+        // 🔹 성공/실패 여부 로그
+        //if (resource == null)
+        //    Debug.LogError($"[Resource Load ❌] Failed to load: {path}");
+        //else
+        //    Debug.Log($"[Resource Load ✅] Successfully loaded: {path}");
+
+        return resource;
     }
 
     public GameObject Instantiate(GameObject go, Transform parent = null)

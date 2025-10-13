@@ -48,6 +48,8 @@ public class CameraController : MonoBehaviour
 
     private void HandleMovement()
     {
+        if (InputManager.Instance == null) return;
+
         Vector2 inputMoveDir = InputManager.Instance.GetCameraMoveVector();
 
         float moveSpeed = 10f;
@@ -70,6 +72,8 @@ public class CameraController : MonoBehaviour
     // 마우스 우클릭 시에만 작동하게
     private void HandleEnableCMController()
     {
+        if(InputManager.Instance == null) return;
+
         if(InputManager.Instance.MouseRightClickHold())
         {
             m_CMInputAxisController.Controllers[0].Enabled = true; // X

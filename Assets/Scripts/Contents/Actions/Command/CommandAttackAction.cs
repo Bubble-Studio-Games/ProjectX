@@ -16,7 +16,7 @@ public class CommandAttackAction : BaseAction
             // 유저가 선택한 오브젝트의 위치의 적을 가져오기
             var target = LevelGrid.Instance.GetObjectAtGridPosition(gridPosition);
 
-            if (target == null || target.m_StatSystem.m_IsDead)
+            if (target == null || target.m_AttributeSystem.m_IsDead)
                 return m_BaseObject.GetBackStateAction();
 
             m_BaseObject.SetTarget(target);

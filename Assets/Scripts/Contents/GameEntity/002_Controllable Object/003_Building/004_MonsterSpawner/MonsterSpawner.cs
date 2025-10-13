@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.SocialPlatforms.Impl;
 using static Define;
 
-public class MonsterSpawner : Building
+public class MonsterSpawner : PassiveObject
 {
     [Header("Core")]
     MonsterSpawnerCore Core;
@@ -18,14 +18,18 @@ public class MonsterSpawner : Building
 
     MonsterSpawnerStat m_MSS;
 
-    // 오디오랑 애니메이터를 따로 파기 뭐해서 그냥 한 곳에 몰아 넣음
-    [Header("Animation")]
-    PassiveObjectAnimator m_CoreAnimatorManager;
-    [SerializeField] PassiveObjectAnimator m_BackgroundAnimatorManager;
-
-    public MonsterSpawner()
+    protected override void Awake()
     {
-        m_EBuildingType = E_BuildingType.Spawner;
+        base.Awake();
+
+        // 애니메이션 교체
+
+        foreach (var animator in GetAnimationsManager())
+        {
+            animator.ChangeAnimationAtStart
+            ("Spawn Object", animator.m_OrderAnimationClip.Where(ani => ani.name.Contains("Core")).FirstOrDefault());
+        }
+
     }
 
     protected override void Start()
@@ -33,12 +37,6 @@ public class MonsterSpawner : Building
         base.Start();
 
         Core = GetComponentInChildren<MonsterSpawnerCore>();
-
-        // 애니메이션 교체
-        m_CoreAnimatorManager = Core.GetComponentInChildren<PassiveObjectAnimator>();
-        m_CoreAnimatorManager.ChangeAnimationAtStart
-            ("Spawn Object", m_CoreAnimatorManager.m_OrderAnimationClip.Where(ani => ani.name.Contains("Core")).FirstOrDefault());
-
         SetSpawnGridPosition();
 
     }
@@ -50,10 +48,11 @@ public class MonsterSpawner : Building
         CheckCoolTimeSpawnObject();
     }
 
+    // 소환 범위 체크
     private void SetSpawnGridPosition()
     {
         // 스탯 긁어오기 소환 범위
-        m_MSS = m_StatSystem.m_Stat as MonsterSpawnerStat;
+        m_MSS = m_AttributeSystem.m_Stat as MonsterSpawnerStat;
 
         GridPosition coreGridPosition = LevelGrid.Instance.GetGridPosition(Core.transform.position);
 
@@ -83,9 +82,10 @@ public class MonsterSpawner : Building
             ));
     }
 
+    // 쿨타임 체크
     private void CheckCoolTimeSpawnObject()
     {
-        if(m_StatSystem.m_IsDead) 
+        if(m_AttributeSystem.m_IsDead) 
             return;
 
         m_currentSpawnTimer += Time.deltaTime;
@@ -96,6 +96,7 @@ public class MonsterSpawner : Building
         }
     }
 
+    // 몬스터 소환
     private void SpawnObject()
     {
         // 소환 가능한 포지션을 랜덤으로 뽑아서 검사
@@ -109,7 +110,7 @@ public class MonsterSpawner : Building
             return;
 
         // Animation
-        m_CoreAnimatorManager.PlayTargetAnimation("Spawn Object", false);
+        GetAnimationsManager().ForEach(anim =>  anim.PlayTargetAnimation("Spawn Object", false));
 
         // 소환 가능한 위치이면 랜덤 소환
         for (int i = 0; i < spawnCount; i++)
@@ -121,6 +122,12 @@ public class MonsterSpawner : Building
             var spawnObj = Managers.Resource.Instantiate<GameEntity>(pickObj.gameObject);
             spawnObj.transform.position = LevelGrid.Instance.GetWorldPosition(spawnPos);
             spawnObj.SpawnStart();
+            
+            // 등급 업 시도
+            if(spawnObj is ControllableObject cobj)
+            {
+                cobj.TryEnhanceGrade();
+            }
 
             // valid에서 제외
             validSpawnPosList.Remove(spawnPos);

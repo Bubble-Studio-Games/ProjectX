@@ -1,0 +1,11 @@
+Model Information:
+* title:	Santa Muerte statue
+* source:	https://sketchfab.com/3d-models/santa-muerte-statue-c9ee9856ab9844ee863c3674654e03e1
+* author:	bobeer (https://sketchfab.com/bobeer)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Santa Muerte statue" (https://sketchfab.com/3d-models/santa-muerte-statue-c9ee9856ab9844ee863c3674654e03e1) by bobeer (https://sketchfab.com/bobeer) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

@@ -41,7 +41,7 @@ public class Floating : MonoBehaviour
     {
         m_OriginalPos = transform.localPosition;
 
-        var statsys = GetComponentInParent<StatSystem>();
+        var statsys = GetComponentInParent<AttributeSystem>();
         statsys.OnDamaged += (s, e) => Hit();
         statsys.OnDead += (s, e) => m_IsHit = true;
         statsys.OnRevived += (s, e) => m_IsHit = false;
