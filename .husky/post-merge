@@ -3,11 +3,9 @@
 
 echo "📥 Running dvc pull after merge/pull..."
 
+rm -rf .dvc/tmp/lock .dvc/tmp/rwlock 2>/dev/null || true
 dvc pull
-if [ $? -ne 0 ]; then
-    echo "❌ dvc pull failed"
-    exit 1
-fi
+dvc checkout -f
 
 echo "✅ dvc pull completed"
 exit 0
