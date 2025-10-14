@@ -52,8 +52,8 @@ MonoBehaviour:
     _value: 0
   AttackAudioClip: {fileID: 8300000, guid: 674258a055e994b72bbb15a28eb79838, type: 3}
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: 8c9c47ea583965d4c8233de1e0e3de32, type: 2}
-  - AttackAnimationClip: {fileID: 7400000, guid: ad075ffe163913144807ebe1f895ea39, type: 2}
+  - AttackAnimationClip: {fileID: 7400000, guid: d7505ce6ee9da0c4b882edb53f1c7422, type: 2}
+  - AttackAnimationClip: {fileID: 7400000, guid: fa1beeb1f5226f34485b738a16684fb5, type: 2}
   m_ProjectilePrefab: {fileID: 8731590995680581366, guid: 10d0ba2a8b5d01745b450df4406acb00, type: 3}
   _selectType: 2
   _projectileProperty:

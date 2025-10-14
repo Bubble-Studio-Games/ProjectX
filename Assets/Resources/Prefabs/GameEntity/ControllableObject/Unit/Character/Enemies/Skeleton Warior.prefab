@@ -244,11 +244,11 @@ PrefabInstance:
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_SpawnAnimationClip.Array.data[0]
       value: 
-      objectReference: {fileID: -203655887218126122, guid: 06543375c6e491842baa2e0cbd958adb, type: 3}
+      objectReference: {fileID: -203655887218126122, guid: 5ba9ec4e1f9479c469afee33f581ac81, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_SpawnAnimationClip.Array.data[1]
       value: 
-      objectReference: {fileID: -203655887218126122, guid: 89655c9d79c645c408d27a072dce1378, type: 3}
+      objectReference: {fileID: -203655887218126122, guid: 6a5c4eaf4b884fe41a914d3737c94c6d, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_DamagedAnimationClip.Array.data[0]
       value: 

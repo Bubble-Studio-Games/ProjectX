@@ -76,6 +76,10 @@ public class Managers : MonoBehaviour
         UI.Clear();
         Pool.Clear();
         //Table.Clear();
+    }
 
+    public void OnApplicationQuit()
+    {
+        Game.OnApplicationQuit();
     }
 }

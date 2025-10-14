@@ -39,6 +39,7 @@ public class GameEntityAnimator : MonoBehaviour
 
     [Header("Oder")]
     public AnimationClip[] m_OrderAnimationClip;
+    public string[] m_orderAnimationStateName;
 
     [Header("Value")]
     public  float m_AnimatorOriginalVale = 1f;
@@ -100,7 +101,7 @@ public class GameEntityAnimator : MonoBehaviour
     // 현재 가지고 있는 애니메이션 클립을 애니메이션 컨트롤러의 원하는 스테이트의 클립과 교체하기
     public void ChangeAnimationAtStart(string AnimationStateName, AnimationClip newClip, bool isImmediatelyStart = true)
     {
-        if (newClip == null)
+        if (newClip == null || m_Animator == null || m_Animator.runtimeAnimatorController == null)
             return;
 
         var overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
@@ -125,6 +126,9 @@ public class GameEntityAnimator : MonoBehaviour
 
     public void PlayTargetAnimation(string targetAnim, bool isInteracting)
     {
+        if (m_Animator == null || m_Animator.runtimeAnimatorController == null)
+            return;
+
         m_Animator.applyRootMotion = isInteracting;
         m_Animator.CrossFade(targetAnim, m_fCrossTime);
     }
