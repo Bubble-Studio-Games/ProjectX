@@ -21,60 +21,8 @@ public class AttackPatternInfoClipWithReady : AttackPatternInfoClip
 public class AttackPattern<TClip> : AttackPattern
     where TClip : AttackPatternInfoClip
 {
-    // 원본 애니메이션 클립을 저장하기 위한 맵
-    private Dictionary<TClip, Dictionary<FieldInfo, AnimationClip>> _originalClips = new();
-
-    public override void Init()
-    {
-        base.Init();
-
-        foreach (var clipData in m_Clips)
-        {
-            if (clipData == null) continue;
-
-            var fields = clipData.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
-            foreach (var field in fields)
-            {
-                if (field.FieldType == typeof(AnimationClip))
-                {
-                    var original = field.GetValue(clipData) as AnimationClip;
-                    if (original == null) continue;
-
-                    // 원본 저장
-                    if (!_originalClips.ContainsKey(clipData))
-                        _originalClips[clipData] = new Dictionary<FieldInfo, AnimationClip>();
-                    _originalClips[clipData][field] = original;
-
-                    // stepped로 교체
-                    var stepped = SettingManager.Instance.ReplaceOrLoadSteppedClip(original);
-                    field.SetValue(clipData, stepped);
-                }
-            }
-        }
-
-        SettingManager.Instance.OnEventApplicationQuit += (e, s) => OnEndGame();
-    }
-
-    public void OnEndGame()
-    {
-        foreach (var kvp in _originalClips)
-        {
-            var clipData = kvp.Key;
-            var fieldMap = kvp.Value;
-
-            foreach (var field in fieldMap.Keys)
-            {
-                var originalClip = fieldMap[field];
-                field.SetValue(clipData, originalClip);
-            }
-        }
-
-        _originalClips.Clear();
-    }
-
 
     public TClip[] m_Clips;
-
     public override AttackPatternInfoClip[] GetBaseClip() => m_Clips;
 
     public override bool Validate(bool log = false)

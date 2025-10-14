@@ -80,7 +80,7 @@ public class UnitWeaponSlotManager : MonoBehaviour
                 {
                     backSlot?.LoadWeaponModel(m_LeftHandSlot.currentWeapon);
                     m_LeftHandSlot?.UnloadWeaponAndDestroy();
-                    m_Unit.GetAnimationManager().PlayTargetAnimation("Left Arm Empty", false);
+                    m_Unit.GetAnimationsManager()[0].PlayTargetAnimation("Left Arm Empty", false);
                 }
                 else
                 {
@@ -124,6 +124,6 @@ public class UnitWeaponSlotManager : MonoBehaviour
         if (leftHandIKTarget == null || rightHandIKTarget == null)
             return;
 
-        m_Unit.GetAnimationManager().SetHandIKForWeapon(rightHandIKTarget, leftHandIKTarget, isTwoHandingWeapon);
+        m_Unit.GetAnimationsManager()[0].SetHandIKForWeapon(rightHandIKTarget, leftHandIKTarget, isTwoHandingWeapon);
     }
 }

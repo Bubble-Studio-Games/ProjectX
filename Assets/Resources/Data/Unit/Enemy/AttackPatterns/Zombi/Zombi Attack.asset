@@ -50,6 +50,6 @@ MonoBehaviour:
     _value: 0
   AttackAudioClip: {fileID: 8300000, guid: ac6034ade498bb94b87620cdf6eac48b, type: 3}
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: 4e72e98e1fef86340a6e5596c25844d6, type: 2}
-  - AttackAnimationClip: {fileID: 7400000, guid: 812fd1ad0be722249a8a2966f2c0d680, type: 2}
-  - AttackAnimationClip: {fileID: 7400000, guid: d6131b9f4b9ab9841a397465c9c338f0, type: 2}
+  - AttackAnimationClip: {fileID: 7400000, guid: 98407a4882cba764dbfe29f8a83d4e81, type: 2}
+  - AttackAnimationClip: {fileID: 7400000, guid: 073285632456f4849bda1f51ceaaa935, type: 2}
+  - AttackAnimationClip: {fileID: 7400000, guid: f14084253f22b5e498baa695e4898527, type: 2}

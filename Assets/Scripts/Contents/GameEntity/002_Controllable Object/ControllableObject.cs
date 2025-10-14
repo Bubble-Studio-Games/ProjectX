@@ -22,7 +22,7 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
     }
 
     [Header("Ref")]
-    protected ControllableObjectAnimator m_ControllableObjectAnimator;
+    protected List<ControllableObjectAnimator> m_ControllableObjectAnimator;
     protected ControllableObjectSounder m_ControllableObjectSounder;
     public ControllableObjectCombatManager m_ControllableObjectCombatManager { get; private set; }
 
@@ -66,7 +66,7 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
         m_AttributeSystem.OnDead += ClearAction;
         m_AttributeSystem.OnDead += (s, e) => Death();
 
-        m_ControllableObjectAnimator = GetComponentInChildren<ControllableObjectAnimator>();
+        m_ControllableObjectAnimator = GetComponentsInChildren<ControllableObjectAnimator>().ToList();
         m_ControllableObjectSounder = GetComponent<ControllableObjectSounder>();
 
         m_StatBarUI = GetComponentInChildren<StatBarUI>();
@@ -251,7 +251,7 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
     }
 
 
-    public new ControllableObjectAnimator GetAnimationManager()
+    public new List<ControllableObjectAnimator> GetAnimationsManager()
     {
         return m_ControllableObjectAnimator;
     }

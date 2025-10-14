@@ -12,7 +12,7 @@ public class PassiveObject : GameEntity, IAccessories<PassiveObjectAnimator, Pas
 {
     [SerializeField] private GameObject crateDestroyedPrefab;
 
-    protected PassiveObjectAnimator m_PassiveObjectAnimator;
+    protected List<PassiveObjectAnimator> m_PassiveObjectAnimator;
     protected PassiveObjectSounder m_PassiveObjectSounder;
 
     protected override void Awake()
@@ -20,7 +20,7 @@ public class PassiveObject : GameEntity, IAccessories<PassiveObjectAnimator, Pas
         base.Awake();
 
 
-        m_PassiveObjectAnimator = GetComponentInChildren<PassiveObjectAnimator>();
+        m_PassiveObjectAnimator = GetComponentsInChildren<PassiveObjectAnimator>().ToList();
         m_PassiveObjectSounder = GetComponent<PassiveObjectSounder>();
 
     }
@@ -48,7 +48,7 @@ public class PassiveObject : GameEntity, IAccessories<PassiveObjectAnimator, Pas
 
 
 
-    public new PassiveObjectAnimator GetAnimationManager()
+    public new List<PassiveObjectAnimator> GetAnimationsManager()
     {
         return m_PassiveObjectAnimator;
     }

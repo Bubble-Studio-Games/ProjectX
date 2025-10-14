@@ -1705,7 +1705,7 @@ PrefabInstance:
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_RunAnimationClip.Array.data[0]
       value: 
-      objectReference: {fileID: -203655887218126122, guid: 6524bd3581443374687966f0de3305bd, type: 3}
+      objectReference: {fileID: -203655887218126122, guid: 04f43538f4608d9489ceb1ede2e5f2f3, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_DamagedAnimationClip.Array.size
       value: 1

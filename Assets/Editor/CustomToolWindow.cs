@@ -10,7 +10,7 @@ public partial class CustomToolWindow : EditorWindow
     private Vector2 scrollPos;
 
     private Dictionary<MainCategory, string[]> subCategoryMap = new Dictionary<MainCategory, string[]> {
-        { MainCategory.Animation, new string[] { "Change Tag Selected Object  ", "TODO" } },
+        { MainCategory.Animation, new string[] { "Change Tag Selected Object  ", "GameEntityAnimationTester" } },
         { MainCategory.ProjectFile, new string[] { "FBX Animation Batch Tool", "Add Collider To Selected And Children", "Convert material To Propixelizer", "Ragoll Auto Wizard", "Handle_DeleteFile" } },
         { MainCategory.Hierarchy, new string[] { "Find Audio Listeners", "Add Collider To Selected And Children", "Adjust Skinned Mesh Bounds", "Replace Font" } },
         { MainCategory.Audio, new string[] { "TODO", "TODO" } },
@@ -36,7 +36,7 @@ public partial class CustomToolWindow : EditorWindow
         toolDrawMap = new Dictionary<(MainCategory, int), Action>
         {
             { (MainCategory.Animation, 0), Handle_SelectObjectChangeTag },
-            { (MainCategory.Animation, 1), DrawRenameTool },
+            { (MainCategory.Animation, 1), Handle_DrawGameEntityAnimation },
 
             { (MainCategory.ProjectFile, 0), Handle_FBXAnimationBatchTool },
             { (MainCategory.ProjectFile, 1), HandleAddColliderToSelectedAndChildren },
@@ -66,6 +66,8 @@ public partial class CustomToolWindow : EditorWindow
         }
 
         minSize = new Vector2(700, 500);
+
+        OnEnable_GameEntityAnimationTester();
     }
 
     private void OnGUI()

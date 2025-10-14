@@ -8,6 +8,9 @@ public class ASM_Controllable : StateMachineBehaviour
 
     public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
+        if (Managers.Scene.CurrentScene.SceneType != Define.Scene.Game)
+            return;
+
         // 캐싱: 없으면 GetComponentInParent로 가져오기
         if (m_ControllableObject == null)
             m_ControllableObject = animator.GetComponentInParent<ControllableObject>();
@@ -18,7 +21,7 @@ public class ASM_Controllable : StateMachineBehaviour
         if (stateInfo.IsName("Attack"))
         {
             m_ControllableObject.GetAction<CombatAction>().OnEndAttackEventInvoke();
-            m_ControllableObject.GetAnimationManager().AnimatonSpeedRestoreOriginalSpeed();
+            m_ControllableObject.GetAnimationsManager()[0].AnimatonSpeedRestoreOriginalSpeed();
         }
         else if (stateInfo.IsName("AttackReadyFail"))
         {

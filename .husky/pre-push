@@ -3,6 +3,7 @@
 # pre-push: 대용량 및 특정 확장자 파일을 자동으로 DVC로 이관
 # - pre-commit에서 누락된 파일을 2차로 검사
 # - Git 추적 중인 파일은 자동으로 untrack 후 DVC로 전환
+# - 대용량 에셋의 .meta 파일만 DVC로 추가
 # - DVC push 자동 수행
 # ===============================================================
 
@@ -56,6 +57,13 @@ while IFS= read -r -d '' file; do
                 dir=$(dirname "$file")
                 [ -f "$dir/.gitignore" ] && git add "$dir/.gitignore"
 
+                # --- 매칭되는 .meta 자동 DVC 등록 ---
+                metafile="${file}.meta"
+                if [ -f "$metafile" ] && [ ! -f "$metafile.dvc" ]; then
+                    echo "🧩 Matching META found → DVC add: $metafile"
+                    dvc add "$metafile" >/dev/null 2>&1 && git add "$metafile.dvc"
+                fi
+
                 found=true
             else
                 echo "❌  dvc add failed for $file, skipping..."
@@ -63,6 +71,8 @@ while IFS= read -r -d '' file; do
         fi
     fi
 done
+
+# ❌ 전체 .meta 스캔 제거됨 (용량 폭증 방지)
 
 # 2) 대형 파일이 걸렸으면 push 중단
 if [ "$found" = true ]; then

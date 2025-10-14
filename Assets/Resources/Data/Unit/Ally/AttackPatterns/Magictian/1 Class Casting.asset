@@ -51,8 +51,8 @@ MonoBehaviour:
     _value: 0
   AttackAudioClip: {fileID: 8300000, guid: af7f10e17f9bb494f9002faf1aa9fadd, type: 3}
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: 8dde3a694177d7d40a11e85c1078b5a6, type: 2}
-    ReadyFailAnimationClip: {fileID: 7400000, guid: b1ce3c91d0cc85243a45767fb13f74bb, type: 2}
+  - AttackAnimationClip: {fileID: 7400000, guid: fe183891372e61341a90e352a8ceb8ff, type: 2}
+    ReadyFailAnimationClip: {fileID: 7400000, guid: 60da868b43eb3c44e9ab28f24dcfaf73, type: 2}
   ReadyFailAudioClip: {fileID: 8300000, guid: 06e798fa5427eeb40ba5748d7cd41052, type: 3}
   m_ReadyGameObjectPrefab: {fileID: 232523246547959510, guid: 24af3d0d8349c4942a314537f9a823b9, type: 3}
   m_FailPrefab: {fileID: 425180874580948975, guid: f32233d41f243a147acfaf3aef728e2a, type: 3}

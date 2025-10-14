@@ -313,7 +313,7 @@ public class AttributeSystem : MonoBehaviour
         if(args.isSuccessGrade == false)
         {
             m_Stat = m_originalStat;
-            m_GameEntity.GetAnimationManager().AnimatonSpeedRestoreOriginalSpeed();
+            m_GameEntity.GetAnimationsManager().ForEach(a => a.AnimatonSpeedRestoreOriginalSpeed());
             return;
         }
 

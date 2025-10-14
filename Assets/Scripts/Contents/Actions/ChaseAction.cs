@@ -173,6 +173,7 @@ public class ChaseAction : MoveAction
                 if(lists.Count == 0 )
                 {
                     Debug.Log("무슨 버그? " +  m_BaseObject.name);
+                    return default;
                 }
                 int count = lists.Count;
 
