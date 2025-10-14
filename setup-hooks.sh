@@ -120,14 +120,14 @@ dvc remote modify --local $REMOTE_NAME gdrive_client_id "$DVC_GDRIVE_CLIENT_ID"
 dvc remote modify --local $REMOTE_NAME gdrive_client_secret "$DVC_GDRIVE_CLIENT_SECRET"
 echo "✅ DVC Google Drive OAuth configured (local only)"
 
-# 5) 최초 데이터 pull (브라우저 인증 필요)
+# 초기 데이터 pull
 echo "📥 Running 'dvc pull' (login in browser if prompted)..."
+rm -rf .dvc/tmp/lock .dvc/tmp/rwlock 2>/dev/null || true
 dvc pull || true
 
+# DVC 캐시 정리
+echo "🧹 Cleaning up any old .dvc.meta or .meta.dvc files..."
+find . -type f \( -name "*.dvc.meta" -o -name "*.meta.dvc" \) -delete
+rm -rf .dvc/tmp/lock .dvc/tmp/rwlock .dvc/cache/tmp/*
 
-
-
-echo "✅ setup-hooks.sh completed successfully!"
-
-
-echo "🎉 Onboarding complete!"
+echo "✅ DVC setup complete! You can now run Unity safely."
