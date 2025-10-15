@@ -25,7 +25,7 @@ public class Item : MonoBehaviour
     {
     }
 
-    public virtual void Destroy()
+    public virtual void Destroy(float seconds = 3.0f)
     {
         // 모델은 숨기고
         // 사운드 때문에 이렇게 해 놓은거
@@ -34,12 +34,12 @@ public class Item : MonoBehaviour
             child.gameObject.SetActive(false);
         }
 
-        StartCoroutine(ObjectDestroy());
+        StartCoroutine(ObjectDestroy(seconds));
     }
 
-    protected IEnumerator ObjectDestroy()
+    protected IEnumerator ObjectDestroy(float seconds = 3.0f)
     {
-        yield return new WaitForSeconds(3.0f);
+        yield return new WaitForSeconds(seconds);
         Managers.Resource.Destroy(gameObject);
     }
 }

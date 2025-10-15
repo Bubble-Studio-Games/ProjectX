@@ -17,9 +17,9 @@ MonoBehaviour:
   sprite: {fileID: 0}
   m_sDescription: 
   m_iMaxHP:
-    _value: 2000
+    _value: 200
   m_iCurrentHp:
-    _value: 2000
+    _value: 200
   m_iIsStepReduceHP: 0
   m_fHPRegenrate:
     _value: 0
@@ -36,6 +36,10 @@ MonoBehaviour:
   m_iCommandMoveDistance: 0
   m_iDetectRange: 4
   m_iChaseRange: 4
+  m_iPhysicalBaseDamamge:
+    _value: 0
+  m_iMagicalBaseDamamge:
+    _value: 0
   m_iPhysicalDefence:
     _value: 0
   m_iMagicalDefence:

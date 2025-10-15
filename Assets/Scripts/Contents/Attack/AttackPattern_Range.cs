@@ -1,10 +1,7 @@
-using System.Collections;
 using UnityEngine;
 using static Define;
 using System.Linq;
 using System.Collections.Generic;
-using Unity.Mathematics;
-using UnityEngine.Rendering;
 
 [CreateAssetMenu(menuName = "Attack Pattern/Range")]
 public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
@@ -32,12 +29,7 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
 
     private LaunchCheckResult _cachedCheckResult;
 
-    public void ClearProjectiles() 
-    {
-        foreach (var projectile in m_SpawnProjectiles)
-            projectile.Destroy();
-        m_SpawnProjectiles.Clear();
-    }
+    public void ClearProjectiles() => m_SpawnProjectiles.Clear();
 
     public override E_AttackCondition CanExecute(ControllableObject attacker, GameEntity target)
     {

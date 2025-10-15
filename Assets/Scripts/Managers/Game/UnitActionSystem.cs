@@ -1,15 +1,10 @@
 using CodeMonkey.Utils;
-using Palmmedia.ReportGenerator.Core.Reporting.Builders;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Diagnostics;
 using UnityEngine.EventSystems;
 using static Define;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class UnitActionSystem : MonoBehaviour
 {
@@ -51,6 +46,8 @@ public class UnitActionSystem : MonoBehaviour
 
     private void OnDestroy()
     {
+        m_SelectedObjects = null;
+        m_SelectedAction = null;
         OnSelectedUnitChanged = null;
         OnSelectedActionChanged = null;
         OnCommandAction = null;

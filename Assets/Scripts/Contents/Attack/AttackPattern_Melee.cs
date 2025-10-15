@@ -50,26 +50,28 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
             
             _totalDamageDealt += hpBefore - hpAfter;
         }
+
+        ApplyLifeSteal(attacker);
+        Clear();
     }
 
     public override void EndAttack(ControllableObject attacker, GameEntity target)
     {
         base.EndAttack(attacker, target);
-
-        if (m_fLifeStealPercent <= 0 || _totalDamageDealt <= 0)
-            return;
-        
-        // 흡혈 적용
-        int healAmount = Mathf.RoundToInt(_totalDamageDealt * m_fLifeStealPercent);
-        StatValue currentHp = attacker.m_AttributeSystem.m_Stat.m_iCurrentHp;
-        StatValue maxHp = attacker.m_AttributeSystem.m_Stat.m_iMaxHP;
-        attacker.m_AttributeSystem.m_Stat.m_iCurrentHp = Mathf.Min(currentHp + healAmount, maxHp);
-
-        Clear();
     }
 
     private void Clear()
     {
         _totalDamageDealt = 0;
+    }
+
+    public void ApplyLifeSteal(ControllableObject attacker)
+    {
+        if (m_fLifeStealPercent <= 0 || _totalDamageDealt <= 0 || attacker == null)
+            return;
+
+        // 백분율 처리: m_fLifeStealPercent가 0.1이면 10%
+        int healAmount = Mathf.RoundToInt(_totalDamageDealt * m_fLifeStealPercent.Value);
+        attacker.m_AttributeSystem.Heal(healAmount, E_HealType.LifeSteal, attacker);
     }
 }

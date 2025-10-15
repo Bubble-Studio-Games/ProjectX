@@ -95,6 +95,11 @@ public partial class Define
         Counter, // 반격
     }
 
+    public enum E_HealType
+    {
+        LifeSteal,      // 흡혈
+    }
+
     public enum E_AttackCondition
     {
         Success,
