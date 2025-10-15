@@ -1,4 +1,5 @@
 using UnityEngine;
+using static Define;
 
 [System.Serializable]
 public struct ProjectileProperty
@@ -21,6 +22,13 @@ public struct ProjectileProperty
     [Tooltip("직선 발사 가능한 최대 장애물 높이")]
     public float MaxStraightShotHeight;
 
+    [Header("Multiple Launcher Settings")]
+    [Tooltip("다중 발사 시 발사체 개수")]
+    public int MultipleProjectileCount;
+
+    [Tooltip("다중 발사 시 사용할 궤적 타입 (Straight or Parabola)")]
+    public E_Projectile MultipleTrajectoryType;
+
     public static ProjectileProperty Default => new ProjectileProperty
     {
         UseProjectileLaunch = false,
@@ -28,7 +36,9 @@ public struct ProjectileProperty
         ParabolaSpeed = 5f,
         DetectionHitRadius = 2f,
         CeilingHeight = 7f,
-        MaxStraightShotHeight = 1f
+        MaxStraightShotHeight = 1f,
+        MultipleProjectileCount = 3,
+        MultipleTrajectoryType = E_Projectile.Straight
     };
 }
 

@@ -65,3 +65,5 @@ MonoBehaviour:
     DetectionHitRadius: 2
     CeilingHeight: 7
     MaxStraightShotHeight: 1
+    MultipleProjectileCount: 3
+    MultipleTrajectoryType: 1

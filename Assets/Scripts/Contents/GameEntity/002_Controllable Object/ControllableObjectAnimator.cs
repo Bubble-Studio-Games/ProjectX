@@ -119,6 +119,12 @@ public class ControllableObjectAnimator : GameEntityAnimator
             m_TempInfo = e.attackPattern.GetBaseClip().RandomPick();
         }
 
+        if (m_TempInfo == null)
+        {
+            Debug.LogError($"{m_ControllableObject.name} 공격 애니메이션 클립이 존재하지 않습니다.");
+            return;
+        }
+
         ChangeAnimationAtStart(E_GameEntityClipType.Attack.ToString(), m_TempInfo.AttackAnimationClip);
 
         // 선택한 공격 패턴의 공격 스피드를 애니메이터 스테이트의 스피드를 조정함.

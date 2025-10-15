@@ -60,19 +60,19 @@ public class Projectile : Item
         m_Rigidbody.isKinematic = false; // 필요시
     }
 
-    public override void Destroy()
+    public override void Destroy(float seconds = 3.0f)
     {
         if (m_hasDestoryAnimation)
         {
             animator.CrossFade("Destroy", 0.2f);
-            StartCoroutine(ObjectDestroy());
+            StartCoroutine(ObjectDestroy(seconds));
         }
         else
         {
             foreach (Transform child in transform)
                 child.gameObject.SetActive(false);
 
-            StartCoroutine(ObjectDestroy());
+            StartCoroutine(ObjectDestroy(seconds));
         }
     }
 

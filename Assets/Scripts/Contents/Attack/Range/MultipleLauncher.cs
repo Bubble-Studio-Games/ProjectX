@@ -3,21 +3,33 @@ using System.Collections.Generic;
 using UnityEngine;
 using static Define;
 
+/// <summary>
+/// 다중 발사체 런처
+/// - 여러 개의 발사체를 순차적으로 발사
+/// </summary>
 public class MultipleLauncher : IProjectileLauncher
 {
-    // 개수를 조정하고 싶은경우 
-    // MonoBehaviour 쪽에서 설정하는 값을가져오던가 SO쪽에서 새로운 설정값을 세팅하게해야함
-    // 지금은 하드코딩
-    private int _projectileCount = 3;
-
     public E_Projectile ProjectileType => E_Projectile.Multiple;
 
-    public int GetRequiredProjectileCount() => _projectileCount;
+    public int GetRequiredProjectileCount() => 3;
+    private int _projectileCount = 3;
+    private E_Projectile _projectileType = E_Projectile.Straight;
+
+    private WaitForFixedUpdate _waitFixed = new();
+    private WaitForSeconds _waitSeconds = new(0.3f);
 
     public LaunchCheckResult CanLaunch(ControllableObject attacker, GameEntity target, LaunchContext context)
     {
-        var ret = LaunchCheckResult.Success(false, context.ColliderLength, context.Property.StraightSpeed);
-        return ret;
+        // ProjectileProperty에서 설정값 캐싱
+        _projectileCount = context.Property.MultipleProjectileCount > 0 ? context.Property.MultipleProjectileCount : 3;
+        _projectileType = context.Property.MultipleTrajectoryType;
+
+        // 궤적 타입에 따라 속도 및 높이 결정
+        bool needParabola = _projectileType == E_Projectile.Parabola;
+        float speed = needParabola ? context.Property.ParabolaSpeed : context.Property.StraightSpeed;
+        float boundHeight = needParabola ? (context.ColliderLength + context.ObstacleHeight) : 0f;
+
+        return LaunchCheckResult.Success(needParabola, boundHeight, speed);
     }
 
     public void Launch(List<Projectile> projectiles, ControllableObject attacker, GameEntity target, LaunchCheckResult checkResult)
@@ -25,26 +37,37 @@ public class MultipleLauncher : IProjectileLauncher
         if (projectiles == null || projectiles.Count <= 0)
             return;
 
+        attacker.StartCoroutine(DelayedLaunch());
 
-        attacker.StartCoroutine(LaunchMultiple(projectiles, attacker, target, checkResult));
+        IEnumerator DelayedLaunch()
+        {
+            for (int i = 0; i < projectiles.Count; i++)
+            {
+                if (projectiles[i] == null)
+                    continue;
+                attacker.StartCoroutine(Co_Launch(projectiles[i], attacker, target, checkResult));
+                yield return _waitSeconds;
+            }
+        }
     }
 
-    private IEnumerator LaunchMultiple(List<Projectile> projectiles, ControllableObject attacker, GameEntity target,
+    private IEnumerator Co_Launch(Projectile projectile, ControllableObject attacker, GameEntity target,
         LaunchCheckResult checkResult)
     {
-        // 리스트에 있는 모든 발사체를 순차적으로 발사
-        for (int i = 0; i < projectiles.Count; i++)
+        // 궤적 타입에 따라 발사 방식 선택
+        if (_projectileType == E_Projectile.Parabola && checkResult.NeedParabola)
         {
-            if (projectiles[i] == null)
-                continue;
-
-            if (i > 0)
-                yield return new WaitForSeconds(0.1f);
-
-            // 각 발사체를 목표 위치까지 직선으로 발사
+            Vector3 startPos = projectile.transform.position;
             Vector3 targetPos = GetTargetPosition(target);
-            yield return attacker.StartCoroutine(LaunchSingleProjectile(projectiles[i], targetPos, checkResult.Speed));
+            attacker.StartCoroutine(LaunchParabola(projectile, attacker, target, startPos, targetPos, checkResult.Speed, checkResult.BoundHeight));
         }
+        else
+        {
+            Vector3 targetPos = GetTargetPosition(target);
+            attacker.StartCoroutine(LaunchStraight(projectile, targetPos, checkResult.Speed));
+        }
+
+        yield break;
     }
 
     private Vector3 GetTargetPosition(GameEntity target)
@@ -54,18 +77,95 @@ public class MultipleLauncher : IProjectileLauncher
         return baseCenter + Vector3.up * (height * (1f / 6f));
     }
 
-    private IEnumerator LaunchSingleProjectile(Projectile projectile, Vector3 targetPos, float speed)
+    private IEnumerator LaunchStraight(Projectile projectile, Vector3 targetPos, float speed, bool useDirection = false, float maxDistance = 50f)
     {
-        while (projectile != null && Vector3.Distance(projectile.transform.position, targetPos) > 0.1f)
+        float traveledDistance = 0f;
+        Vector3 direction = useDirection ? targetPos.normalized : Vector3.zero;
+
+        while (true)
         {
-            Vector3 nextPos = Vector3.MoveTowards(
-                projectile.transform.position,
-                targetPos,
-                speed * Time.deltaTime
-            );
+            if (projectile == null)
+                break;
+
+            if (useDirection && traveledDistance >= maxDistance)
+                break;
+
+            if (useDirection == false && Vector3.Distance(projectile.transform.position, targetPos) <= 0.1f)
+                break;
+
+            // 다음 위치 계산
+            Vector3 nextPos = useDirection
+                ? projectile.transform.position + direction * speed * Time.deltaTime
+                : Vector3.MoveTowards(projectile.transform.position, targetPos, speed * Time.deltaTime);
+
             projectile.m_Rigidbody.MovePosition(nextPos);
-            yield return new WaitForFixedUpdate();
+
+            if (useDirection)
+                traveledDistance += speed * Time.deltaTime;
+
+            if (IsCoroutineOut(projectile.transform.position, targetPos))
+                yield break;
+
+            yield return _waitFixed;
         }
+
+        // 방향 모드일 때만 발사체 파괴
+        if (useDirection)
+            projectile?.Destroy();
+    }
+
+    /// <summary>
+    /// 포물선 궤적으로 발사체를 발사 (타겟 실시간 추적)
+    /// </summary>
+    private IEnumerator LaunchParabola(Projectile projectile, ControllableObject attacker, GameEntity target,
+        Vector3 start, Vector3 end, float speed, float boundHeight)
+    {
+        float elapsedTime = 0f;
+
+        while (true)
+        {
+            if (projectile == null)
+                break;
+
+            // 타겟이 사망했는지 확인
+            if (target == null || target.m_AttributeSystem.m_IsDead)
+            {
+                // 직선형으로 전환
+                Vector3 currentDirection = projectile.m_Rigidbody.velocity.normalized;
+                if (currentDirection == Vector3.zero)
+                    currentDirection = (target != null ? target.transform.position - projectile.transform.position : Vector3.forward).normalized;
+
+                yield return LaunchStraight(projectile, currentDirection, speed, useDirection: true);
+                yield break;
+            }
+
+            // 타겟의 현재 위치를 실시간으로 가져옴
+            Vector3 targetPos = GetTargetPosition(target);
+            float distance = Vector3.Distance(start, targetPos);
+            float duration = distance / speed;
+
+            elapsedTime += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsedTime / duration);
+
+            // 포물선 궤적 계산
+            Vector3 destPos = Vector3.Lerp(start, targetPos, t);
+            destPos.y += boundHeight * Mathf.Sin(t * Mathf.PI);
+
+            projectile.m_Rigidbody.MovePosition(destPos);
+
+            if (IsCoroutineOut(projectile.transform.position, targetPos))
+                yield break;
+
+            yield return _waitFixed;
+        }
+    }
+
+    private bool IsCoroutineOut(Vector3 start, Vector3 dest)
+    {
+        if (Vector3.Distance(start, dest) <= 0.1f)
+            return true;
+
+        return false;
     }
 }
 

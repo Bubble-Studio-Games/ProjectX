@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using static Define;
 
+/// <summary>
+/// 직선형 발사체 런처
+/// - 발사 순간의 타겟 위치를 고정하여 직선으로 이동
+/// - 발사 시점의 적 위치를 기준으로 고정된 방향으로 직선 이동
+/// </summary>
 public class StraightLauncher : IProjectileLauncher
 {
     public E_Projectile ProjectileType => E_Projectile.Straight;
