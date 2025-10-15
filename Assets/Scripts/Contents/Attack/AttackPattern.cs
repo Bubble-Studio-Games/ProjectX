@@ -35,8 +35,15 @@ public  class AttackPattern : ScriptableObject
     public int ID;
     public string AttackName;                    // 예: "전방3칸", "부채꼴" 등
     public List<GridPosition> m_RangeOffset = new();   // 공격 범위 오프셋 (유닛 기준)
-    //public E_AttackEffectType E_AttackEffectType;
     public E_AttackType m_EAttackType;
+    public E_RangeInclusionType m_ERangeInclusionType;
+    public bool m_IsEnableSelfAttack; // 공격자가 대상자에 포함되는가?, 나도 공격/버프 당할 수 있는가?
+
+    [Header("Attack Shape 보조, 필요시에만 기입")]
+    // (Arc / Cone 파라미터 — 필요 시만 사용)
+    public float m_ArcAngle = 90f;      // Arc 반각 예: 90 => ±45도
+    public int m_RangeRadius = 1;       // 디자이너용 보조 정보
+    public bool m_IncludeIntermediate = true;
 
     public AttackPattern[] m_iNextAttackPattern;
     public AttackPattern m_iConditionPrevAttackPattern; // 

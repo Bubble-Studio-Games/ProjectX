@@ -105,11 +105,8 @@ public class ChaseAction : MoveAction
         attackPatterns = attackPatterns
             .Where(x => x.CanExecute(m_BaseObject, m_BaseObject.m_Target) == E_AttackCondition.Success).ToList();
 
-        // 2. 모든 공격 위치 오프셋 가져오기
-        HashSet<GridPosition> allAttackOffsets = new();
-        foreach (var attackPattern in attackPatterns)
-            foreach (var offset in attackPattern.m_RangeOffset)
-                allAttackOffsets.Add(offset);
+        // 2. 모든 공격 위치 오프셋 가져오기// 2. 모든 공격 위치 오프셋 가져오기
+        HashSet<GridPosition> allAttackOffsets = Managers.Game.GetAllUniqueAttackOffsets(attackPatterns);
 
         // 3. 공격 오프셋과 방향, 타겟 위치를 이용해 공격자 위치 후보 도출
         HashSet<GridPosition> attackFromPositions = new();
