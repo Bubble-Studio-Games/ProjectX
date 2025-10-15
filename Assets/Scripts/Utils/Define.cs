@@ -4,6 +4,29 @@ using UnityEngine;
 
 public partial class Define
 {
+    public enum E_RangeInclusionType
+    {
+        // 지정 범위 내 모든 타일을 대상으로 함
+        FullRange,
+
+        // 가장 바깥쪽 칸만 대상으로 함
+        OuterRing,
+
+        // 중심 제외하고 안쪽 3x3 또는 n-1 범위만
+        InnerRing,
+
+        // 일정 간격마다만 적용 (예: 1칸 건너)
+        Checker,
+
+        // 대각선 축 방향만 대상으로 함
+        DiagonalOnly,
+
+        Arc,          // 호(부채꼴) 형태
+        Triangle,      // 삼각형(꼭지점 기준) 형태
+        Cone,           // 삼각/원뿔형 (거리+각도로 판정)
+        CustomList      // 임의 리스트(분석 불가)
+    }
+
     #region Attack Pattern
 
     public enum E_AttackType
@@ -56,13 +79,25 @@ public partial class Define
             
     }
 
+
+    [System.Flags]
     public enum E_GridCheckType
     {
-        Walkable,   // 그리드가 유효한 위치인지
-        HasUnit,    // 유닛이 있는지
-        Reserved,    // 예약된 위치인지
-        Obstacle // 장애물에 막혀 있는지
+        None = 0,
+        Walkable = 1 << 0,
+        HasUnit = 1 << 1,
+        Reserved = 1 << 2,
+        Obstacle = 1 << 3,
+        Empty = 1 << 4, // 유닛/오브젝트/예약 없음
     }
+
+    //public enum E_GridCheckType
+    //{
+    //    Walkable,   // 그리드가 유효한 위치인지
+    //    HasUnit,    // 유닛이 있는지
+    //    Reserved,    // 예약된 위치인지
+    //    Obstacle // 장애물에 막혀 있는지
+    //}
 
     public enum E_WeaponItemType
     {

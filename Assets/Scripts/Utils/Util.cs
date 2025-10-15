@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-public static class Util
+public static partial class Util
 {
     public static bool TryGetComponentInChildren<T>(GameObject go, out T result) where T : Component
     {
