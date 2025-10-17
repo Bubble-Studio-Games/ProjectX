@@ -12,6 +12,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using static Define;
 using static Unity.VisualScripting.Member;
+using static UnityEngine.Splines.SplineInstantiate;
 using static UnityEngine.UI.Image;
 using Scene = Define.Scene;
 
@@ -67,7 +68,7 @@ public class GameManager
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void InitAttackAnimationStepAnimation()
     {
-        if (!CheckRunMethodThisScene()) return;
+        //if (!CheckRunMethodThisScene()) return;
 
         var patterns = Resources.LoadAll<AttackPattern>("Data/Unit");
         int convertedCount = 0;
@@ -182,7 +183,8 @@ public class GameManager
         return null;
     }
 
-    public float GetObjectLength(GameObject obj)
+    // 선택한 오브젝트의 가장 긴 y축(월드 상) 가져오기
+    public float GetObjectColliderLongLength(GameObject obj)
     {
         Collider col = obj.GetComponentInChildren<Collider>();
         if (col == null)
@@ -532,39 +534,73 @@ public class GameManager
                 }
 
                 break;
-            case E_RangeShapeType.Diamond: // 수정 필요
-                for (int f = range.MinFloor; f <= range.MaxFloor; f++)
+            case E_RangeShapeType.Diamond:
                 {
-                    for (int x = range.MinX; x <= range.MaxX; x++)
+                    int maxX = range.MaxX;
+                    int maxZ = range.MaxZ;
+
+                    for (int f = range.MinFloor; f <= range.MaxFloor; f++)
                     {
-                        for (int z = range.MinZ; z <= range.MaxZ; z++)
+                        for (int x = -maxX; x <= maxX; x++)
                         {
-                            var offset = new GridPosition(x, z, f);
-
-                            if (pattern.m_ERangeFillType == E_RangeFillType.FullRange)
-                                unique.Add(offset);
-
-                            // 경계선 위치한 셀만 true
-                            else if (pattern.m_ERangeFillType == E_RangeFillType.OuterRing)
+                            for (int z = -maxZ; z <= maxZ; z++)
                             {
-                                if (x == range.MinX || x == range.MaxX ||
-                                    z == range.MinZ || z == range.MaxZ)
-                                    unique.Add(offset);
-                            }
-                            // 경계선 안쪽 위치한 셀만 true
-                            else
-                            {
-                                if (x != range.MinX && x != range.MaxX && z != range.MinZ && z != range.MaxZ)
-                                    unique.Add(offset);
-                            }
+                                // 다이아몬드 형태 기본 조건 (비율 계산 없이)
+                                // |x| + |z| <= radius
+                                int radius = Mathf.Max(maxX, maxZ);
+                                if (Mathf.Abs(x) + Mathf.Abs(z) > radius)
+                                    continue;
 
+                                // 🔹 경계선 판정
+                                // 이 셀에서 한 칸이라도 나가면 범위를 벗어나는가? → 경계
+                                bool isEdge = false;
+                                int[][] dirs = new int[][] {
+                                                new int[] { 1, 0 },
+                                                new int[] { -1, 0 },
+                                                new int[] { 0, 1 },
+                                                new int[] { 0, -1 }
+                                            };
+
+
+                                foreach (var dir in dirs)
+                                {
+                                    int nx = x + dir[0];
+                                    int nz = z + dir[1];
+                                    if (Mathf.Abs(nx) + Mathf.Abs(nz) > radius)
+                                    {
+                                        isEdge = true;
+                                        break;
+                                    }
+                                }
+
+                                var offset = new GridPosition(x, z, f);
+
+                                switch (pattern.m_ERangeFillType)
+                                {
+                                    case E_RangeFillType.FullRange:
+                                        unique.Add(offset);
+                                        break;
+
+                                    case E_RangeFillType.OuterRing:
+                                        if (isEdge)
+                                            unique.Add(offset);
+                                        break;
+
+                                    case E_RangeFillType.Inner:
+                                        if (!isEdge)
+                                            unique.Add(offset);
+                                        break;
+                                }
+                            }
                         }
                     }
+                    break;
                 }
 
-                // 안되는 듯
-                unique = Enumerable.ToHashSet(unique.Select(x => LevelGrid.Instance.ToGridPosition(GridPosition.Zero, x, E_Dir.NorthEast)));
-                break;
+
+
+
+
             case E_RangeShapeType.Arc: // 수정 필요
                 {
                     float halfAngle = pattern.m_ArcAngle * 0.5f;
@@ -618,9 +654,83 @@ public class GameManager
                 }
 
             case E_RangeShapeType.Triangle:
-                break;
+                {
+                    int zMax = range.MaxZ;
+
+                    for (int f = range.MinFloor; f <= range.MaxFloor; f++)
+                    {
+                        for (int z = 0; z < zMax; z++)
+                        {
+                            int halfWidth = (zMax - 1) - z; // 위로 갈수록 폭이 줄어듦
+
+                            for (int x = -halfWidth; x <= halfWidth; x++)
+                            {
+                                bool isEdge = (z == 0) || (x == -halfWidth) || (x == halfWidth) || (z == zMax - 1);
+                                var offset = new GridPosition(x, z, f);
+
+                                switch (pattern.m_ERangeFillType)
+                                {
+                                    case E_RangeFillType.FullRange:
+                                        unique.Add(offset);
+                                        break;
+
+                                    case E_RangeFillType.OuterRing:
+                                        if (isEdge)
+                                            unique.Add(offset);
+                                        break;
+
+                                    case E_RangeFillType.Inner:
+                                        if (!isEdge)
+                                            unique.Add(offset);
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+
+
             case E_RangeShapeType.ReverseTriangle:
-                break;
+                {
+                    int zMax = range.MaxZ;
+
+                    for (int f = range.MinFloor; f <= range.MaxFloor; f++)
+                    {
+                        for (int z = 0; z < zMax; z++)
+                        {
+                            int halfWidth = z; // 아래로 갈수록 폭이 넓어짐
+
+                            for (int x = -halfWidth; x <= halfWidth; x++)
+                            {
+                                bool isEdge = (z == 0) || (x == -halfWidth) || (x == halfWidth) || (z == zMax - 1);
+
+                                var offset = new GridPosition(x, z, f);
+
+                                switch (pattern.m_ERangeFillType)
+                                {
+                                    case E_RangeFillType.FullRange:
+                                        unique.Add(offset);
+                                        break;
+
+                                    case E_RangeFillType.OuterRing:
+                                        if (isEdge)
+                                            unique.Add(offset);
+                                        break;
+
+                                    case E_RangeFillType.Inner:
+                                        if (!isEdge)
+                                            unique.Add(offset);
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+
+
+
             case E_RangeShapeType.Plus:
                 for (int f = range.MinFloor; f <= range.MaxFloor; f++)
                 {

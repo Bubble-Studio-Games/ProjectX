@@ -29,7 +29,7 @@ MonoBehaviour:
     z: 0
     floor: 0
   m_GridCheckTypes: 
-  m_ApplyTargetTeampId: 0
+  m_ApplyTargetTeampId: 1
   m_iNextAttackPattern: []
   m_iConditionPrevAttackPattern: {fileID: 0}
   m_iCoolTime:
@@ -61,4 +61,4 @@ MonoBehaviour:
     _value: 0
   AttackAudioClip: {fileID: 8300000, guid: 1785fff83652f42399d9b2017b05656c, type: 3}
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: 76b6b57d6c3ae7d4c85463216a921715, type: 2}
+  - AttackAnimationClip: {fileID: -203655887218126122, guid: 9e1b8ac76b3be704cae8610d91ce986e, type: 3}

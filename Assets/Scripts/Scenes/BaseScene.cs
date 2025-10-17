@@ -1,13 +1,18 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Video;
+using static Define;
 
 public abstract class BaseScene : MonoBehaviour
 {
     public Define.Scene SceneType { get; protected set; } = Define.Scene.Unknown;
 
-	void Awake()	{
+    [Header("Scene")]
+    public AudioClip m_SceneMainTemaAudioclip;
+
+    void Awake()	{
 		Init();
 	}
 
@@ -18,6 +23,14 @@ public abstract class BaseScene : MonoBehaviour
             Managers.Resource.Instantiate("UI/EventSystem").name = "@EventSystem";
 
 
+    }
+
+    protected virtual void Start()
+    {
+        Managers.Game.ResumeGame();
+
+        // Sound
+        Managers.Sound.Play(m_SceneMainTemaAudioclip, 1, Sound.Bgm);
     }
 
     public abstract void Clear();
