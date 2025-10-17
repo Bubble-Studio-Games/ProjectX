@@ -16,7 +16,7 @@ MonoBehaviour:
   AttackName: Warior 1 Front Attack Slash
   m_EAttackType: 1
   m_IsEnableSelfAttack: 0
-  m_ERangeFillType: 0
+  m_ERangeFillType: 1
   m_ERangeShapeType: 6
   m_RangeOffset:
   - x: 0
