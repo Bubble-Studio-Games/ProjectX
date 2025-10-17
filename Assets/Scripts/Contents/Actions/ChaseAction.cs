@@ -98,15 +98,21 @@ public class ChaseAction : MoveAction
 
     private List<GridPosition> GetAttackGridPosition(GridPosition gridPosition, GridPosition targetPosition)
     {
-        // 1. 현재 가능한 공격 패턴 가져오기
-        var attackPatterns = m_BaseObject.m_AttributeSystem.m_AttackPatterns;
+        // 1️⃣ 현재 가능한 공격 패턴 가져오기 (Evaluate 기반)
+        var evaluations = Managers.Game.EvaluateAttackPatternsByCondition
+                            (m_BaseObject, 
+                             m_BaseObject.m_Target, 
+                             E_AttackCondition.Success,
+                             E_AttackCondition.Fail_Distance);
+
         List<GridPosition> bestPosition = new();
 
-        attackPatterns = attackPatterns
-            .Where(x => x.CanExecute(m_BaseObject, m_BaseObject.m_Target) == E_AttackCondition.Success).ToList();
+        if (evaluations.Count == 0)
+            return bestPosition;
 
-        // 2. 모든 공격 위치 오프셋 가져오기// 2. 모든 공격 위치 오프셋 가져오기
-        HashSet<GridPosition> allAttackOffsets = Managers.Game.GetAllUniqueAttackOffsets(attackPatterns);
+        // 2️ 모든 공격 위치 오프셋 통합
+        HashSet<GridPosition> allAttackOffsets 
+            = Managers.Game.GetAllPatternOffsets(evaluations.Select(x => x.pattern));
 
         // 3. 공격 오프셋과 방향, 타겟 위치를 이용해 공격자 위치 후보 도출
         HashSet<GridPosition> attackFromPositions = new();

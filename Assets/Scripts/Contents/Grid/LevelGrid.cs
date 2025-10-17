@@ -149,7 +149,7 @@ public class LevelGrid : MonoBehaviour
 
         OnChangeGrid?.Invoke(this, new OnChangeGridAgrs
         {
-            type = E_GridCheckType.HasUnit,
+            type = E_GridCheckType.Empty,
             ListGridPosition = gridPositions,
             isNotGrid = false
         });
@@ -497,45 +497,6 @@ public class LevelGrid : MonoBehaviour
 
         return origin + new GridPosition(rotatedX, rotatedZ, offset.floor);
     }
-
-    /// <summary>
-    /// 📏 두 GridPosition 사이의 모든 셀을 구함 (층(floor) 포함)
-    /// - X, Z, Floor 세 축을 모두 고려
-    /// - 시작~끝 사이를 균등 분할하여 모든 좌표를 리스트로 반환
-    /// </summary>
-    public List<GridPosition> GetGridPositionsBetween(GridPosition from, GridPosition to)
-    {
-        List<GridPosition> path = new();
-
-        int dx = to.x - from.x;
-        int dz = to.z - from.z;
-        int df = to.floor - from.floor;
-
-        int steps = Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dz), Mathf.Abs(df));
-
-        // 이동 단위 벡터 (부동소수점 기반)
-        float stepX = dx / (float)steps;
-        float stepZ = dz / (float)steps;
-        float stepF = df / (float)steps;
-
-        for (int i = 1; i <= steps; i++)
-        {
-            int x = Mathf.RoundToInt(from.x + stepX * i);
-            int z = Mathf.RoundToInt(from.z + stepZ * i);
-            int f = Mathf.RoundToInt(from.floor + stepF * i);
-
-            GridPosition pos = new(x, z, f);
-
-            if (!IsValidGridPosition(pos))
-                break;
-
-            path.Add(pos);
-        }
-
-        return path;
-    }
-
-
 
     public float GetObstacleMaxHeight(GridPosition gridPosition, GridPosition targetPosition)
     {

@@ -37,6 +37,9 @@ public class CombatAction : BaseAction
     protected override void Start()
     {
         base.Start();
+
+        OnStartAttack += (s, e) =>  GridSystemVisual.Instance.UpdateGridVisual_Event(s, m_BaseObject);
+        OnEndAttack += (s, e) =>  GridSystemVisual.Instance.UpdateGridVisual_Event(s, m_BaseObject);
     }
 
     protected override void Update()
@@ -210,21 +213,19 @@ public class CombatAction : BaseAction
     {
         E_Dir dir = LevelGrid.Instance.GetDirGridPosition(m_BaseObject.GetGridPosition(), m_BaseObject.m_Target.GetGridPosition());
 
-        var validPatterns = patterns
-            .Where(attack => attack.CanExecute(m_BaseObject, m_BaseObject.m_Target) == E_AttackCondition.Success)
-            .ToList();
-        validPatterns = validPatterns.Where(attack => attack.m_RangeOffset.Any(offset =>
-                LevelGrid.Instance.ToGridPosition(offset, m_BaseObject.GetGridPosition(), dir) == m_BaseObject.m_Target.GetGridPosition()
-                )).ToList();
+        // ✅ canUse == true 인 AttackPattern만 추출
+        var usablePatterns = Managers.Game.EvaluateAttackPatternsByCondition
+                            (m_BaseObject,
+                             m_BaseObject.m_Target,
+                             E_AttackCondition.Success);
 
-        if (validPatterns.Count == 0)
-            return null; // 공격 가능한 패턴이 없다면 null
+        if (usablePatterns == null || usablePatterns.Count == 0)
+            return null;
 
-        Console.WriteLine("가능한 공격들 : " + string.Join(" ", validPatterns));
+        //Debug.Log("가능한 공격들 : " + string.Join(" ", usablePatterns));
 
         // 무작위로 하나 선택
-        int index = UnityEngine.Random.Range(0, validPatterns.Count);
-        return validPatterns[index];
+        return usablePatterns.Select(x => x.pattern).RandomPick();
     }
 
     public void OnStartAttackEventInvoke()

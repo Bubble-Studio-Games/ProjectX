@@ -14,11 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 402
   AttackName: Fireball
+  m_EAttackType: 2
+  m_IsEnableSelfAttack: 0
+  m_ERangeFillType: 0
+  m_ERangeShapeType: 6
   m_RangeOffset:
   - x: 0
     z: 2
     floor: 0
-  m_EAttackType: 2
+  m_ArcAngle: 90
+  m_IsAttackStartPositionAtAttacker: 1
+  m_StartOffset:
+    x: 0
+    z: 0
+    floor: 0
+  m_GridCheckTypes: 
+  m_ApplyTargetTeampId: 0
   m_iNextAttackPattern: []
   m_iConditionPrevAttackPattern: {fileID: 11400000, guid: 6b3e633896ebf844e89cd94d991b5e3c, type: 2}
   m_iCoolTime:

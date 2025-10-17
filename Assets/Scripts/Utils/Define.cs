@@ -4,7 +4,16 @@ using UnityEngine;
 
 public partial class Define
 {
-    public enum E_RangeInclusionType
+    #region Attack Pattern
+
+    public enum E_AttackStartPos
+    {
+        Attacker,
+        Target,
+        None,
+    }
+
+    public enum E_RangeFillType
     {
         // 지정 범위 내 모든 타일을 대상으로 함
         FullRange,
@@ -13,21 +22,27 @@ public partial class Define
         OuterRing,
 
         // 중심 제외하고 안쪽 3x3 또는 n-1 범위만
-        InnerRing,
+        Inner,
+    }
 
+    public enum E_RangeShapeType
+    {
+        Square,     // 사각형 형태 (정사각형 범위)
         // 일정 간격마다만 적용 (예: 1칸 건너)
         Checker,
 
         // 대각선 축 방향만 대상으로 함
-        DiagonalOnly,
+        Diamond,
 
         Arc,          // 호(부채꼴) 형태
-        Triangle,      // 삼각형(꼭지점 기준) 형태
-        Cone,           // 삼각/원뿔형 (거리+각도로 판정)
-        CustomList      // 임의 리스트(분석 불가)
+        ReverseTriangle,      // 삼각형(시전자가 꼭지점 기준 ▼) 형태
+        Triangle,      // 삼각형(시전자가 밑변의 가운데 기준 ▲) 형태
+        CustomList,      // 임의 리스트(분석 불가)
+        Plus,       // 플러스 형태 (상하좌우)
+        Vertical,   // 세로 일자 (ㅣ)
+        Horizontal  // 가로 일자 (ㅡ)
     }
 
-    #region Attack Pattern
 
     public enum E_AttackType
     {
@@ -168,13 +183,19 @@ public partial class Define
         Evasion
     }
 
-    public enum GridVisualType
+    public enum E_GridVisualType_Color
     {
-        White,
-        Blue,
-        Red,
-        RedSoft,
-        Yellow,
+        White,      // 이동 가능, 배치 가능
+        Blue,       // 이동 예약
+        Red,        // 주의 표시 (공격 혹은 배치 불가 자리)
+        Yellow,     // 주의 표시
+    }
+
+    public enum E_GridVisualType_Intensity
+    {
+        Light,
+        Medium,
+        Strong
     }
 
     public enum E_Dir
