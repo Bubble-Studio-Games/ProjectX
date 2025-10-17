@@ -22,7 +22,6 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
 
     public override void Attack(ControllableObject attacker, GameEntity target) // 종료
     {
-
         // 기본적으로 범위 내의 모든 적들을 공격함.
         GridPosition selfPos = attacker.GetGridPosition();
         GridPosition targetPos = target.GetGridPosition();

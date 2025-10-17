@@ -51381,7 +51381,7 @@ MonoBehaviour:
   height: 30
   cellSize: 2
   floorAmount: 1
-  m_isShowCreateDebugObjects: 0
+  m_isShowCreateDebugObjects: 1
 --- !u!4 &740475727
 Transform:
   m_ObjectHideFlags: 0
@@ -58498,14 +58498,20 @@ MonoBehaviour:
   gridVisualTypeMaterialList:
   - gridVisualType: 0
     material: {fileID: 2100000, guid: ca3558981fce5b944823af1d5d88d2f9, type: 2}
+    UpIntensity: 25
+    DownIntensity: 25
   - gridVisualType: 1
     material: {fileID: 2100000, guid: 9853decdb83ca2647b833b11486e7be2, type: 2}
+    UpIntensity: 25
+    DownIntensity: 25
   - gridVisualType: 2
     material: {fileID: 2100000, guid: 89d7968915e0ea24596bed8e400999f5, type: 2}
-  - gridVisualType: 4
-    material: {fileID: 2100000, guid: 676403002645de141824ed7a33cf298c, type: 2}
+    UpIntensity: 100
+    DownIntensity: 25
   - gridVisualType: 3
-    material: {fileID: 2100000, guid: 33d0f3425c63f0d4182ec071ab56fd38, type: 2}
+    material: {fileID: 2100000, guid: 676403002645de141824ed7a33cf298c, type: 2}
+    UpIntensity: 25
+    DownIntensity: 25
 --- !u!4 &853526371
 Transform:
   m_ObjectHideFlags: 0
@@ -90018,6 +90024,10 @@ PrefabInstance:
     - target: {fileID: 608932816046154349, guid: fe4abc54fcdd01b45ad493e9bd06a84f, type: 3}
       propertyPath: m_Name
       value: Zombi
+      objectReference: {fileID: 0}
+    - target: {fileID: 608932816046154349, guid: fe4abc54fcdd01b45ad493e9bd06a84f, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3695947654482009824, guid: fe4abc54fcdd01b45ad493e9bd06a84f, type: 3}
       propertyPath: SpawnClipList.Array.size
@@ -138821,7 +138831,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2119094141
 Transform:
   m_ObjectHideFlags: 0
@@ -141175,6 +141185,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Archer Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 2279019190513263102, guid: a32502d794b841e4b8954943220ca1f5, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5167123472956031387, guid: a32502d794b841e4b8954943220ca1f5, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -141285,6 +141299,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Paladin Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 5579603856892094040, guid: 1b784ab7d693f8046989adba3e7cf090, type: 3}
+      propertyPath: m_AttackPatterns.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5579603856892094040, guid: 1b784ab7d693f8046989adba3e7cf090, type: 3}
+      propertyPath: m_AttackPatterns.Array.data[0]
+      value: 
+      objectReference: {fileID: 11400000, guid: 25806bf463513b349bf74688ed9334ec, type: 2}
+    - target: {fileID: 5579603856892094040, guid: 1b784ab7d693f8046989adba3e7cf090, type: 3}
+      propertyPath: m_AttackPatterns.Array.data[1]
+      value: 
+      objectReference: {fileID: 11400000, guid: 37eac41f47d854948bb35b1c2e4f61c0, type: 2}
+    - target: {fileID: 5579603856892094040, guid: 1b784ab7d693f8046989adba3e7cf090, type: 3}
+      propertyPath: m_AttackPatterns.Array.data[2]
+      value: 
+      objectReference: {fileID: 11400000, guid: 414ad8ad51ce52b478e6afdc2fffc1cb, type: 2}
+    - target: {fileID: 5579603856892094040, guid: 1b784ab7d693f8046989adba3e7cf090, type: 3}
+      propertyPath: m_AttackPatterns.Array.data[3]
+      value: 
+      objectReference: {fileID: 11400000, guid: 22dbd95f594cd5d40a2e49d7875d5aa0, type: 2}
     - target: {fileID: 6132459825493363017, guid: 1b784ab7d693f8046989adba3e7cf090, type: 3}
       propertyPath: m_LocalPosition.x
       value: 20
@@ -141696,6 +141730,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Skeleton Warior
       objectReference: {fileID: 0}
+    - target: {fileID: 6932039019377333456, guid: e660127e418b36244a45fabaf68e95ad, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -141896,6 +141934,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Magician Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 4293003929220592697, guid: 46c3b985e9a59944fb941144e462a4b3, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5026511612572681118, guid: 46c3b985e9a59944fb941144e462a4b3, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -142005,6 +142047,10 @@ PrefabInstance:
     - target: {fileID: 1681579177312315271, guid: 903319adee0c3cb429da0f813c134094, type: 3}
       propertyPath: m_Name
       value: Parasite Zombi Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 1681579177312315271, guid: 903319adee0c3cb429da0f813c134094, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5179895072439068508, guid: 903319adee0c3cb429da0f813c134094, type: 3}
       propertyPath: m_LocalPosition.x
@@ -142828,51 +142874,59 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5353361550492919361, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5353361550492919361, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5353361550492919361, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5353361550492919361, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
       propertyPath: m_AnchoredPosition.y
+      value: -0.125
+      objectReference: {fileID: 0}
+    - target: {fileID: 6530200366256597486, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
+      propertyPath: m_originalStat
+      value: 
+      objectReference: {fileID: 11400000, guid: 094823c3e37dc4e4fa24eb7d5fcc52a3, type: 2}
+    - target: {fileID: 6530200366256597486, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
+      propertyPath: m_AttackPatterns.Array.size
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7250079200979284718, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7250079200979284718, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7250079200979284718, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 7250079200979284718, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -0.35
       objectReference: {fileID: 0}
     - target: {fileID: 7785906271309492611, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7785906271309492611, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7785906271309492611, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 0
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 7785906271309492611, guid: 2f412fab29f51d1469da842afb378e39, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -0.55
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -143529,6 +143583,10 @@ PrefabInstance:
     - target: {fileID: 5673581219620263917, guid: f301146a70b3eb040a068719ff4f4732, type: 3}
       propertyPath: m_Name
       value: Great Warior Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 5673581219620263917, guid: f301146a70b3eb040a068719ff4f4732, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

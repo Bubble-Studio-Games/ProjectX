@@ -432,372 +432,435 @@ public class GameManager
         }
     }
 
-    #region Grid Range System
 
-    // 오브젝트(유닛, 스킬, 건물 등)를 중심으로 범위 내 영향 영역(Attack / Heal / Buff / Detect 등) 을 계산하고 
-    // 시각적으로 표현한다.
-
-    /// <summary>
-    /// 📏 반경 기반 정사각형 범위 계산
-    /// - 중심 기준 N×N 범위를 계산
-    /// - 방향 회전 없음 (기본 북쪽 기준)
-    /// - 범위 포함 규칙 (Full, OuterRing 등) 및 유효성 체크 지원
-    /// </summary>
-    /// <param name="origin">기준 GridPosition</param>
-    /// <param name="radius">반경 (예: 2 → 5x5)</param>
-    /// <param name="inclusionType">범위 포함 규칙</param>
-    /// <param name="checkType">그리드 유효성 검사 타입 (Walkable, HasUnit 등)</param>
-    /// <returns>범위 내 GridPosition 목록</returns>
-
-    public List<GridPosition> GetGridRange(
-        GridPosition origin,
-        int radius,
-        E_RangeInclusionType inclusionType,
-        E_GridCheckType? checkType = null)
-    {
-        List<GridPosition> offsets = new();
-
-        for (int x = -radius; x <= radius; x++)
-            for (int z = -radius; z <= radius; z++)
-                offsets.Add(new GridPosition(x, z, 0));
-
-        return ProcessGridRangeCore(
-            origin,
-            offsets,
-            E_Dir.North, // 회전 없음
-            inclusionType,
-            includeIntermediate: true,
-            checkType);
-    }
-
-    /// <summary>
-    /// 🎯 단일 방향 기반 라인형 범위 계산
-    /// - 하나의 방향 오프셋(예: 전방 3칸)을 기준으로 범위 계산
-    /// - LevelGrid.ToGridPosition()을 이용해 방향 회전 처리
-    /// - includeIntermediate 옵션으로 중간 칸 포함 여부 설정 가능
-    /// </summary>
-    /// <param name="entity">방향 기준이 되는 GameEntity</param>
-    /// <param name="origin">시작 위치 (기준 GridPosition)</param>
-    /// <param name="directionOffset">공격 방향 및 거리 오프셋 (예: 0,3)</param>
-    /// <param name="inclusionType">범위 포함 규칙</param>
-    /// <param name="includeIntermediate">중간 칸 포함 여부</param>
-    /// <param name="checkType">그리드 유효성 검사 타입</param>
-    /// <returns>방향을 고려한 GridPosition 목록</returns>
-
-    public List<GridPosition> GetDirectionalRange(
-        GameEntity entity,
-        GridPosition origin,
-        GridPosition directionOffset,
-        E_RangeInclusionType inclusionType,
-        bool includeIntermediate = true,
-        E_GridCheckType? checkType = null)
-    {
-        var offsets = new List<GridPosition> { directionOffset };
-
-        return ProcessGridRangeCore(
-            origin,
-            offsets,
-            entity.m_CurrentEDir,
-            inclusionType,
-            includeIntermediate,
-            checkType);
-    }
+    #region Grid Range System With Attack Pattern
 
 
-    /// <summary>
-    /// 다양한 방향 오프셋(List<GridPosition>) 기반의 범위 계산
-    /// </summary>
-    public List<GridPosition> GetDirectionalRangeList(
-        GameEntity entity,
-        GridPosition origin,
-        List<GridPosition> offsets,
-        E_RangeInclusionType inclusionType,
-        bool includeIntermediate = true,
-        E_GridCheckType? checkType = null)
-    {
-        return ProcessGridRangeCore(
-            origin,
-            offsets,
-            entity.m_CurrentEDir,
-            inclusionType,
-            includeIntermediate,
-            checkType);
-    }
-
-    /// <summary>
-    /// ⚙️ 범위 계산 공통 처리 로직
-    /// - 방향 회전, 거리 계산, 포함 규칙, 유효성 체크를 일괄 수행
-    /// - GetGridRange, GetDirectionalRange, GetDirectionalRangeList에서 공통 호출
-    /// - LevelGrid.ToGridPosition()으로 방향 보정, GetGridPositionsBetween()으로 라인 중간칸 계산
-    /// </summary>
-    /// <param name="origin">중심 좌표</param>
-    /// <param name="offsets">범위 오프셋 리스트</param>
-    /// <param name="dir">적용 방향</param>
-    /// <param name="inclusionType">범위 포함 규칙</param>
-    /// <param name="includeIntermediate">중간 칸 포함 여부</param>
-    /// <param name="checkType">그리드 유효성 검사 타입</param>
-    /// <returns>최종 유효한 GridPosition 목록</returns>
-    private List<GridPosition> ProcessGridRangeCore(
-    GridPosition origin,
-    List<GridPosition> offsets,
-    E_Dir dir,
-    E_RangeInclusionType inclusionType,
-    bool includeIntermediate,
-    E_GridCheckType? checkType)
-    {
-        List<GridPosition> result = new();
-
-        foreach (var offset in offsets)
-        {
-            // 방향 회전 적용 (LevelGrid의 ToGridPosition 활용)
-            GridPosition rotatedTarget = LevelGrid.Instance.ToGridPosition(offset, origin, dir);
-            rotatedTarget.floor = origin.floor + offset.floor; 
-
-
-            // 직선형이라면 중간칸도 계산 (LevelGrid 함수로)
-            List<GridPosition> linePath = LevelGrid.Instance.GetGridPositionsBetween(origin, rotatedTarget);
-
-            foreach (var step in linePath)
-            {
-                if (!LevelGrid.Instance.IsValidGridPosition(step))
-                    break;
-
-                if (!includeIntermediate && step != linePath[^1])
-                    continue;
-
-                if (IsInclude(step, origin, inclusionType, Mathf.Max(Mathf.Abs(offset.x), Mathf.Abs(offset.z))) &&
-                    IsValidGrid(step, checkType))
-                {
-                    result.Add(step);
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /// <summary>
-    /// 🔍 범위 포함 판정
-    /// - 중심(origin)과 타겟(target) 간 거리 비교로 포함 여부 결정
-    /// - 범위 포함 규칙(Enum)에 따라 특정 모양(Full, Outer, DiagonalOnly 등)을 필터링
-    /// </summary>
-    /// <param name="target">대상 GridPosition</param>
-    /// <param name="origin">기준 GridPosition</param>
-    /// <param name="type">범위 포함 규칙</param>
-    /// <param name="radius">현재 반경</param>
-    /// <returns>해당 셀이 범위 내인지 여부</returns>
-
-    private bool IsInclude(GridPosition target, GridPosition origin, E_RangeInclusionType type, int radius, E_Dir? dir = null)
-    {
-        int dx = target.x - origin.x;
-        int dz = target.z - origin.z;
-        int df = Mathf.Abs(target.floor - origin.floor);
-        float distance = Mathf.Sqrt(dx * dx + dz * dz + df * df);
-
-        switch (type)
-        {
-            case E_RangeInclusionType.FullRange:
-                return true;
-
-            case E_RangeInclusionType.OuterRing:
-                return Mathf.RoundToInt(distance) == radius;
-
-            case E_RangeInclusionType.InnerRing:
-                return distance < radius;
-
-            case E_RangeInclusionType.Checker:
-                return ((Mathf.Abs(dx) + Mathf.Abs(dz) + df) % 2 == 0);
-
-            case E_RangeInclusionType.DiagonalOnly:
-                return (Mathf.Abs(dx) == Mathf.Abs(dz) && Mathf.Abs(dx) <= radius);
-
-            // 호 형태 (예: 전방 90도 부채꼴)
-            case E_RangeInclusionType.Arc:
-                if (dir == null) return false;
-                float angle = Mathf.Atan2(dz, dx) * Mathf.Rad2Deg;
-                float centerAngle = GetDirAngle(dir.Value);
-                float diff = Mathf.DeltaAngle(centerAngle, angle);
-                return distance <= radius && Mathf.Abs(diff) <= 45f; // 전방 90도
-
-            // 삼각형 형태 (전방으로 갈수록 폭이 넓어짐)
-            case E_RangeInclusionType.Triangle:
-                if (dir == null) return false;
-                float coneAngle = Mathf.Atan2(Mathf.Abs(dx), Mathf.Abs(dz)) * Mathf.Rad2Deg;
-                return dz > 0 && distance <= radius && coneAngle <= (radius * 10f); // 예시값
-        }
-
-        return false;
-    }
-
-    private float GetDirAngle(E_Dir dir)
-    {
-        return dir switch
-        {
-            E_Dir.North => 0f,
-            E_Dir.East => 90f,
-            E_Dir.South => 180f,
-            E_Dir.West => -90f,
-            E_Dir.NorthEast => 45f,
-            E_Dir.SouthEast => 135f,
-            E_Dir.SouthWest => -135f,
-            E_Dir.NorthWest => -45f,
-            _ => 0f
-        };
-    }
-
-
-    /// <summary>
-    /// ✅ 그리드 유효성 검사
-    /// - [System.Flags] 기반으로 복합 조건 검사 가능 (ex: Walkable | Empty)
-    /// - LevelGrid API를 통해 Walkable / HasUnit / Reserved / Obstacle 상태 확인
-    /// - Empty는 유닛, 예약, 장애물 모두 없는 셀로 판정
-    /// </summary>
-    /// <param name="pos">검사할 GridPosition</param>
-    /// <param name="checkType">유효성 검사 플래그 (조합 가능)</param>
-    /// <returns>유효한 셀이면 true, 아니면 false</returns>
-
-    private bool IsValidGrid(GridPosition pos, E_GridCheckType? checkType = null)
-    {
-        if (checkType == null || checkType == E_GridCheckType.None)
-            return true;
-
-        bool valid = true;
-
-        if (checkType.Value.HasFlag(E_GridCheckType.Walkable))
-            valid &= LevelGrid.Instance.IsValidGridPosition(pos);
-
-        if (checkType.Value.HasFlag(E_GridCheckType.HasUnit))
-            valid &= LevelGrid.Instance.HasAnyUnitOnGridPosition(pos);
-
-        if (checkType.Value.HasFlag(E_GridCheckType.Reserved))
-            valid &= LevelGrid.Instance.IsReservedGridPosition(pos);
-
-        if (checkType.Value.HasFlag(E_GridCheckType.Obstacle))
-        {
-            var obj = LevelGrid.Instance.GetObjectAtGridPosition(pos);
-            valid &= (obj != null && obj.m_ObjectType == E_ObjectType.Obstacle);
-        }
-
-        if (checkType.Value.HasFlag(E_GridCheckType.Empty))
-        {
-            bool hasUnit = LevelGrid.Instance.HasAnyUnitOnGridPosition(pos);
-            bool reserved = LevelGrid.Instance.IsReservedGridPosition(pos);
-            bool obstacle = false;
-            var obj = LevelGrid.Instance.GetObjectAtGridPosition(pos);
-            if (obj != null && obj.m_ObjectType == E_ObjectType.Obstacle)
-                obstacle = true;
-
-            valid &= !(hasUnit || reserved || obstacle);
-        }
-
-        return valid;
-    }
-
-
-
-    #endregion
-
-    #region Attack Pattern
-
-    // 🔹 AttackPattern 리스트에서 중복 없는 모든 GridPosition(3D) 오프셋을 수집
-    public HashSet<GridPosition> GetAllUniqueAttackOffsets(IEnumerable<AttackPattern> attackPatterns)
+    // 1. 공격 오프셋 가져오기
+    public HashSet<GridPosition> GetAllPatternOffsets(IEnumerable<AttackPattern> attackPatterns)
     {
         HashSet<GridPosition> unique = new();
 
         foreach (var pattern in attackPatterns)
         {
-            // 1️. CustomList or 직접 오프셋 정의된 경우 그대로 사용
-            if (pattern.m_ERangeInclusionType == E_RangeInclusionType.CustomList ||
-                (pattern.m_RangeOffset != null && pattern.m_RangeOffset.Count > 0))
-            {
-                foreach (var off in pattern.m_RangeOffset)
-                    unique.Add(off);
-                continue;
-            }
-
-            // 2️. 그 외 타입은 반경 + 규칙으로 자동 생성
-            int r = Mathf.Max(1, pattern.m_RangeRadius);
-
-            for (int f = -r; f <= r; f++)
-            {
-                for (int x = -r; x <= r; x++)
-                {
-                    for (int z = -r; z <= r; z++)
-                    {
-                        GridPosition offset = new GridPosition(x, z, f);
-                        if (IsOffsetIncludedByPattern3D(offset, pattern))
-                            unique.Add(offset);
-                    }
-                }
-            }
+            unique.AddRange(GetPatternOffsets(pattern));
         }
 
         return unique;
     }
 
-
-    // 🔹 패턴 타입에 따른 3D 포함 판정
-    private bool IsOffsetIncludedByPattern3D(GridPosition offset, AttackPattern pattern)
+    public HashSet<GridPosition> GetPatternOffsets(AttackPattern pattern)
     {
-        int dx = Mathf.Abs(offset.x);
-        int dz = Mathf.Abs(offset.z);
-        int df = Mathf.Abs(offset.floor);
+        var unique = new HashSet<GridPosition>();
+        if (pattern == null)
+            return unique;
 
-        float dist2D = Mathf.Sqrt(offset.x * offset.x + offset.z * offset.z);
-        float dist3D = Mathf.Sqrt(offset.x * offset.x + offset.z * offset.z + offset.floor * offset.floor);
+        // 1) bounding box 결정: custom offsets가 있으면 그것의 박스, 없으면 radius 기반 박스
+        var range = GetRangeBoxFromOffsets(pattern.m_RangeOffset);
 
-        switch (pattern.m_ERangeInclusionType)
+        switch (pattern.m_ERangeShapeType)
         {
-            case E_RangeInclusionType.FullRange:
-                return dist3D <= pattern.m_RangeRadius;
+            // 최소 값, 최대 값을 구해서 중심을 반경으로 사각형 형태의 범위를 구한다.
+            case E_RangeShapeType.Square:
 
-            case E_RangeInclusionType.OuterRing:
-                return Mathf.RoundToInt(dist3D) == pattern.m_RangeRadius;
-
-            case E_RangeInclusionType.InnerRing:
-                return dist3D < pattern.m_RangeRadius;
-
-            case E_RangeInclusionType.Checker:
-                return ((dx + dz + df) % 2) == 0 && dist3D <= pattern.m_RangeRadius;
-
-            case E_RangeInclusionType.DiagonalOnly:
-                // 3D 완전 대각 (x=z=floor)
-                return (dx == dz && dz == df && dx <= pattern.m_RangeRadius) ||
-                       (dx == dz && df == 0 && dx <= pattern.m_RangeRadius);
-
-            case E_RangeInclusionType.Arc:
-                if (dist2D < 0.5f || dist3D > pattern.m_RangeRadius) return false;
+                for (int f = range.MinFloor; f <= range.MaxFloor; f++)
                 {
-                    float angle = Mathf.Atan2(offset.z, offset.x) * Mathf.Rad2Deg;
-                    float centerAngle = 90f;
-                    float half = pattern.m_ArcAngle * 0.5f;
-                    float diff = Mathf.DeltaAngle(centerAngle, angle);
-                    return Mathf.Abs(diff) <= half;
+                    for (int x = range.MinX; x <= range.MaxX; x++)
+                    {
+                        for (int z = range.MinZ; z <= range.MaxZ; z++)
+                        {
+                            var offset = new GridPosition(x, z, f);
+
+                            if (pattern.m_ERangeFillType == E_RangeFillType.FullRange)
+                                unique.Add(offset);
+
+                            // 경계선 위치한 셀만 true
+                            else if (pattern.m_ERangeFillType == E_RangeFillType.OuterRing)
+                            {
+                                if (x == range.MinX || x == range.MaxX ||
+                                    z == range.MinZ || z == range.MaxZ)
+                                    unique.Add(offset);
+                            }
+                            // 경계선 안쪽 위치한 셀만 true
+                            else
+                            {
+                                if (x != range.MinX && x != range.MaxX && z != range.MinZ && z != range.MaxZ)
+                                    unique.Add(offset);
+                            }
+
+                        }
+                    }
                 }
 
-            case E_RangeInclusionType.Triangle:
-                if (offset.z <= 0 || dist3D > pattern.m_RangeRadius) return false;
+                break;
+            case E_RangeShapeType.Checker: 
+                // TODO
+                // 대각선의 경우에도 대각 선 방향일 때에도 격자가 진행되도록 해야 됨
+                // 또한 매번 격자가 항상 바뀔지, 아니면 그대로 할지도 정해야 됨. 
+                for (int f = range.MinFloor; f <= range.MaxFloor; f++)
                 {
-                    float maxHalfWidthAtFar = pattern.m_RangeRadius;
-                    float halfWidth = maxHalfWidthAtFar * (offset.z / (float)pattern.m_RangeRadius);
-                    return Mathf.Abs(offset.x) <= Mathf.CeilToInt(Mathf.Clamp(halfWidth, 0f, maxHalfWidthAtFar));
+                    for (int x = range.MinX; x <= range.MaxX; x++)
+                    {
+                        for (int z = range.MinZ; z <= range.MaxZ; z++)
+                        {
+                            var offset = new GridPosition(x, z, f);
+
+                            if (pattern.m_ERangeFillType == E_RangeFillType.FullRange)
+                            {
+                                if((x + z) % 2 == 0)
+                                    unique.Add(offset);
+                            }
+
+                            // 경계선 위치한 셀만 true
+                            else if (pattern.m_ERangeFillType == E_RangeFillType.OuterRing)
+                            {
+                                if (x == range.MinX || x == range.MaxX ||
+                                    z == range.MinZ || z == range.MaxZ)
+                                    if((x + z) % 2 == 0)
+                                        unique.Add(offset);
+                            }
+                            // 경계선 안쪽 위치한 셀만 true
+                            else
+                            {
+                                if (x != range.MinX && x != range.MaxX && z != range.MinZ && z != range.MaxZ)
+                                    if((x + z) % 2 == 0)
+                                        unique.Add(offset);
+                            }
+
+                        }
+                    }
                 }
 
-            case E_RangeInclusionType.Cone:
-                if (dist2D < 0.5f || dist3D > pattern.m_RangeRadius) return false;
+                break;
+            case E_RangeShapeType.Diamond: // 수정 필요
+                for (int f = range.MinFloor; f <= range.MaxFloor; f++)
                 {
-                    float angle = Mathf.Atan2(offset.z, offset.x) * Mathf.Rad2Deg;
-                    float centerAngle = 90f;
-                    float half = pattern.m_ArcAngle * 0.5f;
-                    float diff = Mathf.DeltaAngle(centerAngle, angle);
-                    return Mathf.Abs(diff) <= half;
+                    for (int x = range.MinX; x <= range.MaxX; x++)
+                    {
+                        for (int z = range.MinZ; z <= range.MaxZ; z++)
+                        {
+                            var offset = new GridPosition(x, z, f);
+
+                            if (pattern.m_ERangeFillType == E_RangeFillType.FullRange)
+                                unique.Add(offset);
+
+                            // 경계선 위치한 셀만 true
+                            else if (pattern.m_ERangeFillType == E_RangeFillType.OuterRing)
+                            {
+                                if (x == range.MinX || x == range.MaxX ||
+                                    z == range.MinZ || z == range.MaxZ)
+                                    unique.Add(offset);
+                            }
+                            // 경계선 안쪽 위치한 셀만 true
+                            else
+                            {
+                                if (x != range.MinX && x != range.MaxX && z != range.MinZ && z != range.MaxZ)
+                                    unique.Add(offset);
+                            }
+
+                        }
+                    }
                 }
 
-            case E_RangeInclusionType.CustomList:
+                // 안되는 듯
+                unique = Enumerable.ToHashSet(unique.Select(x => LevelGrid.Instance.ToGridPosition(GridPosition.Zero, x, E_Dir.NorthEast)));
+                break;
+            case E_RangeShapeType.Arc: // 수정 필요
+                {
+                    float halfAngle = pattern.m_ArcAngle * 0.5f;
+
+                    // 반경 계산
+                    int radius = Mathf.Max(Mathf.Abs(range.MaxX), Mathf.Abs(range.MaxZ));
+
+                    for (int f = range.MinFloor; f <= range.MaxFloor; f++)
+                    {
+                        for (int x = range.MinX; x <= range.MaxX; x++)
+                        {
+                            for (int z = range.MinZ; z <= range.MaxZ; z++)
+                            {
+                                var offset = new GridPosition(x, z, f);
+
+                                // 거리 계산
+                                float dist = Mathf.Sqrt(x * x + z * z);
+                                if (dist == 0f || dist > radius)
+                                    continue;
+
+                                // 각도 계산 (Z축이 forward)
+                                float angle = Mathf.Atan2(z, x) * Mathf.Rad2Deg;
+                                float diff = Mathf.Abs(Mathf.DeltaAngle(0f, angle)); // 0° 기준 전방
+
+                                if (diff > halfAngle)
+                                    continue; // 부채꼴 영역 밖
+
+                                // FillType 처리
+                                switch (pattern.m_ERangeFillType)
+                                {
+                                    case E_RangeFillType.FullRange:
+                                        unique.Add(offset);
+                                        break;
+
+                                    case E_RangeFillType.OuterRing:
+                                        // 외곽(거리 거의 radius인 셀)
+                                        if (Mathf.RoundToInt(dist) == radius)
+                                            unique.Add(offset);
+                                        break;
+
+                                    case E_RangeFillType.Inner:
+                                        // 내부 (OuterRing 제외)
+                                        if (dist < radius)
+                                            unique.Add(offset);
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+
+            case E_RangeShapeType.Triangle:
+                break;
+            case E_RangeShapeType.ReverseTriangle:
+                break;
+            case E_RangeShapeType.Plus:
+                for (int f = range.MinFloor; f <= range.MaxFloor; f++)
+                {
+                    for (int x = range.MinX; x <= range.MaxX; x++)
+                    {
+                        for (int z = range.MinZ; z <= range.MaxZ; z++)
+                        {
+                            var offset = new GridPosition(x, z, f);
+
+                            // 십자형 형태: x==0 또는 z==0
+                            if (x == 0 || z == 0)
+                            {
+                                if (pattern.m_ERangeFillType == E_RangeFillType.FullRange)
+                                {
+                                    unique.Add(offset);
+                                }
+                                else if (pattern.m_ERangeFillType == E_RangeFillType.OuterRing)
+                                {
+                                    // 끝단만
+                                    if (Mathf.Abs(x) == Mathf.Abs(range.MaxX) ||
+                                        Mathf.Abs(z) == Mathf.Abs(range.MaxZ))
+                                        unique.Add(offset);
+                                }
+                                else 
+                                {
+                                    // 경계선 제외 내부만 (Full - Outer)
+                                    if (x > range.MinX && x < range.MaxX &&
+                                        z > range.MinZ && z < range.MaxZ)
+                                        unique.Add(offset);
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+            case E_RangeShapeType.Vertical:
+                for (int f = range.MinFloor; f <= range.MaxFloor; f++)
+                {
+                    for (int z = range.MinZ; z <= range.MaxZ; z++)
+                    {
+                        var offset = new GridPosition(0, z, f);
+
+                        switch (pattern.m_ERangeFillType)
+                        {
+                            case E_RangeFillType.FullRange:
+                                unique.Add(offset);
+                                break;
+
+                            case E_RangeFillType.OuterRing:
+                                // 위/아래 끝단만
+                                if (z == range.MinZ || z == range.MaxZ)
+                                    unique.Add(offset);
+                                break;
+
+                            case E_RangeFillType.Inner:
+                                if (z > range.MinZ && z < range.MaxZ)
+                                    unique.Add(offset);
+                                break;
+                        }
+                    }
+                }
+                break;
+
+            case E_RangeShapeType.Horizontal:
+                for (int f = range.MinFloor; f <= range.MaxFloor; f++)
+                {
+                    for (int x = range.MinX; x <= range.MaxX; x++)
+                    {
+                        var offset = new GridPosition(x, 0, f);
+
+                        switch (pattern.m_ERangeFillType)
+                        {
+                            case E_RangeFillType.FullRange:
+                                unique.Add(offset);
+                                break;
+
+                            case E_RangeFillType.OuterRing:
+                                // 왼쪽/오른쪽 끝단만
+                                if (x == range.MinX || x == range.MaxX)
+                                    unique.Add(offset);
+                                break;
+
+                            case E_RangeFillType.Inner:
+                                if (x > range.MinX && x < range.MaxX)
+                                    unique.Add(offset);
+                                break;
+                        }
+                    }
+                }
+                break;
+
+            case E_RangeShapeType.CustomList:
+                unique.AddRange(pattern.m_RangeOffset);
+                break;
+        }
+
+        return unique;
+    }
+
+    private (int MinX, int MaxX, int MinZ, int MaxZ, int MinFloor, int MaxFloor)
+    GetRangeBoxFromOffsets(List<GridPosition> offsets)
+    {
+        if (offsets == null || offsets.Count == 0)
+            return (0, 0, 0, 0, 0, 0);
+
+        int minX = 0, maxX = 0;
+        int minZ = 0, maxZ = 0;
+        int minF = 0, maxF = 0;
+
+        foreach (var o in offsets)
+        {
+            minX = Mathf.Min(minX, o.x);
+            maxX = Mathf.Max(maxX, o.x);
+            minZ = Mathf.Min(minZ, o.z);
+            maxZ = Mathf.Max(maxZ, o.z);
+            minF = Mathf.Min(minF, o.floor);
+            maxF = Mathf.Max(maxF, o.floor);
+        }
+
+        return (minX, maxX, minZ, maxZ, minF, maxF);
+    }
+
+    // ② 실제 공격 범위 반환 (GridPosition)
+    public HashSet<GridPosition> GetAttackPatternPosition
+        (ControllableObject owner, 
+        GameEntity target, 
+        AttackPattern pattern)
+    {
+        HashSet<GridPosition> result = new();
+        if (owner == null || pattern == null)
+            return result;
+
+        // 시작 위치(origin) 및 방향 계산
+        GridPosition startOrigin;
+        E_Dir dir;
+
+        if (pattern.m_IsAttackStartPositionAtAttacker)
+        {
+            dir = target != null
+                ? LevelGrid.Instance.GetDirGridPosition(owner.GetGridPosition(), target.GetGridPosition())
+                : owner.m_CurrentEDir;
+
+            startOrigin = LevelGrid.Instance.ToGridPosition(pattern.m_StartOffset, owner.GetGridPosition(), dir);
+        }
+        else
+        {
+            if (target == null) return result;
+            dir = LevelGrid.Instance.GetDirGridPosition(target.GetGridPosition(), owner.GetGridPosition());
+            startOrigin = LevelGrid.Instance.ToGridPosition(pattern.m_StartOffset, target.GetGridPosition(), dir);
+        }
+
+        // 로컬 오프셋 → 월드 좌표
+        var offsets = GetPatternOffsets(pattern);
+
+        foreach (var off in offsets)
+        {
+            var world = LevelGrid.Instance.ToGridPosition(off, startOrigin, dir);
+            if (!LevelGrid.Instance.IsValidGridPosition(world))
+                continue;
+
+            result.Add(world);
+        }
+
+        return result;
+    }
+
+
+    /// <summary>
+    /// 🔍 AttackPattern의 실행 조건을 검사하고,
+    /// 지정한 E_AttackCondition만 필터링해서 반환.
+    /// </summary>
+    public List<(AttackPattern pattern, E_AttackCondition condition)> EvaluateAttackPatternsByCondition(
+        ControllableObject owner,
+        GameEntity target,
+        params E_AttackCondition[] conditions)
+    {
+        var result = new List<(AttackPattern, E_AttackCondition)>();
+
+        IEnumerable<AttackPattern> patterns = owner.m_AttributeSystem.m_AttackPatterns;
+
+        if (owner == null || patterns == null)
+            return result;
+
+        foreach (var pattern in patterns)
+        {
+            if (pattern == null)
+                continue;
+
+            var condition = pattern.CanExecute(owner, target);
+
+            // 지정된 조건 중 하나라도 일치하면 추가
+            if (conditions.Contains(condition))
+                result.Add((pattern, condition));
+        }
+
+        return result;
+    }
+
+
+    /// <summary>
+    /// 지정된 GridPosition이 AttackPattern의 GridCheckType 조건을 만족하는지 검사.
+    /// </summary>
+    private bool IsGridConditionSatisfied(GridPosition pos, E_GridCheckType checkType, ControllableObject owner, GameEntity target, AttackPattern  attack)
+    {
+        var grid = LevelGrid.Instance;
+        bool hasUnit = grid.HasAnyUnitOnGridPosition(pos);
+        //bool isEmpty = !hasUnit && !grid.HasObstacleAtGridPosition(pos) && !grid.IsReservedGridPosition(pos);
+        bool isEmpty = !hasUnit && !grid.IsReservedGridPosition(pos);
+
+        switch (checkType)
+        {
+            case E_GridCheckType.None:
+                return true;
+
+            case E_GridCheckType.Walkable:
+                return grid.IsValidGridPosition(pos);
+
+            case E_GridCheckType.HasUnit:
+                {
+                    var unit = grid.GetObjectAtGridPosition(pos);
+                    if (unit == null) 
+                        return false;
+
+                    return attack.m_ApplyTargetTeampId == unit.m_TeamId;
+                }
+
+            case E_GridCheckType.Reserved:
+                return grid.IsReservedGridPosition(pos);
+
+            //case E_GridCheckType.Obstacle:
+                //return grid.HasObstacleAtGridPosition(pos);
+
+            case E_GridCheckType.Empty:
+                return isEmpty;
+
             default:
                 return false;
         }
     }
+
 
 
     #endregion
