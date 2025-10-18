@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scenes/Dev/BatchScene.unity.meta
+guid: 37d56b7af696f974b9470cff408f37d9
+========
 guid: 50b5678fbb92490458a84eed0656f80a
+>>>>>>>> develop:Assets/Scenes/Sound_Test_Scene.unity.meta
 DefaultImporter:
   externalObjects: {}
   userData: 

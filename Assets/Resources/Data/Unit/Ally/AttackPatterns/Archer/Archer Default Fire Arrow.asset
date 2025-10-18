@@ -48,13 +48,17 @@ MonoBehaviour:
     _value: 1
   m_iKnockbackChance:
     _value: 0
+  m_fLifeStealPercent:
+    _value: 0
   AttackAudioClip: {fileID: 8300000, guid: 12e9889bee319ad47aee7c816dfa5153, type: 3}
   m_Clips:
   - AttackAnimationClip: {fileID: 7400000, guid: ed334cfce3ec59444bad17e63ff3ad5f, type: 2}
   m_ProjectilePrefab: {fileID: 0}
-  StraighSpeed: 10
-  PalabolaSpeed: 5
-  detectionHitRadius: 2
-  CeilingHeight: 7
-  MaxStraightShotHeight: 1
-  boundHeight: 0
+  _selectType: 1
+  _projectileProperty:
+    UseProjectileLaunch: 0
+    StraightSpeed: 10
+    ParabolaSpeed: 5
+    DetectionHitRadius: 2
+    CeilingHeight: 7
+    MaxStraightShotHeight: 1

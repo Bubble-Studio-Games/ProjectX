@@ -22,6 +22,7 @@ public class ChaseAction : MoveAction
     {
         GridPosition selfPos = m_BaseObject.GetGridPosition();
 
+
         if(m_BaseObject.m_isDetectionsurroundingsEnabled)
         {
             // 감지 범위 내의 적 유닛 탐색
@@ -105,11 +106,23 @@ public class ChaseAction : MoveAction
         attackPatterns = attackPatterns
             .Where(x => x.CanExecute(m_BaseObject, m_BaseObject.m_Target) == E_AttackCondition.Success).ToList();
 
-        // 2. 모든 공격 위치 오프셋 가져오기
+        // 소환 스킬이 있으면 현재 위치에서 바로 공격 가능
+        bool hasSummonSkill = attackPatterns.Any(x => x.m_EAttackType == E_AttackType.Summon);
+        if (hasSummonSkill)
+        {
+            return new List<GridPosition> { gridPosition };
+        }
+
+        // 2. 모든 공격 위치 오프셋 가져오기 (소환 스킬 제외)
         HashSet<GridPosition> allAttackOffsets = new();
         foreach (var attackPattern in attackPatterns)
+        {
+            if (attackPattern.m_EAttackType == E_AttackType.Summon)
+                continue;
+            
             foreach (var offset in attackPattern.m_RangeOffset)
                 allAttackOffsets.Add(offset);
+        }
 
         // 3. 공격 오프셋과 방향, 타겟 위치를 이용해 공격자 위치 후보 도출
         HashSet<GridPosition> attackFromPositions = new();

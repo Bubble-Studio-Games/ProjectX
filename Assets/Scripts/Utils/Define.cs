@@ -6,6 +6,14 @@ public partial class Define
 {
     #region Attack Pattern
 
+    public enum E_Projectile
+    {
+        Multiple,
+        Parabola,
+        Straight,
+    }
+
+
     public enum E_AttackType
     {
         None,           // 비공격형
@@ -87,6 +95,11 @@ public partial class Define
         Counter, // 반격
     }
 
+    public enum E_HealType
+    {
+        LifeSteal,      // 흡혈
+    }
+
     public enum E_AttackCondition
     {
         Success,
@@ -97,6 +110,18 @@ public partial class Define
         Fail_ManaCost,
         Fail_NotHasPrevAttack,
     }
+
+    public enum E_AttackEffectType
+    {
+        None,
+        Damage,     // 직접 피해
+        Dot,        // 지속 피해 (DoT)
+        Buff,       // 강화
+        Debuff,     // 약화
+        Heal,       // 회복
+        Knockback,  // 밀치기 등 위치 이동
+    }
+
     public enum E_UISoundType
     {
 
