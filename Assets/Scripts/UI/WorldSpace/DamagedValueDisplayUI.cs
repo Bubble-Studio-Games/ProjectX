@@ -1,9 +1,6 @@
 using DG.Tweening;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using static Define;
 using Random = UnityEngine.Random;
@@ -28,6 +25,10 @@ public class DamagedValueDisplayUI : MonoBehaviour
     [SerializeField] float height1 = 1.0f;
     [SerializeField] float height2 = 0.5f;
 
+    [Header("Heal Animation Settings")]
+    [SerializeField] float m_fHealUpHeight = 0.5f;
+    [SerializeField] float m_fHealDuration = 1.0f;
+    private float m_fHealMaxScale = 0.4f;
 
     // Start is called before the first frame update
     void Awake()
@@ -36,6 +37,7 @@ public class DamagedValueDisplayUI : MonoBehaviour
         StatSystem = GetComponentInParent<AttributeSystem>();
 
         StatSystem.OnDamaged += DisplayDamagedValueText;
+        StatSystem.OnHealed += DisplayHealValueText;
 
         int rand = Random.Range(0, 2);
         if (rand % 2 == 0)
@@ -46,7 +48,11 @@ public class DamagedValueDisplayUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        StatSystem.OnDamaged -= DisplayDamagedValueText;
+        if (StatSystem != null)
+        {
+            StatSystem.OnDamaged -= DisplayDamagedValueText;
+            StatSystem.OnHealed -= DisplayHealValueText;
+        }
     }
 
     private void OnEnable()
@@ -60,30 +66,36 @@ public class DamagedValueDisplayUI : MonoBehaviour
     private void DisplayDamagedValueText(object sender, AttributeSystem.OnAttackInfoEventArgs e)
     {
         string text = "";
+        Color textColor = ColorUtil.GetNormalDamage();
 
         switch (e.EHitDeCisionType)
         {
             case E_HitDecisionType.Hit:
                 text = e.FinalDamage.ToString();
+                textColor = ColorUtil.GetNormalDamage();
                 break;
             case E_HitDecisionType.CriticalHit:
                 text = e.FinalDamage.ToString();
-                // TODO 빨간 색으로
+                textColor = ColorUtil.GetCriticalHit();
                 break;
-            case E_HitDecisionType.AttackMiss: // 시전자 쪽에서
+            case E_HitDecisionType.AttackMiss:
                 text = "Miss";
+                textColor = ColorUtil.GetMissOrEvasion();
                 break;
             case E_HitDecisionType.Evasion:
                 text = "Evasion";
+                textColor = ColorUtil.GetMissOrEvasion();
                 break;
             case E_HitDecisionType.Counter:
                 text = "Counter";
+                textColor = ColorUtil.GetMissOrEvasion();
                 break;
         }
 
 
         var prefab = Managers.Resource.Instantiate<TextMeshProUGUI>(m_DamageValuePrefab.gameObject, transform);
         prefab.text = text;
+        prefab.color = textColor;
 
         var col = m_GameEntity.m_HitCollider;
 
@@ -139,6 +151,47 @@ public class DamagedValueDisplayUI : MonoBehaviour
         seq.Append(prefab.transform.DOMoveY(groundY + height2, duration2).SetEase(Ease.OutQuad)); // 2차 반등
         seq.Append(prefab.transform.DOMoveY(groundY, duration3).SetEase(Ease.InQuad));            // 최종 낙하
 
+        yield return seq.WaitForCompletion();
+
+        Managers.Resource.Destroy(prefab);
+    }
+
+    private void DisplayHealValueText(object sender, AttributeSystem.OnHealEventArgs e)
+    {
+        // 회복량이 0이면 표시하지 않음
+        if (e.HealAmount <= 0)
+            return;
+
+        string text = $"+{e.HealAmount}";
+
+        var prefab = Managers.Resource.Instantiate<TextMeshProUGUI>(m_DamageValuePrefab.gameObject, transform);
+        prefab.text = text;
+
+        prefab.color = ColorUtil.GetHeal();
+        var col = m_GameEntity.m_HitCollider;
+
+        float minX = col.bounds.min.x;
+        float maxX = col.bounds.max.x;
+        float maxY = col.bounds.max.y;
+        float minZ = col.bounds.min.z;
+        float maxZ = col.bounds.max.z;
+
+        Vector3 start = new Vector3(Random.Range(minX, maxX), maxY, Random.Range(minZ, maxZ));
+        prefab.transform.position = start;
+
+        StartCoroutine(PlayHealUp(start, prefab.gameObject));
+    }
+
+    private IEnumerator PlayHealUp(Vector3 start, GameObject prefab)
+    {
+        var textMesh = prefab.GetComponent<TextMeshProUGUI>();
+
+        Sequence seq = DOTween.Sequence();
+
+        seq.Append(prefab.transform.DOMoveY(start.y + m_fHealUpHeight, m_fHealDuration));
+        seq.Join(prefab.transform.DOScale(m_fHealMaxScale, m_fHealDuration * 0.5f).SetEase(Ease.OutQuad));
+        seq.Append(prefab.transform.DOScale(m_fHealMaxScale * 1.1f, m_fHealDuration * 0.5f).SetEase(Ease.InQuad));
+        seq.Join(textMesh.DOFade(0f, m_fHealDuration));
         yield return seq.WaitForCompletion();
 
         Managers.Resource.Destroy(prefab);

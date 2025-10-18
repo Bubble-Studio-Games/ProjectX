@@ -94,21 +94,17 @@ public class ControllableObjectAnimator : GameEntityAnimator
 
     private void CombatAction_OnAttack(object sender, CombatAction.OnAttackBaseEventArgs e)
     {
+        if (e.attackPattern.Validate(true) == false)
+        {
+            Debug.LogError($"{m_ControllableObject.name} 공격 애니메이션 검증 오류");
+            return;
+        }
+
         AttackPatternInfoClip m_TempInfo = null;
 
         if (e.attackPattern is  AttackPattern_Range range)
         {
-            if (range.m_iIsLaunchProjectileParabola)
-            {
-                m_TempInfo = e.attackPattern.GetBaseClip().FirstOrDefault(clip => clip.AttackAnimationClip.name.Contains("Parabola"));
-            }
-
-            // 위로 던지는 애니메이션이 없다면 그냥 일반 공격으로 대체
-            if (range.m_iIsLaunchProjectileParabola == false || m_TempInfo == null)
-            {
-                var clips = e.attackPattern.GetBaseClip().Where(clip => !clip.AttackAnimationClip.name.Contains("Parabola"));
-                m_TempInfo = clips.RandomPick();
-            }
+            m_TempInfo = range.GetAttackPatternInfoClip(e);
         }
         else if (e.attackPattern is AttackPattern_Melee melee )
         {
@@ -118,7 +114,16 @@ public class ControllableObjectAnimator : GameEntityAnimator
         {
             m_TempInfo = e.attackPattern.GetBaseClip().RandomPick();
         }
+        else if (e.attackPattern is AttackPattern_Summon summon)
+        {
+            m_TempInfo = e.attackPattern.GetBaseClip().RandomPick();
+        }
 
+        if (m_TempInfo == null)
+        {
+            Debug.LogError($"{m_ControllableObject.name} 공격 애니메이션 클립이 존재하지 않습니다.");
+            return;
+        }
 
         ChangeAnimationAtStart(E_GameEntityClipType.Attack.ToString(), m_TempInfo.AttackAnimationClip);
 
@@ -197,6 +202,7 @@ public class ControllableObjectAnimator : GameEntityAnimator
             //combatAction.OnEndAttackEventInvoke();
             return;
         }
+
         // Success
         else if (m_ControllableObject.m_Target != null && !m_ControllableObject.m_Target.m_AttributeSystem.m_IsDead)
         {

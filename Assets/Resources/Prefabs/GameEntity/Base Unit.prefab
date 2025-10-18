@@ -129,6 +129,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 442852051153315596, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 442852051153315596, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 442852051153315596, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 442852051153315596, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 490573947343022114, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -200,6 +216,22 @@ PrefabInstance:
     - target: {fileID: 1035461199774559055, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -0.32905
+      objectReference: {fileID: 0}
+    - target: {fileID: 1059823133839189089, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1059823133839189089, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1059823133839189089, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1059823133839189089, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1312219318084205523, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
       propertyPath: m_Stat
@@ -335,14 +367,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_StatSystem: {fileID: 5932562773604003526}
-  m_Collider: {fileID: 9138363529798205164}
   m_ModelTransforms:
   - {fileID: 83024174552036922}
+  m_RewardData: {fileID: 0}
   m_GridPositionOffsets: []
   m_CurrentEDir: 4
   m_TeamId: 0
   m_fDelayDestroyTime: 3
-  m_EMoveType: 0
+  m_IsDirectDesawnAtDeath: 1
   currentAction: {fileID: 0}
   m_NextAction: {fileID: 0}
   m_BeforeAction: {fileID: 0}
@@ -507,11 +539,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!65 &9138363529798205164 stripped
-BoxCollider:
-  m_CorrespondingSourceObject: {fileID: 4517321377858890745, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
-  m_PrefabInstance: {fileID: 4639062678613988629}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &6015576702829078980
 PrefabInstance:
   m_ObjectHideFlags: 0

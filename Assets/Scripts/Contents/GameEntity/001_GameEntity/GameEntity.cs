@@ -56,6 +56,14 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     private static Dictionary<string, bool> s_RotateSymmetryCache = new();
     public bool m_IsRotateSymmetry { get; private set; }
 
+    public bool IsDead => m_AttributeSystem.m_IsDead;
+    public float CurHP 
+    {
+        get => m_AttributeSystem.m_Stat.m_iCurrentHp;
+        set => m_AttributeSystem.m_Stat.m_iCurrentHp = value;
+    }
+    public float MaxHP => m_AttributeSystem.m_Stat.m_iMaxHP;
+    
     protected virtual void Awake()
     {
         m_AttributeSystem = GetComponent<AttributeSystem>();

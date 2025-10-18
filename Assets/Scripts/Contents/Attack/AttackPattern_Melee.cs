@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using static Define;
 
 [CreateAssetMenu(menuName = "Attack Pattern/Melee")]
 public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
 {
+    private int _totalDamageDealt = 0;      
+
     public override void StartAttack(ControllableObject attacker, GameEntity target, AttackPattern prevAttackpatern)
     {
+        Clear();
         base.StartAttack(attacker, target, prevAttackpatern);
         
         // 전 준비 단계가 있다면 해시에서 제거
@@ -22,7 +23,6 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
 
     public override void Attack(ControllableObject attacker, GameEntity target) // 종료
     {
-
         // 기본적으로 범위 내의 모든 적들을 공격함.
         GridPosition selfPos = attacker.GetGridPosition();
         GridPosition targetPos = target.GetGridPosition();
@@ -42,9 +42,36 @@ public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
             .ToList();
 
         //if (E_AttackEffectType == E_AttackEffectType.Damage)
+        foreach (var t in targets)
         {
-            foreach (var t in targets)
-                t.m_AttributeSystem.Hit(this, attacker);
+            int hpBefore = (int)t.m_AttributeSystem.m_Stat.m_iCurrentHp;
+            t.m_AttributeSystem.Hit(this, attacker);
+            int hpAfter = (int)t.m_AttributeSystem.m_Stat.m_iCurrentHp;
+            
+            _totalDamageDealt += hpBefore - hpAfter;
         }
+
+        ApplyLifeSteal(attacker);
+        Clear();
+    }
+
+    public override void EndAttack(ControllableObject attacker, GameEntity target)
+    {
+        base.EndAttack(attacker, target);
+    }
+
+    private void Clear()
+    {
+        _totalDamageDealt = 0;
+    }
+
+    public void ApplyLifeSteal(ControllableObject attacker)
+    {
+        if (m_fLifeStealPercent <= 0 || _totalDamageDealt <= 0 || attacker == null)
+            return;
+
+        // 백분율 처리: m_fLifeStealPercent가 0.1이면 10%
+        int healAmount = Mathf.RoundToInt(_totalDamageDealt * m_fLifeStealPercent.Value);
+        attacker.m_AttributeSystem.Heal(healAmount, E_HealType.LifeSteal, attacker);
     }
 }

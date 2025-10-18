@@ -362,7 +362,7 @@ PrefabInstance:
       objectReference: {fileID: 9000000, guid: e444a494bd94d1a4fa655d65f4f2446d, type: 3}
     - target: {fileID: 1915249964115312908, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_Name
-      value: Paladin Variant
+      value: Paladin
       objectReference: {fileID: 0}
     - target: {fileID: 1915249964115312908, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_IsActive
@@ -534,23 +534,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5341500004312695255, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 14
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5341500004312695255, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 28
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5341500004312695255, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5341500004312695255, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5341500004312695255, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5680302928548000116, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_AnchorMax.y
