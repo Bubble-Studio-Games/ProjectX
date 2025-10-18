@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Poolable), typeof(Rigidbody))]
@@ -38,8 +39,14 @@ public class Projectile : Item
         m_AudioSource.clip = null;
         m_AudioSource.playOnAwake = false;
 
-        // 콜라이더 끄기
+        // Rigidbody 초기화 및  콜라이더 끄기
+        m_Rigidbody.isKinematic = false;
+        m_Rigidbody.velocity = Vector3.zero;
+        m_Rigidbody.angularVelocity = Vector3.zero;
         m_Collider.enabled = false;
+
+        foreach (Transform child in transform)
+            child.gameObject.SetActive(true);
     }
 
     public override void OnDisable()
@@ -53,39 +60,43 @@ public class Projectile : Item
         m_Rigidbody.isKinematic = false; // 필요시
     }
 
-    public override void Destroy()
+    public override void Destroy(float seconds = 3.0f)
     {
         if (m_hasDestoryAnimation)
         {
             animator.CrossFade("Destroy", 0.2f);
-            StartCoroutine(ObjectDestroy());
+            StartCoroutine(ObjectDestroy(seconds));
         }
         else
         {
-            // 자식들 모두 setactieve false로 바꾸기
             foreach (Transform child in transform)
-            {
                 child.gameObject.SetActive(false);
-            }
 
-            StartCoroutine(ObjectDestroy());
+            StartCoroutine(ObjectDestroy(seconds));
         }
     }
 
     public void AttackReady(ControllableObject owner, AttackPattern attack)
     {
+        foreach (Transform child in transform)
+            child.gameObject.SetActive(true);
+
         // Audio
-        m_AudioSource.PlayOneShot(m_ProjectileFlyingAudioClip);
+        if (m_ProjectileFlyingAudioClip != null)
+            m_AudioSource.PlayOneShot(m_ProjectileFlyingAudioClip);
 
         // 콜라이더 켜기
         m_Collider.enabled = true;
+        
         m_Owner = owner;
         m_AttackPattern = attack;
     }
 
     private void HitEffect(Vector3 hitPos)
     {
-        m_AudioSource.PlayOneShot(m_ProjectileHitAudioClip);
+        if (m_ProjectileHitAudioClip != null)
+            m_AudioSource.PlayOneShot(m_ProjectileHitAudioClip);
+
         if (m_AfterProjectileHitPrefab != null)
         {
             GameObject go = Managers.Resource.Instantiate(m_AfterProjectileHitPrefab);
@@ -93,21 +104,19 @@ public class Projectile : Item
             go.transform.rotation = Quaternion.identity;
         }
 
-        m_Rigidbody.velocity = Vector3.zero;
-        m_Rigidbody.angularVelocity = Vector3.zero;
+        // Kinematic이 아닐 때만 velocity 설정
+        if (m_Rigidbody.isKinematic == false)
+        {
+            m_Rigidbody.velocity = Vector3.zero;
+            m_Rigidbody.angularVelocity = Vector3.zero;
+        }
+        
         m_Rigidbody.isKinematic = true; // 필요시
     }
 
     private void OnCollisionEnter(Collision col)
     {
-        // 일반 사물
-        if (((1 << col.gameObject.layer) & LayerManager.Instance.m_StructLayer) != 0)
-        {
-            HitEffect(col.contacts[0].point);
-
-            Destroy();
-        }
-        else if (((1 << col.gameObject.layer) & LayerManager.Instance.HitColLayerMask) != 0)
+        if (((1 << col.gameObject.layer) & LayerManager.Instance.HitColLayerMask) != 0)
         {
             // 목표 타겟
 
@@ -121,6 +130,14 @@ public class Projectile : Item
 
                 Destroy();
             }
+        }
+
+        // 일반 사물
+        if (((1 << col.gameObject.layer) & LayerManager.Instance.m_StructLayer) != 0)
+        {
+            HitEffect(col.contacts[0].point);
+
+            Destroy();
         }
     }
 }
