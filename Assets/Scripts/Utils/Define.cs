@@ -43,6 +43,12 @@ public partial class Define
         Horizontal  // 가로 일자 (ㅡ)
     }
 
+    public enum E_Projectile
+    {
+        Multiple,
+        Parabola,
+        Straight,
+    }
 
     public enum E_AttackType
     {
