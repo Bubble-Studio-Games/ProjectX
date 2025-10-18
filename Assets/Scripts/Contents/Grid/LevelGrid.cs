@@ -156,7 +156,7 @@ public class LevelGrid : MonoBehaviour
 
         OnChangeGrid?.Invoke(this, new OnChangeGridAgrs
         {
-            type = E_GridCheckType.HasUnit,
+            type = E_GridCheckType.Empty,
             ListGridPosition = gridPositions,
             isNotGrid = false
         });

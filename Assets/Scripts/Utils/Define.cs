@@ -6,11 +6,41 @@ public partial class Define
 {
     #region Attack Pattern
 
-    public enum E_Projectile
+    public enum E_AttackStartPos
     {
-        Multiple,
-        Parabola,
-        Straight,
+        Attacker,
+        Target,
+        None,
+    }
+
+    public enum E_RangeFillType
+    {
+        // 지정 범위 내 모든 타일을 대상으로 함
+        FullRange,
+
+        // 가장 바깥쪽 칸만 대상으로 함
+        OuterRing,
+
+        // 중심 제외하고 안쪽 3x3 또는 n-1 범위만
+        Inner,
+    }
+
+    public enum E_RangeShapeType
+    {
+        Square,     // 사각형 형태 (정사각형 범위)
+        // 일정 간격마다만 적용 (예: 1칸 건너)
+        Checker,
+
+        // 대각선 축 방향만 대상으로 함
+        Diamond,
+
+        Arc,          // 호(부채꼴) 형태
+        ReverseTriangle,      // 삼각형(시전자가 꼭지점 기준 ▼) 형태
+        Triangle,      // 삼각형(시전자가 밑변의 가운데 기준 ▲) 형태
+        CustomList,      // 임의 리스트(분석 불가)
+        Plus,       // 플러스 형태 (상하좌우)
+        Vertical,   // 세로 일자 (ㅣ)
+        Horizontal  // 가로 일자 (ㅡ)
     }
 
 
@@ -64,13 +94,25 @@ public partial class Define
             
     }
 
+
+    [System.Flags]
     public enum E_GridCheckType
     {
-        Walkable,   // 그리드가 유효한 위치인지
-        HasUnit,    // 유닛이 있는지
-        Reserved,    // 예약된 위치인지
-        Obstacle // 장애물에 막혀 있는지
+        None = 0,
+        Walkable = 1 << 0,
+        HasUnit = 1 << 1,
+        Reserved = 1 << 2,
+        Obstacle = 1 << 3,
+        Empty = 1 << 4, // 유닛/오브젝트/예약 없음
     }
+
+    //public enum E_GridCheckType
+    //{
+    //    Walkable,   // 그리드가 유효한 위치인지
+    //    HasUnit,    // 유닛이 있는지
+    //    Reserved,    // 예약된 위치인지
+    //    Obstacle // 장애물에 막혀 있는지
+    //}
 
     public enum E_WeaponItemType
     {
@@ -158,13 +200,19 @@ public partial class Define
         Evasion
     }
 
-    public enum GridVisualType
+    public enum E_GridVisualType_Color
     {
-        White,
-        Blue,
-        Red,
-        RedSoft,
-        Yellow,
+        White,      // 이동 가능, 배치 가능
+        Blue,       // 이동 예약
+        Red,        // 주의 표시 (공격 혹은 배치 불가 자리)
+        Yellow,     // 주의 표시
+    }
+
+    public enum E_GridVisualType_Intensity
+    {
+        Light,
+        Medium,
+        Strong
     }
 
     public enum E_Dir

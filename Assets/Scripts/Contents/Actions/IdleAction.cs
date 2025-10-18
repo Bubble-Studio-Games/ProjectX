@@ -47,30 +47,17 @@ public class IdleAction : BaseAction
             m_BaseObject.SetTarget(obj);
         }
 
-
         ActionStart(onActionComplete);
 
-        // 타겟이 유효한지 다시 한번 확인
-        if (m_BaseObject.m_Target == null || m_BaseObject.m_Target.m_AttributeSystem.m_IsDead || !m_BaseObject.m_Target.gameObject.activeSelf)
-        {
-            return this;
-        }
 
-        // 현재 위치에서 바로 공격 가능하다면 CombatAction으로
-        // 1. 현재 가능한 공격 패턴 가져오기
-        var attackPatterns = m_BaseObject.m_AttributeSystem.m_AttackPatterns;
-
-        // 2. 모든 공격 위치 오프셋 가져오기
-        E_Dir dir = LevelGrid.Instance.GetDirGridPosition(m_BaseObject.GetGridPosition(), m_BaseObject.m_Target.GetGridPosition());
-
-        // 3. 현재 위치에서 공격 가능한 공격이 있는가?
-        attackPatterns = attackPatterns.Where(attack => attack.CanExecute(m_BaseObject, m_BaseObject.m_Target) == E_AttackCondition.Success).ToList();
-        attackPatterns = attackPatterns.Where(attack => attack.m_RangeOffset.Any(offset =>
-                LevelGrid.Instance.ToGridPosition(offset, m_BaseObject.GetGridPosition(), dir) == m_BaseObject.m_Target.GetGridPosition()
-                )).ToList();
+        var attackPatterns = Managers.Game.EvaluateAttackPatternsByCondition
+                            (m_BaseObject,
+                             m_BaseObject.m_Target,
+                             E_AttackCondition.Success,
+                             E_AttackCondition.Fail_Distance);
 
         // 바로 공격 가능
-        if(attackPatterns.Count > 0)
+        if (attackPatterns.Count > 0)
         {
             return m_BaseObject.GetAction<CombatAction>();
         }

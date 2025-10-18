@@ -14,11 +14,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 301
   AttackName: Archer Attack Ready
+  m_EAttackType: 1
+  m_IsEnableSelfAttack: 0
+  m_ERangeFillType: 0
+  m_ERangeShapeType: 6
   m_RangeOffset:
   - x: 0
     z: 2
     floor: 0
-  m_EAttackType: 1
+  - x: 0
+    z: 3
+    floor: 0
+  m_ArcAngle: 90
+  m_IsAttackStartPositionAtAttacker: 1
+  m_StartOffset:
+    x: 0
+    z: 0
+    floor: 0
+  m_GridCheckTypes: 
+  m_ApplyTargetTeampId: 1
   m_iNextAttackPattern:
   - {fileID: 11400000, guid: 44f7347769d6a474080517f79cade5ce, type: 2}
   - {fileID: 11400000, guid: 1ef4771bde04aec4a8a75b4aa6d59b1c, type: 2}
@@ -52,7 +66,7 @@ MonoBehaviour:
     _value: 0
   AttackAudioClip: {fileID: 8300000, guid: 063e0f8a6140d004bbc67489f9992bbf, type: 3}
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: 2a244e3df1275a2418c28b643f0c0fde, type: 2}
+  - AttackAnimationClip: {fileID: -203655887218126122, guid: fc812f670f6ea98468b0567d48c31f7b, type: 3}
     ReadyFailAnimationClip: {fileID: 0}
   ReadyFailAudioClip: {fileID: 0}
   m_ReadyGameObjectPrefab: {fileID: 7847037848152137897, guid: f6a671fc0bec79b4bb5c33df90d1ce54, type: 3}

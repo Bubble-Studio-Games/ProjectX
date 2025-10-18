@@ -39,9 +39,9 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
         // LaunchContext 생성
         float colliderLength;
         if (attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject != null)
-            colliderLength = Managers.Game.GetObjectLength(attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject.gameObject);
+            colliderLength = Managers.Game.GetObjectColliderLongLength(attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject.gameObject);
         else
-            colliderLength = Managers.Game.GetObjectLength(m_ProjectilePrefab.gameObject);
+            colliderLength = Managers.Game.GetObjectColliderLongLength(m_ProjectilePrefab.gameObject);
 
         float obstacleHeight = LevelGrid.Instance.GetObstacleMaxHeight(attacker.GetGridPosition(), target.GetGridPosition());
 
