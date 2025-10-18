@@ -55,11 +55,29 @@ public abstract class AttackPattern : ScriptableObject
     [Header("Base Info")]
     public int ID;
     public string AttackName;                    // 예: "전방3칸", "부채꼴" 등
-    public List<GridPosition> m_RangeOffset = new();   // 공격 범위 오프셋 (유닛 기준)
-    //public E_AttackEffectType E_AttackEffectType;
     public E_AttackType m_EAttackType;
+    public bool m_IsEnableSelfAttack; // 공격자가 대상자에 포함되는가?, 나도 공격/버프 당할 수 있는가?
 
+    [Header("Range & Shape")]
+    public E_RangeFillType m_ERangeFillType;
+    public E_RangeShapeType m_ERangeShapeType;
+    public List<GridPosition> m_RangeOffset = new(); 
+    public float m_ArcAngle = 90f;
+
+    [Header("Attack Start Pos")]
+    // true이면 시전자 위치를 기준으로, false이면 타겟을 기준으로
+    // 타겟이 없으면 해당 공격은 canexecute에서 제외함.
+    public bool m_IsAttackStartPositionAtAttacker = true; 
+    public GridPosition m_StartOffset = new(0, 0, 0);  // 공격 시작 기준 위치 (예: 전방 1칸 등)
+
+    [Header("Condition")]
+    public List<E_GridCheckType> m_GridCheckTypes = new List<E_GridCheckType>();
+    public E_TeamId m_ApplyTargetTeampId;
+
+    [Header("Combo / Chain Links")]
     public AttackPattern[] m_iNextAttackPattern;
+
+    [Tooltip("선행 패턴 조건 (null이면 조건 없음)")] 
     public AttackPattern m_iConditionPrevAttackPattern; // 
 
     [Header("Condition")]
@@ -123,6 +141,18 @@ public abstract class AttackPattern : ScriptableObject
             }
         }
 
+        // 🔹 4. 거리(공격 범위) 검사
+        if (target != null)
+        {
+            // 실제 공격 가능한 모든 그리드 계산
+            HashSet<GridPosition> attackablePositions = Managers.Game.GetAttackPatternPosition(attacker, target, this);
+            GridPosition targetPos = target.GetGridPosition();
+
+            // 타겟이 범위 내에 없으면 실패
+            if (!attackablePositions.Contains(targetPos))
+                return E_AttackCondition.Fail_Distance;
+        }
+
         return E_AttackCondition.Success;
     }
 
@@ -158,6 +188,23 @@ public abstract class AttackPattern : ScriptableObject
         yield return new WaitForSeconds(time);
         Managers.Resource.Destroy(go);
     }
+
+    public GridPosition GetStartOrigin(ControllableObject owner, GameEntity target)
+    {
+        GridPosition origin = owner.GetGridPosition();
+        E_Dir dir = LevelGrid.Instance.GetDirGridPosition(owner.GetGridPosition(), target.GetGridPosition());
+
+        if (!m_IsAttackStartPositionAtAttacker)
+        {
+            if (target == null)
+                return origin; // 타겟 없으면 기본값
+            origin = target.GetGridPosition();
+            dir = LevelGrid.Instance.GetDirGridPosition(target.GetGridPosition(), owner.GetGridPosition());
+        }
+
+        return LevelGrid.Instance.ToGridPosition(m_StartOffset, origin, dir);
+    }
+
     #endregion
 
 

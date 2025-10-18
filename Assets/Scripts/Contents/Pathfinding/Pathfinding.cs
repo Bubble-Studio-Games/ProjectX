@@ -103,7 +103,13 @@ public class Pathfinding : MonoBehaviour
         }
     }
 
-    public List<GridPosition> FindPath(GridPosition startGridPosition, GridPosition endGridPosition, out int pathLength, bool CheckHasObject = true)
+    public List<GridPosition> FindPath
+        (GridPosition startGridPosition, 
+        GridPosition endGridPosition, 
+        out int pathLength, 
+
+        bool CheckHasObject = true, 
+        bool CheckisReserve = true)
     {
         List<PathNode> openList = new List<PathNode>();
         List<PathNode> closedList = new List<PathNode>();
@@ -178,7 +184,7 @@ public class Pathfinding : MonoBehaviour
                     LevelGrid.Instance.GetUnitListAtGridPosition(startGridPosition)[0]);
 
                 // 3. 예약된 칸인데 시작/도착이 아니면 제외
-                if (isReserved)
+                if (isReserved && CheckisReserve)
                 {
                     closedList.Add(neighbourNode);
                     continue;

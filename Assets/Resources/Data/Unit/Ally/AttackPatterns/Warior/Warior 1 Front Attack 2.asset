@@ -14,11 +14,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 102
   AttackName: Warior 1 Front Attack Slash
+  m_EAttackType: 1
+  m_IsEnableSelfAttack: 0
+  m_ERangeFillType: 0
+  m_ERangeShapeType: 6
   m_RangeOffset:
   - x: 0
     z: 1
     floor: 0
-  m_EAttackType: 1
+  m_ArcAngle: 90
+  m_IsAttackStartPositionAtAttacker: 1
+  m_StartOffset:
+    x: 0
+    z: 0
+    floor: 0
+  m_GridCheckTypes: 02000000
+  m_ApplyTargetTeampId: 1
   m_iNextAttackPattern: []
   m_iConditionPrevAttackPattern: {fileID: 0}
   m_iCoolTime:
@@ -52,4 +63,4 @@ MonoBehaviour:
     _value: 0
   AttackAudioClip: {fileID: 8300000, guid: 1785fff83652f42399d9b2017b05656c, type: 3}
   m_Clips:
-  - AttackAnimationClip: {fileID: -203655887218126122, guid: d47b9c23b3f01684b91c7fd4b2d331c3, type: 3}
+  - AttackAnimationClip: {fileID: -203655887218126122, guid: 38322ae266c2b064f87e47b5bd962344, type: 3}

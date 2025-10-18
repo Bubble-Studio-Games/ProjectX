@@ -33,17 +33,7 @@ public class AttributeSystem : MonoBehaviour
 
     [Header("Stat")]
     [SerializeField] private BaseStat m_originalStat;
-    public BaseStat m_Stat 
-    {
-        get 
-        { 
-            if(m_originalStat == null)
-                m_originalStat = GetComponent<BaseStat>();
-
-            return m_originalStat;
-        }
-        set { m_originalStat = value; }
-    }
+    [HideInInspector] public BaseStat m_Stat;
 
     [Header("Attack Pattern")]
     public List<AttackPattern> m_AttackPatterns = new List<AttackPattern>();
@@ -95,16 +85,10 @@ public class AttributeSystem : MonoBehaviour
 
         // 스텟을 개별적으로 갖게 하기
         // TODO 나중에 DB로 가져오기
-        m_Stat = Instantiate(m_Stat);
+        m_originalStat = Instantiate(m_originalStat);
+        m_Stat = m_originalStat;
 
-        // 공격
-        m_AttackPatterns = m_AttackPatterns
-        .Select(pattern => {
-                var instance = Instantiate(pattern);
-                return instance; })
-        .ToList();
 
-        m_originalStat = m_Stat;
 
         // Stat을 Instantiate 한 후에 해야함.
         if (m_GameEntity is ControllableObject cobj)
@@ -115,6 +99,13 @@ public class AttributeSystem : MonoBehaviour
 
     private void Start()
     {
+        // 공격
+        m_AttackPatterns = m_AttackPatterns
+        .Select(pattern => {
+            var instance = Instantiate(pattern);
+            return instance;
+        })
+        .ToList();
 
         Init();
 
