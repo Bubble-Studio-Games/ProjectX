@@ -31,6 +31,9 @@ public class CombatAction : BaseAction
     protected override void Start()
     {
         base.Start();
+
+        OnStartAttack += (s, e) =>  GridSystemVisual.Instance.UpdateGridVisual_Event(s, m_BaseObject);
+        OnEndAttack += (s, e) =>  GridSystemVisual.Instance.UpdateGridVisual_Event(s, m_BaseObject);
     }
 
     protected override void Update()
@@ -204,33 +207,19 @@ public class CombatAction : BaseAction
     {
         E_Dir dir = LevelGrid.Instance.GetDirGridPosition(m_BaseObject.GetGridPosition(), m_BaseObject.m_Target.GetGridPosition());
 
-        var validPatterns = patterns
-            .Where(attack => attack.CanExecute(m_BaseObject, m_BaseObject.m_Target) == E_AttackCondition.Success)
-            .ToList();
-        
-        validPatterns = validPatterns.Where(attack =>
-        {
-            // Summon: 소환 가능한 위치 체크
-            if (attack.m_EAttackType == E_AttackType.Summon)
-            {
-                return attack.m_RangeOffset.Any(offset =>
-                {
-                    GridPosition summonPos = LevelGrid.Instance.ToGridPosition(offset, m_BaseObject.GetGridPosition(), dir);
-                    return LevelGrid.Instance.IsValidGridPosition(summonPos) && 
-                           !LevelGrid.Instance.HasAnyUnitOnGridPosition(summonPos);
-                });
-            }
-            
-            return attack.m_RangeOffset.Any(offset =>
-                LevelGrid.Instance.ToGridPosition(offset, m_BaseObject.GetGridPosition(), dir) == m_BaseObject.m_Target.GetGridPosition());
-        }).ToList();
+        // ✅ canUse == true 인 AttackPattern만 추출
+        var usablePatterns = Managers.Game.EvaluateAttackPatternsByCondition
+                            (m_BaseObject,
+                             m_BaseObject.m_Target,
+                             E_AttackCondition.Success);
 
-        if (validPatterns.Count == 0)
+        if (usablePatterns == null || usablePatterns.Count == 0)
             return null;
 
+        //Debug.Log("가능한 공격들 : " + string.Join(" ", usablePatterns));
+
         // 무작위로 하나 선택
-        int index = UnityEngine.Random.Range(0, validPatterns.Count);
-        return validPatterns[index];
+        return usablePatterns.Select(x => x.pattern).RandomPick();
     }
 
     public void OnStartAttackEventInvoke()

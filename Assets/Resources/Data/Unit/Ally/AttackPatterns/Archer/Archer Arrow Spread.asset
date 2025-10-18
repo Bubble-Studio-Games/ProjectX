@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID: 303
   AttackName: Archer 2 Front Arrow Spread
+  m_EAttackType: 1
+  m_IsEnableSelfAttack: 0
+  m_ERangeFillType: 0
+  m_ERangeShapeType: 6
   m_RangeOffset:
   - x: 0
     z: 2
@@ -24,7 +28,14 @@ MonoBehaviour:
   - x: 1
     z: 2
     floor: 0
-  m_EAttackType: 1
+  m_ArcAngle: 90
+  m_IsAttackStartPositionAtAttacker: 1
+  m_StartOffset:
+    x: 0
+    z: 0
+    floor: 0
+  m_GridCheckTypes: 
+  m_ApplyTargetTeampId: 1
   m_iNextAttackPattern: []
   m_iConditionPrevAttackPattern: {fileID: 11400000, guid: 1ef4771bde04aec4a8a75b4aa6d59b1c, type: 2}
   m_iCoolTime:
@@ -58,7 +69,7 @@ MonoBehaviour:
     _value: 0
   AttackAudioClip: {fileID: 8300000, guid: 84d43626e6df6454287af37f6f518c90, type: 3}
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: ed334cfce3ec59444bad17e63ff3ad5f, type: 2}
+  - AttackAnimationClip: {fileID: -203655887218126122, guid: 6d812cfad9062314983d3d95e412bfc4, type: 3}
   m_ProjectilePrefab: {fileID: 0}
   _selectType: 1
   _projectileProperty:

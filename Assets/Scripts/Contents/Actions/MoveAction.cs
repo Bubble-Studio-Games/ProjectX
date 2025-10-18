@@ -36,7 +36,7 @@ public class MoveAction : BaseAction
 
         if (m_BaseObject.m_TeamId == E_TeamId.Player)
         {
-            OnUpdateGrid += GridSystemVisual.Instance.UpdateGridVisual_Event;
+            OnUpdateGrid += (s, e) => GridSystemVisual.Instance.UpdateGridVisual_Event(s, m_BaseObject);
         }
     }
 
