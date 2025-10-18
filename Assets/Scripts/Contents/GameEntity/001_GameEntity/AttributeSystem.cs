@@ -13,6 +13,7 @@ public class AttributeSystem : MonoBehaviour
     public event EventHandler OnRevived; // 	HP 회복 등으로 다시 살아날 때
     public event EventHandler<OnAttackInfoEventArgs> OnDead; // HP 0일 때 죽는 순간
     public event EventHandler<OnAttackInfoEventArgs> OnDamaged; // 데미지를 받았을 때
+    public event EventHandler<OnHealEventArgs> OnHealed; // 회복을 받았을 때 (흡혈, 스킬 등)
     public event EventHandler OnUpdateStat;
 
     public class OnAttackInfoEventArgs : EventArgs
@@ -21,6 +22,13 @@ public class AttributeSystem : MonoBehaviour
         public E_HitDecisionType EHitDeCisionType;
         public GameEntity Attacker;
         public int FinalDamage;
+    }
+
+    public class OnHealEventArgs : EventArgs
+    {
+        public int HealAmount;
+        public E_HealType HealType;
+        public GameEntity Healer; // 흡혈의 경우 자기 자신
     }
 
     [Header("Stat")]
@@ -47,8 +55,27 @@ public class AttributeSystem : MonoBehaviour
 
     #endregion
 
+    public bool Validate()
+    {
+        if (m_Stat == null)
+        {
+            Debug.LogError($"{this.gameObject.name}: 스텟이 존재하지 않습니다.- AttributeSystem - Stat");
+            return false;
+        }
+
+        if (m_AttackPatterns == null || m_AttackPatterns.Count <= 0)
+        {
+            Debug.LogError($"{this.gameObject.name}: 공격 패턴이 존재하지 않습니다.- AttributeSystem - AttackPatterns");
+            return false;
+        }
+
+        return true;
+    }
+
     private void Awake()
     {
+        Validate();
+        
         m_GameEntity = GetComponent<GameEntity>();
 
         // Event
@@ -68,7 +95,6 @@ public class AttributeSystem : MonoBehaviour
         {
             cobj.OnChangeGrade += UpdateStatOfGrade;
         }
-
     }
 
     private void Start()
@@ -83,8 +109,13 @@ public class AttributeSystem : MonoBehaviour
 
         Init();
 
-        if(UnitActionSystem.Instance != null)
-            UnitActionSystem.Instance.OnUpdateActionTick += (s, e) => UpdateTickStat();
+        UnitActionSystem.Instance.OnUpdateActionTick += UpdateTickStat;
+    }
+
+    private void OnDestroy()
+    {
+        if (UnitActionSystem.Instance != null)
+            UnitActionSystem.Instance.OnUpdateActionTick -= UpdateTickStat;
     }
 
     protected virtual void OnEnable()
@@ -215,6 +246,29 @@ public class AttributeSystem : MonoBehaviour
         OnUpdateStat?.Invoke(this, EventArgs.Empty);
     }
 
+
+    public void Heal(int healAmount, E_HealType healType, GameEntity healer = null)
+    {
+        if (healAmount <= 0 || m_IsDead)
+            return;
+
+        int beforeHP = (int)health;
+        health = Math.Clamp(health + healAmount, 0, healthMax);
+        int actualHeal = (int)health - beforeHP;
+
+        if (actualHeal > 0)
+        {
+            OnHealed?.Invoke(this, new OnHealEventArgs
+            {
+                HealAmount = actualHeal,
+                HealType = healType,
+                Healer = healer ?? m_GameEntity
+            });
+
+            OnUpdateStat?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     public void ReduceHP(int addHp)
     {
         health = Math.Clamp(health - addHp, 0, healthMax);
@@ -259,7 +313,7 @@ public class AttributeSystem : MonoBehaviour
     }
 
     // Tick 당 이뤄지는 함수
-    private void UpdateTickStat()
+    private void UpdateTickStat(object sender, GridPosition args)
     {
         if(m_IsDead) 
             return;

@@ -14,13 +14,16 @@ public class IdleAction : BaseAction
     {
         // 감지 범위 내의 적 유닛 탐색
         var (obj, pos) = LevelGrid.Instance.GetClosestTargetGridInfo(m_BaseObject.GetGridPosition(), GetValidActionGridPositionList());
-        if (obj == null)
+
+        // 타겟 검증: 타겟이 없거나 사망했거나 유효하지 않으면 타겟 초기화
+        if (obj == null || obj.m_AttributeSystem.m_IsDead || !obj.gameObject.activeSelf)
         {
+            m_BaseObject.SetTarget(null);
+
             // 몬스터의 최종 목적지는 던전 핵!
             if (m_BaseObject.m_TeamId == E_TeamId.Monster)
             {
-
-                if(DungeonCore.instance == null || DungeonCore.instance.m_AttributeSystem.m_IsDead)
+                if(DungeonCore.instance == null || DungeonCore.instance.m_AttributeSystem.m_IsDead || !DungeonCore.instance.gameObject.activeSelf)
                 {
                     return this;
                 }

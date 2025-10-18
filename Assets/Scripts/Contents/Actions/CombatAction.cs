@@ -1,14 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using static Define;
-using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
-using Random = System.Random;
 
 public class CombatAction : BaseAction
 {
