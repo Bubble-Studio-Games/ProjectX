@@ -6,6 +6,13 @@ public partial class Define
 {
     #region Attack Pattern
 
+    public enum E_Projectile
+    {
+        Straight,
+        Parabola,
+        Multiple,
+    }
+
     public enum E_AttackStartPos
     {
         Attacker,
@@ -84,6 +91,24 @@ public partial class Define
         None,
         Spawner
     }
+
+    public enum E_NPC
+    {
+        None,
+        Shop, 
+        Quest,
+        Event, 
+        Enemy,
+    }
+
+    // NPC 성향
+    public enum E_NPCState
+    {
+        Hostile, 
+        Neutral, 
+        Friendly, 
+    }
+
 
     public enum E_SetupObjectOffsetChange
     {
@@ -236,13 +261,14 @@ public partial class Define
 
     public enum E_ObjectType
     {
-        None = 0, 
+        None = 0,
         Unit = 1,
         Building = 2,
-        Interact = 3, 
+        Interact = 3,
         AutoTrigger = 4,
-        Obstacle,
-        Skill,
+        Obstacle = 5,
+        Skill = 6,
+        NPC = 7,
     }
 
     #region Base

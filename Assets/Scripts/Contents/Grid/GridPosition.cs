@@ -2,6 +2,7 @@
 
 
 using System;
+using System.Numerics;
 using static Define;
 
 [System.Serializable]
@@ -74,5 +75,8 @@ public struct GridPosition : IEquatable<GridPosition>
         return new GridPosition(x, z, floor) * -1;
     }
 
-
+    public static GridPosition To(int x, int z, int floor)
+    {
+        return new GridPosition(x, z, floor);
+    }
 }

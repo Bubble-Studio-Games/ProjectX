@@ -1,16 +1,10 @@
-using GLTF.Schema;
-using RootMotion.FinalIK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Mathematics;
 using UnityEngine;
 using static Define;
-using static UnityEngine.UI.Image;
 using Material = UnityEngine.Material;
-using Random = UnityEngine.Random;
+
 
 public interface IAccessories<TAnimator, TSounder> 
     where TAnimator : GameEntityAnimator 
@@ -279,7 +273,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     }
 
     // 보통은 디스폰을 사망 애니메이션이 끝나면 바로 호출.
-    public void DeSpawnStart()
+    public virtual void DeSpawnStart()
     {
         OnObjectDespawned?.Invoke(this, EventArgs.Empty);
     }
@@ -381,4 +375,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
         return enemyTeams;
     }
+
+
+
 }

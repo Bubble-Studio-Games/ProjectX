@@ -22,7 +22,6 @@ public class ChaseAction : MoveAction
     {
         GridPosition selfPos = m_BaseObject.GetGridPosition();
 
-
         if(m_BaseObject.m_isDetectionsurroundingsEnabled)
         {
             // 감지 범위 내의 적 유닛 탐색

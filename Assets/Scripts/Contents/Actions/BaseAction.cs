@@ -36,10 +36,10 @@ public abstract class BaseAction : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (m_BaseObject.name == "Unit (5)")
-        {
-            //Debug.Log($"{GetActionName()} : {DestGirdPosition}");
-        }
+        // if (m_BaseObject.name == "Unit (5)")
+        // {
+        //     //Debug.Log($"{GetActionName()} : {DestGirdPosition}");
+        // }
     }
 
     public abstract string GetActionName();

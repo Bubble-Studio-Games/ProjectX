@@ -8,6 +8,7 @@ using static Define;
 using static AttributeSystem;
 using Random = UnityEngine.Random;
 
+[DefaultExecutionOrder(-1000)]
 public class AttributeSystem : MonoBehaviour
 {
     public event EventHandler OnRevived; // 	HP 회복 등으로 다시 살아날 때
@@ -74,8 +75,6 @@ public class AttributeSystem : MonoBehaviour
 
     private void Awake()
     {
-        Validate();
-        
         m_GameEntity = GetComponent<GameEntity>();
 
         // Event
@@ -88,7 +87,7 @@ public class AttributeSystem : MonoBehaviour
         m_originalStat = Instantiate(m_originalStat);
         m_Stat = m_originalStat;
 
-
+        Validate();
 
         // Stat을 Instantiate 한 후에 해야함.
         if (m_GameEntity is ControllableObject cobj)
