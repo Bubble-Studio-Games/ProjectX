@@ -40,6 +40,7 @@ public class Item : MonoBehaviour
     protected IEnumerator ObjectDestroy(float seconds = 3.0f)
     {
         yield return new WaitForSeconds(seconds);
-        Managers.Resource.Destroy(gameObject);
+        if(gameObject != null)
+            Managers.Resource.Destroy(gameObject);
     }
 }

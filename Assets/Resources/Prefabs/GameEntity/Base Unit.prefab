@@ -277,7 +277,8 @@ PrefabInstance:
       propertyPath: m_AnchorMin.y
       value: 0.5
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3940356700276009916, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
     m_RemovedGameObjects:
     - {fileID: 8157864578208346705, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
     m_AddedGameObjects:
@@ -297,6 +298,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6554170519005123609, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7601346721002605746}
+    - targetCorrespondingSourceObject: {fileID: 6554170519005123609, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4125481200835132700}
     - targetCorrespondingSourceObject: {fileID: 3787180560955435104, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 9063924103104891002}
@@ -340,6 +344,7 @@ MonoBehaviour:
   backSlot: {fileID: 0}
   rightHandIKTarget: {fileID: 0}
   leftHandIKTarget: {fileID: 0}
+  m_ProjectileSpawnTransforms: []
 --- !u!114 &603448098658162989
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -366,42 +371,49 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 204237e10709f1a438f8b364ef16968c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_StatSystem: {fileID: 5932562773604003526}
+  m_AttributeSystem: {fileID: 0}
   m_ModelTransforms:
   - {fileID: 83024174552036922}
-  m_RewardData: {fileID: 0}
   m_GridPositionOffsets: []
   m_CurrentEDir: 4
   m_TeamId: 0
-  m_fDelayDestroyTime: 3
-  m_IsDirectDesawnAtDeath: 1
   currentAction: {fileID: 0}
   m_NextAction: {fileID: 0}
   m_BeforeAction: {fileID: 0}
+  m_ActionsTransform: {fileID: 8686290568000752158}
+  m_fDelayDestroyTime: 3
+  m_IsDirectDesawnAtDeath: 1
   m_CommandAction: {fileID: 0}
   IsAttackStand: 0
   m_isDetectionsurroundingsEnabled: 1
+  m_isChaseCore: 1
+  m_originalGrade: 0
+  m_fEnhanceChance: 0
+  n_EnhanceTypeList: 
   isTwoHandingWeapon: 0
   isUsingRightHand: 0
   isUsingLeftHand: 0
   m_UnitEquipEquipmentManager: {fileID: 0}
   m_UnitWeaponSlotManager: {fileID: 0}
+--- !u!114 &4125481200835132700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1915249964115312908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e2fe76f9919b55418957a29834cbca2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ControllableObject: {fileID: 0}
+  m_Unit: {fileID: 0}
 --- !u!4 &5341500004312695255 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 739033551550371010, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
   m_PrefabInstance: {fileID: 4639062678613988629}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &5932562773604003526 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1312219318084205523, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
-  m_PrefabInstance: {fileID: 4639062678613988629}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1915249964115312908}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c347f21394851804cbdfd5dd3f0642a2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &8426101083667725685 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3787180560955435104, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
@@ -512,7 +524,8 @@ MonoBehaviour:
   m_ReviveAnimationClip: []
   m_DeathAnimationClip: []
   m_OrderAnimationClip: []
-  m_ActionsTransform: {fileID: 8686290568000752158}
+  m_orderAnimationStateName: []
+  m_AnimatorOriginalVale: 1
   m_IdleAnimationClip: []
   m_WalkAnimationClip: []
   m_RunAnimationClip: []

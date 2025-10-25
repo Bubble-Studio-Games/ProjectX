@@ -31,6 +31,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3593904134150579037}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3653860143312884889
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7731599409591549433}
+  m_Layer: 0
+  m_Name: Actionss
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7731599409591549433
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3653860143312884889}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3593904134150579037}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5666788213749654699
 GameObject:
   m_ObjectHideFlags: 0
@@ -198,6 +229,7 @@ Transform:
   - {fileID: 3784051370475004136}
   - {fileID: 5162459172721731767}
   - {fileID: 8961133948111393927}
+  - {fileID: 7731599409591549433}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2996159675630308428
@@ -212,7 +244,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c347f21394851804cbdfd5dd3f0642a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_originalStat: {fileID: 0}
   m_Stat: {fileID: 11400000, guid: 781e6d45525e8984f9d7deda9e848836, type: 2}
+  m_AttackPatterns: []
+  m_RewardData: {fileID: 0}
 --- !u!114 &5878228420600803114
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -306,14 +341,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c1bf18b1c26bbe64ea2ec8638601514c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_StatSystem: {fileID: 2996159675630308428}
-  m_Collider: {fileID: 0}
+  m_AttributeSystem: {fileID: 0}
   m_ModelTransforms:
   - {fileID: 8855830842462016688}
   m_GridPositionOffsets: []
   m_CurrentEDir: 4
   m_TeamId: 0
+  currentAction: {fileID: 0}
+  m_NextAction: {fileID: 0}
+  m_BeforeAction: {fileID: 0}
+  m_ActionsTransform: {fileID: 7731599409591549433}
   m_fDelayDestroyTime: 3
+  m_IsDirectDesawnAtDeath: 1
 --- !u!1 &7603311148607323048
 GameObject:
   m_ObjectHideFlags: 0

@@ -57,16 +57,16 @@ public class AttributeSystem : MonoBehaviour
 
     public bool Validate()
     {
-        if (m_Stat == null)
+        if (m_originalStat == null)
         {
             Debug.LogError($"{this.gameObject.name}: 스텟이 존재하지 않습니다.- AttributeSystem - Stat");
-            return false;
+            //return false;
         }
 
         if (m_AttackPatterns == null || m_AttackPatterns.Count <= 0)
         {
             Debug.LogError($"{this.gameObject.name}: 공격 패턴이 존재하지 않습니다.- AttributeSystem - AttackPatterns");
-            return false;
+            //return false;
         }
 
         return true;
@@ -85,8 +85,11 @@ public class AttributeSystem : MonoBehaviour
 
         // 스텟을 개별적으로 갖게 하기
         // TODO 나중에 DB로 가져오기
-        m_originalStat = Instantiate(m_originalStat);
-        m_Stat = m_originalStat;
+        if(m_originalStat != null)
+        {
+            m_originalStat = Instantiate(m_originalStat);
+            m_Stat = m_originalStat;
+        }
 
 
 
@@ -100,12 +103,15 @@ public class AttributeSystem : MonoBehaviour
     private void Start()
     {
         // 공격
-        m_AttackPatterns = m_AttackPatterns
-        .Select(pattern => {
-            var instance = Instantiate(pattern);
-            return instance;
-        })
-        .ToList();
+        if(m_AttackPatterns != null)
+        {
+            m_AttackPatterns = m_AttackPatterns
+            .Select(pattern => {
+                var instance = Instantiate(pattern);
+                return instance;
+            })
+            .ToList();
+        }
 
         Init();
 
@@ -136,7 +142,7 @@ public class AttributeSystem : MonoBehaviour
         OnUpdateStat?.Invoke(this, EventArgs.Empty);
     }
 
-    public void Hit(AttackPattern attack, ControllableObject attacker)
+    public void Hit(AttackPattern attack, GameEntity attacker)
     {
         // 사망시 타격 판정 불가
         if (m_IsDead)
@@ -172,7 +178,7 @@ public class AttributeSystem : MonoBehaviour
         ApplyDamage(attack, hitDecision, attacker);
     }
 
-    public void ApplyDamage(AttackPattern attack, E_HitDecisionType hitDecision, ControllableObject attacker)
+    public void ApplyDamage(AttackPattern attack, E_HitDecisionType hitDecision, GameEntity attacker)
     {
         int finalDamage;
 
@@ -208,6 +214,16 @@ public class AttributeSystem : MonoBehaviour
 
             // 최종 데미지 합산
             finalDamage = physicalDamage + magicalDamage;
+
+            // 피흡 계산
+            // 백분율 처리: m_fLifeStealPercent가 0.1이면 10%
+            if (attack.m_fLifeStealPercent > 0 && finalDamage > 0 && attacker != null)
+            {
+                // 백분율 처리: m_fLifeStealPercent가 0.1이면 10%
+                int healAmount = Mathf.RoundToInt(finalDamage * attack.m_fLifeStealPercent.Value);
+                attacker.m_AttributeSystem.Heal(healAmount, E_HealType.LifeSteal, attacker);
+            }
+
         }
 
         // 체력 감소
