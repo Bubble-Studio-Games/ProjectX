@@ -10,37 +10,37 @@ public class CommandAttackAction : BaseAction
 
     public override BaseAction TakeAction(GridPosition gridPosition = default, Action onActionComplete = null)
     {
-        // 적의 위치를 가져오는 상태
-        if(gridPosition != default)
+        if (m_BaseObject is PassiveObject pobj)
         {
-            // 유저가 선택한 오브젝트의 위치의 적을 가져오기
-            var target = LevelGrid.Instance.GetObjectAtGridPosition(gridPosition);
+            return this;
+        }
+        else if (m_BaseObject is ControllableObject cobj)
+        {
+            // 적의 위치를 가져오는 상태
+            if (gridPosition != default)
+            {
+                // 유저가 선택한 오브젝트의 위치의 적을 가져오기
+                var target = LevelGrid.Instance.GetObjectAtGridPosition(gridPosition);
 
-            if (target == null || target.m_AttributeSystem.m_IsDead)
-                return m_BaseObject.GetBackStateAction();
+                if (target == null || target.m_AttributeSystem.m_IsDead)
+                    return m_BaseObject.GetBackStateAction();
 
-            m_BaseObject.SetTarget(target);
+                cobj.SetTarget(target);
 
-            // 지정한 적만 따라가도록
-            m_BaseObject.m_isDetectionsurroundingsEnabled = false;
+                // 지정한 적만 따라가도록
+                cobj.m_isDetectionsurroundingsEnabled = false;
 
-            // 1. 공격 사거리까지 이동 후 공격
+                // 1. 공격 사거리까지 이동 후 공격
+            }
+        }
+        else
+        {
+            return this;
         }
 
+
+
         return m_BaseObject.GetAction<ChaseAction>();
-
-        // 이동
-
-        // 공격 여부 판단
-
-        // 선택 사항
-        // 1. 유닛에서 가장 가까운 위치의 적이 차지하는 위치를 반환해줄 것인가?
-        // 2. 선택한 위치의 적을 공격할 것인가?
-        // ex) 3x3 의 위치를 차지하는 적이 있으면 유닛에서 가까운 위치를 반환? 아니면 선택한 위치로 이동해 공격?
-
-        // 가장 가까운 영역을 차지하는 적의 위치를 타겟으로 설정함.
-
-
     }
 
     public override string GetActionName()

@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e73c5523d7733e48b8f96dae88a24a6, type: 3}
+  m_Name: Archer Arrow Spread Ready
+  m_EditorClassIdentifier: 
+  ID: 301
+  AttackName: Archer Attack Ready
+  m_EAttackType: 1
+  m_IsEnableSelfAttack: 0
+  m_ERangeFillType: 1
+  m_ERangeShapeType: 6
+  m_RangeOffset:
+  - x: 0
+    z: 2
+    floor: 0
+  - x: 0
+    z: 3
+    floor: 0
+  m_ArcAngle: 90
+  m_IsAttackStartPositionAtAttacker: 1
+  m_StartOffset:
+    x: 0
+    z: 0
+    floor: 0
+  m_GridCheckTypes: 
+  m_ApplyTargetE_Tendency: 0
+  m_iNextAttackPattern:
+  - {fileID: 11400000, guid: 2a3be519b8409c848b6e77f33bc0f0f1, type: 2}
+  m_iConditionPrevAttackPattern: {fileID: 11400000, guid: 4473d3c84544fe44897429ddf891ceb1, type: 2}
+  m_iCoolTime:
+    _value: 2
+  lastCooltime:
+    _value: -2
+  m_iManaCost:
+    _value: 0
+  m_IsTwoHandAttack: 0
+  m_iPhysicalAttackDamage:
+    _value: 0
+  m_iMagicAttackDamage:
+    _value: 0
+  m_iPhysicalFixedDamage:
+    _value: 0
+  m_iMagicFixedDamage:
+    _value: 0
+  m_fPhysicalArmorPenetraion:
+    _value: 0
+  m_fMagicalArmorPenetraion:
+    _value: 0
+  m_iCriticalChance:
+    _value: 0
+  m_fCriticalDamageUp:
+    _value: 0
+  m_fAccuracy:
+    _value: 95
+  m_fAttackSpeed:
+    _value: 1
+  m_iKnockbackChance:
+    _value: 0
+  m_fLifeStealPercent:
+    _value: 0
+  AttackAudioClip: {fileID: 8300000, guid: 6e2371b5c52011742a4b29d8f65f7f28, type: 3}
+  m_Clips:
+  - AttackAnimationClip: {fileID: -203655887218126122, guid: bc2c5dd80f326764396ae283cca8b767, type: 3}
+    ReadyFailAnimationClip: {fileID: 0}
+  ReadyFailAudioClip: {fileID: 0}
+  m_ReadyGameObjectPrefab: {fileID: 7847037848152137897, guid: f6a671fc0bec79b4bb5c33df90d1ce54, type: 3}
+  m_FailPrefab: {fileID: 0}
+  m_iSpawnReadyCount: 3
+  m_SpawnFromWeapon: 1
+  m_AttackReadyTime: 2

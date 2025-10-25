@@ -7,7 +7,12 @@ using UnityEngine;
 public class Managers : MonoBehaviour
 {
     static Managers s_instance; // 유일성이 보장된다
-    static Managers Instance { get { Init(); return s_instance; } } // 유일한 매니저를 갖고온다
+    public static Managers Instance { get { Init(); return s_instance; } } // 유일한 매니저를 갖고온다
+
+    [Header("개발 전용")]
+    public bool m_IsUseAnimationStep = true;
+    public bool m_IsCaculateReward = true;
+
 
     #region Contents
     ObjectManager _object = new ObjectManager();

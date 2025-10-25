@@ -1,5 +1,58 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1122707261258913729
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 437040880271581862}
+  - component: {fileID: 6815462107049168481}
+  m_Layer: 13
+  m_Name: Hitcol
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &437040880271581862
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1122707261258913729}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5732773684867799349}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &6815462107049168481
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1122707261258913729}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.98185754, y: 1.0106556, z: 0.9990036}
+  m_Center: {x: -0.00000025331974, y: 0.00000008940697, z: 0}
 --- !u!1 &1808202595477238106
 GameObject:
   m_ObjectHideFlags: 0
@@ -109,9 +162,9 @@ GameObject:
   - component: {fileID: 7992905364673745950}
   - component: {fileID: 2979282134937664417}
   - component: {fileID: 8083268431157876978}
-  - component: {fileID: 5284451320885463504}
   - component: {fileID: 5084248404849671711}
   - component: {fileID: 6006622213907677752}
+  - component: {fileID: 4179058046757288476}
   m_Layer: 8
   m_Name: Box
   m_TagString: Untagged
@@ -133,6 +186,7 @@ Transform:
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 1757738169105412440}
+  - {fileID: 437040880271581862}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &8882984563301747289
@@ -211,28 +265,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c347f21394851804cbdfd5dd3f0642a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_originalStat: {fileID: 0}
   m_Stat: {fileID: 11400000, guid: 500781ea931d2aa4cb5a936d03ace1e0, type: 2}
---- !u!65 &5284451320885463504
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5732773684867799351}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.98185754, y: 1.0106556, z: 0.9990036}
-  m_Center: {x: -0.00000025331974, y: 0.00000008940697, z: 0}
+  m_AttackPatterns: []
+  m_RewardData: {fileID: 0}
 --- !u!114 &5084248404849671711
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -263,6 +299,29 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c0c35cffcaf48745830c6eaa074d7c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_AttributeSystem: {fileID: 0}
+  m_ModelTransforms: []
+  m_GridPositionOffsets: []
+  m_ObjectType: 3
+  m_CurrentEDir: 4
   m_TeamId: 3
+  currentAction: {fileID: 0}
+  m_NextAction: {fileID: 0}
+  m_BeforeAction: {fileID: 0}
+  m_ActionsTransform: {fileID: 0}
   m_fDelayDestroyTime: 3
+  m_IsDirectDesawnAtDeath: 1
   crateDestroyedPrefab: {fileID: 0}
+--- !u!114 &4179058046757288476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5732773684867799351}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c2e5580886343041a5e74b1712b0682, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  IsUsing: 0

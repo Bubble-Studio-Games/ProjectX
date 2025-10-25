@@ -26,7 +26,7 @@ public class LayerManager : MonoBehaviour
         ObstaclesLayerMask = 1 << LayerMask.NameToLayer("Obstacles");
         ControllableObjectLayerMask = 1 << LayerMask.NameToLayer("Controllable");
         HitColLayerMask = 1 << LayerMask.NameToLayer("HitCol");
-        m_StructLayer = 1 << LayerMask.NameToLayer("Default") |
+        m_StructLayer = //1 << LayerMask.NameToLayer("Default") |
             1 << LayerMask.NameToLayer("MousePlane") |
             1 << LayerMask.NameToLayer("Interactable") |
             1 << LayerMask.NameToLayer("Obstacles") |

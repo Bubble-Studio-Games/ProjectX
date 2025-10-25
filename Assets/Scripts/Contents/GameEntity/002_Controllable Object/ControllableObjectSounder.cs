@@ -14,7 +14,6 @@ public class ControllableObjectSounder : GameEntitySounder
     [Header("Controllable Object")]
     public AudioClip[] WalkClipList;
     public AudioClip[] RunClipList;
-    public AudioClip[] AttackMissClipList;
     public AudioClip[] PhaseChangeClipList;
     public AudioClip[] DodgeClipList;
 
@@ -49,29 +48,7 @@ public class ControllableObjectSounder : GameEntitySounder
         }
     }
 
-    public void AttackSoundPlay(AttackPattern attack)
-    {
-        m_ControllableObject.GetSounderManager().SoundPlay(attack.AttackAudioClip, E_GameEntityClipType.Attack.ToString());
-    }
 
-    public void AttackMissPlay(object sender, EventArgs e)
-    {
-        SoundPlay(AttackMissClipList, E_GameEntityClipType.Attack.ToString());
-    }
-
-    public void AttackReadyFailPlay()
-    {
-        var attack = m_ControllableObject.GetAction<CombatAction>().m_ThisTimeAttack;
-
-        if (attack == null)
-            return;
-
-        // AttackPattern_Ready로 캐스팅하고 Ready 타입인지 확인
-        if (attack is not AttackPattern_Ready readyPattern)
-            return;
-
-        SoundPlay(readyPattern.ReadyFailAudioClip, E_GameEntityClipType.Attack.ToString());
-    }
 
     public override void DamagedSoundPlay(object sender, AttributeSystem.OnAttackInfoEventArgs e)
     {

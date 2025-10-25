@@ -76,7 +76,7 @@ public class Door : MonoBehaviour, IInteractable
     {
         isOpen = true;
         animator.SetBool("IsOpen", isOpen);
-        Pathfinding.Instance.SetIsWalkableGridPosition(gridPosition, true);
+        //Pathfinding.Instance.SetIsWalkableGridPosition(gridPosition, true);
 
         OnDoorOpened?.Invoke(this, EventArgs.Empty);
         OnAnyDoorOpened?.Invoke(this, EventArgs.Empty);
@@ -86,7 +86,7 @@ public class Door : MonoBehaviour, IInteractable
     {
         isOpen = false;
         animator.SetBool("IsOpen", isOpen);
-        Pathfinding.Instance.SetIsWalkableGridPosition(gridPosition, false);
+        //Pathfinding.Instance.SetIsWalkableGridPosition(gridPosition, false);
     }
 
 }

@@ -33,18 +33,6 @@ public class GridSystemVisual : MonoBehaviour
 
     private Dictionary<int, GridSystemVisualSingle[,]> _floorVisuals = new Dictionary<int, GridSystemVisualSingle[,]>();
 
-    [Header("Select Object")]
-    private bool m_IsFloorClearCache = false;
-    Dictionary<int, HashSet<GridPosition>> m_CacheWalkableFloor = new();
-
-    // 몇 층 부터 몇 층까지 검사 했는지 담아두기
-    private Dictionary<int, bool> m_CacheCheckFloor = new();
-    // 이전 프레임의 층 상태 저장
-    private Dictionary<int, bool> m_PreviousCacheCheckFloor = new();
-
-    // 층별 유닛/예약 그리드와 영향 관계 캐시
-    Dictionary<int, Dictionary<E_GridCheckType, HashSet<GridPosition>>> notplaceGrid = new();
-    Dictionary<E_GridCheckType, Dictionary<GridPosition, HashSet<GridPosition>>> notPlaceGridOffset = new();
 
     #endregion
 
@@ -88,37 +76,26 @@ public class GridSystemVisual : MonoBehaviour
                 }
             }
 
-            // 초기화 및 데이터 집어 넣기
-            m_CacheWalkableFloor.Add(floor, Enumerable.ToHashSet( LevelGrid.Instance.GetFloorGridPositions(floor, E_GridCheckType.Walkable)));
-            m_CacheCheckFloor.Add(floor, false);
-
-            notplaceGrid[floor] = new();
-            notplaceGrid[floor][E_GridCheckType.Obstacle] = new();
-            notplaceGrid[floor][E_GridCheckType.HasUnit] = new();
-            notplaceGrid[floor][E_GridCheckType.Reserved] = new();
-
 
             _floorVisuals[floor] = gridArray;
         }
 
-        // 각 타입별 그리드 수집
-        foreach (E_GridCheckType type in Enum.GetValues(typeof(E_GridCheckType)))
-            notPlaceGridOffset[type] = new();
 
         UnitActionSystem.Instance.OnSelectedActionChanged += (s, e) => UpdateGridVisual();
         UnitActionSystem.Instance.OnSelectedUnitChanged += (s, e) => UpdateGridVisual();
-        //UnitActionSystem.Instance.OnUpdateActionTick += (s, e) => UpdateGridVisual();
 
         // Building Place
-        GridBuildingSystem.Instance.OnObjectPlacedCancel += (s, e) => ClearPlace();
-        GridBuildingSystem.Instance.OnObjectPlaced += (s, e) => ClearPlace();
+        GridBuildingSystem.Instance.OnObjectPlacedCancel += (s, e) => HideAllGridPosition();
+        GridBuildingSystem.Instance.OnObjectPlaced += (s, e) => HideAllGridPosition();
 
-        GridBuildingSystem.Instance.OnSelectedChanged += OnObjectSelectChangeUpdate;
-        GridBuildingSystem.Instance.OnRotateObject += OnObjectRotateUpdate;
-        CameraController.Instance.OnChangeLookFloor += OnFloorCacheClear;
+        // 최적화 필요
+        GridBuildingSystem.Instance.OnSelectedChanged += (s, e) => UpdateGridPositionPlace();
+        GridBuildingSystem.Instance.OnRotateObject += (s, e) => UpdateGridPositionPlace();
+        CameraController.Instance.OnChangeLookFloor += (s, e) => UpdateGridPositionPlace();
+        MouseWorld.Instance.OnMousePositionChanged += (s, e) => UpdateGridPositionPlace();
 
         // Level Grid
-        LevelGrid.Instance.OnChangeGrid += OnLevelGridChanged;
+        //LevelGrid.Instance.OnChangeGrid += OnLevelGridChanged;
 
         UpdateGridVisual();
     }
@@ -177,6 +154,7 @@ public class GridSystemVisual : MonoBehaviour
     }
 
     #endregion
+
 
 
     /// <summary>
@@ -254,356 +232,7 @@ public class GridSystemVisual : MonoBehaviour
         UpdateGridVisual();
     }
 
-    #region Select Setup Object
 
-    /*
-        📦 Grid Visual 업데이트 타이밍 요약
-
-        1️⃣ 오브젝트 선택 변경 (OnSelectedChanged)
-            - 플레이어가 새로운 건설 오브젝트(카드)를 선택하거나, 기존 것을 해제했을 때.
-            - 선택된 오브젝트의 GridOffset(Min/Max, Floor)이 바뀌면 
-              해당 층의 전체 배치 가능 영역을 다시 계산하고 시각화 갱신.
-
-        2️⃣ 오브젝트 회전 (OnRotateObject)
-            - 현재 손에 든 오브젝트의 회전(Dir)이 변경될 때.
-            - 회전에 따라 차지하는 셀 범위(XZ Offset)가 바뀌므로
-              배치 가능/불가 Grid를 다시 계산하여 해당 층의 시각 갱신.
-
-        3️⃣ 오브젝트 배치 (OnObjectPlaced)
-            - 실제 오브젝트가 그리드에 배치되면,
-              LevelGrid 상태(Occupied, Reserved)가 변경되므로
-              해당 GridPosition만 부분 갱신 (예약 상태 반영).
-
-        4️⃣ 오브젝트 배치 취소 (OnObjectPlacedCancel)
-            - 배치를 취소했거나 선택을 해제했을 때.
-            - 시각화된 Grid와 캐시를 초기화하고, 모든 표시를 숨김.
-
-        5️⃣ 유닛 이동 또는 Reserve 상태 변경 (OnLevelGridChanged)
-            - LevelGrid 상에서 유닛이 이동하거나, 예약/점유 상태가 바뀌었을 때.
-            - 변경된 GridPosition만 부분 갱신 (특정 셀만 업데이트).
-
-        6️⃣ 다른 오브젝트 이동, 사망 등 상태 변화
-            - 배치된 다른 오브젝트가 제거(사망, 해제)되면
-              LevelGrid에서 해당 셀의 Occupied 플래그가 해제됨.
-            - 해당 셀을 포함한 영역만 다시 갱신.
-
-        7️⃣ 층 전환 (OnFloorCacheClear)
-            - 카메라 또는 플레이어 시점이 다른 Floor로 이동할 때.
-            - 해당 층 캐시를 초기화하고, 보이는 층의 Grid Visual만 갱신.
-
-        ➕ 요약 정리:
-           - 오브젝트 선택/회전/교체 → 전체 갱신 (해당 층)
-           - 유닛/오브젝트 이동, 예약 변경 → 부분 갱신 (해당 셀)
-           - 층 전환 → 캐시 초기화 + 해당 층 전체 갱신
-    */
-
-
-    /// <summary>
-    /// 오브젝트 회전 시 호출됨.
-    /// 배치 가능한 위치 Offset을 재계산하고 배치 가능/불가 영역을 갱신한다.
-    /// </summary>
-    private void OnObjectRotateUpdate(object sender, E_SetupObjectOffsetChange e)
-    {
-        if (e == E_SetupObjectOffsetChange.XZOffset)
-            OnlyReCalulateOffsets();
-        else if (e == E_SetupObjectOffsetChange.None)
-            return;
-
-        //m_IsFloorClearCache = true;
-        UpdateCanPlacedGrid(sender, null);
-    }
-
-    /// <summary>
-    /// 현재 배치 중인 오브젝트의 Offset만 재계산한다.
-    /// (XZ 회전 등, 배치 가능한 셀 좌표 보정)
-    /// </summary>
-    private void OnlyReCalulateOffsets()
-    {
-        if (GridBuildingSystem.Instance.m_PlacedObject == null)
-            return;
-
-        var objectOffsets = LevelGrid.Instance.ToGridPosition(GridBuildingSystem.Instance.GetPlacedObject());
-
-        foreach (var floor in m_CacheCheckFloor.Where(i => i.Value == true).Select(k => k.Key))
-        {
-            // Offset 다시 계산
-            foreach (var kv in notplaceGrid[floor])
-            {
-                foreach (var pos in kv.Value)
-                {
-                    // 초기화
-                    notPlaceGridOffset[kv.Key][pos].Clear();
-
-                    var ng = objectOffsets
-                        .Select(o => pos + o.ReverseSign())
-                        .Where(p => LevelGrid.Instance.IsValidGridPosition(p))
-                        .Except(notplaceGrid[pos.floor][E_GridCheckType.Obstacle])
-                        .Where(p => m_CacheWalkableFloor[pos.floor].Contains(p));
-
-                    notPlaceGridOffset[kv.Key][pos] = Enumerable.ToHashSet(ng);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// 배치 중인 오브젝트가 변경되었을 때 호출됨.
-    /// Offset 변화 유형에 따라 캐시 초기화 또는 재계산 수행.
-    /// </summary>
-    private void OnObjectSelectChangeUpdate(object sender, E_SetupObjectOffsetChange e)
-    {
-        switch (e)
-        {
-            case E_SetupObjectOffsetChange.None:
-                return;
-            case E_SetupObjectOffsetChange.YOffset:
-                m_IsFloorClearCache = true;
-                break;
-            case E_SetupObjectOffsetChange.XZOffset:
-                OnlyReCalulateOffsets();
-                break;
-            case E_SetupObjectOffsetChange.All:
-                m_IsFloorClearCache = true;
-                break;
-            default:
-                break;
-        }
-
-        UpdateCanPlacedGrid(sender, null);
-    }
-
-    /// <summary>
-    /// 카메라 층 전환 시 호출됨.
-    /// 현재 바라보는 층의 캐시를 초기화하고 배치 가능 영역 재계산.
-    /// </summary>
-    private void OnFloorCacheClear(object sender, bool e)
-    {
-        m_IsFloorClearCache = e;
-        UpdateCanPlacedGrid(sender, null);
-    }
-
-    /// <summary>
-    /// LevelGrid 내부의 변화(유닛 이동, 배치 등) 감지 시 호출됨.
-    /// 배치 가능/불가 Grid 상태를 갱신.
-    /// </summary>
-    private void OnLevelGridChanged(object sender, LevelGrid.OnChangeGridAgrs e)
-    {
-        UpdateCanPlacedGrid(sender, e);
-    }
-
-    /// <summary>
-    /// 배치 취소 또는 완료 시 캐시와 표시된 Grid를 초기화.
-    /// </summary>
-    private void ClearPlace()
-    {
-        CacheClear();
-        HideAllGridPosition();
-    }
-
-    /// <summary>
-    /// 캐시 초기화.
-    /// 각 층의 검사 여부를 false로 리셋하고 이전 상태를 백업 초기화.
-    /// </summary>
-    private void CacheClear()
-    {
-        m_CacheCheckFloor = m_CacheCheckFloor
-            .Select(x => new KeyValuePair<int, bool>(x.Key, x.Value ? false : x.Value)) // Value가 true이면 false로, false이면 그대로 false로 유지
-                                                                                        // 또는 그냥 new KeyValuePair<int, bool>(x.Key, false) 라고 해도 동일한 결과를 얻을 수 있어요.
-            .ToDictionary(x => x.Key, x => x.Value);
-
-        m_PreviousCacheCheckFloor = m_PreviousCacheCheckFloor
-            .Select(x => new KeyValuePair<int, bool>(x.Key, x.Value ? false : x.Value))
-            .ToDictionary(x => x.Key, x => x.Value);
-    }
-
-    /// <summary>
-    /// 현재 선택된 배치 오브젝트의 Grid 배치 가능 여부를 계산하고
-    /// 배치 불가(빨강)/배치 가능(흰색) 영역을 시각화.
-    /// </summary>
-    /// <param name="sender">이벤트 호출자</param>
-    /// <param name="e">그리드 변경 이벤트 정보</param>
-    public void UpdateCanPlacedGrid(object sender, LevelGrid.OnChangeGridAgrs e)
-    {
-        if (GridBuildingSystem.Instance.m_PlacedObject == null)
-            return;
-
-        if (m_CacheWalkableFloor.Count() == 0)
-        {
-            Debug.Log("설치 가능한 위치의 그리드가 없습니다.");
-            return;
-        }
-
-        // 상대 오프셋
-        var objectOffsets = LevelGrid.Instance.ToGridPosition(GridBuildingSystem.Instance.GetPlacedObject());
-
-        // 1. 캐시 초기화 (처음 카드 선택 or 층 변경 시)
-        if (m_IsFloorClearCache)
-        {
-            // 오브젝트의 Y 오프셋 (예: 2층까지 차지하는 건물일 경우 Min=0, Max=1)
-            var yOffset = GridBuildingSystem.Instance.GetPlacedObject().GetGridPositionYOffset();
-            int currentLookFloor = CameraController.Instance.m_CurrentLookFloor;
-
-            // 오브젝트가 차지하는 실제 층 범위 계산
-            int minFloorIndex = currentLookFloor + yOffset.Min;
-            int maxFloorIndex = currentLookFloor + yOffset.Max;
-
-            // 유효한 층만 검사 (1 이상, FloorAmount 이하)
-            for (int floorIndex = Mathf.Max(0, minFloorIndex);
-                 floorIndex <= Mathf.Min(LevelGrid.Instance.GetFloorAmount() - 1, maxFloorIndex);
-                 floorIndex++)
-            {
-                m_CacheCheckFloor[floorIndex] = true; // 이번에도 검사
-            }
-
-            // 빠진 층은 false 처리
-            var activeFloors = Enumerable.Range(minFloorIndex, maxFloorIndex - minFloorIndex + 1);
-            foreach (var key in m_CacheCheckFloor.Keys.ToList())
-                if (!activeFloors.Contains(key))
-                    m_CacheCheckFloor[key] = false;
-
-            #region Caculate new Floor
-
-            // 새롭게 탐색할 층
-            var newSearchFloor = m_CacheCheckFloor
-                .Where(kv => kv.Value == true &&
-                             (!m_PreviousCacheCheckFloor.TryGetValue(kv.Key, out var prev) || prev == false))
-                .Select(kv => kv.Key)
-                .ToList();
-
-            // 새로운 층의 변동 정보들 가져오기
-            foreach (int floor in newSearchFloor)
-            {
-                var obs =  Enumerable.ToHashSet(LevelGrid.Instance.GetFloorGridPositions(floor, E_GridCheckType.Obstacle));
-                var unis = Enumerable.ToHashSet(LevelGrid.Instance.GetFloorGridPositions(floor, E_GridCheckType.HasUnit));
-                var res = Enumerable.ToHashSet(LevelGrid.Instance.GetFloorGridPositions(floor, E_GridCheckType.Reserved));
-
-                notplaceGrid[floor][E_GridCheckType.Obstacle].AddRange(obs);
-                notplaceGrid[floor][E_GridCheckType.HasUnit].AddRange(unis);
-                notplaceGrid[floor][E_GridCheckType.Reserved].AddRange(res);
-
-                // 각 타입별 offset 처리
-                foreach (var kv in notplaceGrid[floor])
-                {
-                    var walkableFloor = m_CacheWalkableFloor[floor]; 
-
-                    var type = kv.Key;
-                    var positions = kv.Value;
-
-                    foreach (var pos in positions)
-                    {
-                        var ng = objectOffsets
-                            .Select(o => pos + o.ReverseSign())
-                            .Where(p => LevelGrid.Instance.IsValidGridPosition(p))
-                            .Except(obs) // 장애물에 그리지 않게
-                            .Where(p => walkableFloor.Contains(p)); // 발판 없는 곳에 그리지 않게
-
-                        notPlaceGridOffset[type][pos] = Enumerable.ToHashSet(ng);
-                    }
-                }
-            }
-
-            #endregion
-
-            #region Disable Not Use Floor
-
-            // 이번에 false 로 갱신된 층 찾기
-            var newlyDisabledFloors = m_CacheCheckFloor
-                .Where(kv => kv.Value == false &&
-                             m_PreviousCacheCheckFloor.TryGetValue(kv.Key, out var prev) && prev == true)
-                .Select(kv => kv.Key)
-                .ToList();
-
-            // 그 층만 초기화
-            foreach (var floor in newlyDisabledFloors)
-            {
-                if (notplaceGrid.TryGetValue(floor, out var grids))
-                {
-                    // Offset 제거
-                    foreach (var kv in grids)
-                    {
-                        notPlaceGridOffset[kv.Key].Clear();
-                    }
-
-                    grids.Clear(); // key는 유지
-                }
-            }
-
-            #endregion
-
-            // 마지막에 현재 상태를 백업
-            m_PreviousCacheCheckFloor = new Dictionary<int, bool>(m_CacheCheckFloor);
-            m_IsFloorClearCache = false;
-        }
-
-        if (m_CacheCheckFloor.All(x => x.Value == false))
-        {
-            //Debug.Log("설치 가능한 위치의 그리드가 없습니다.");
-            return;
-        }
-
-
-        // 2. 그리드 재 검사
-        if(e != null)
-        {
-            // 그리드 배치가 불가능하게!
-            if (e.isNotGrid)
-            {
-                foreach (var pos in e.ListGridPosition)
-                {
-                    notplaceGrid[pos.floor][e.type].Add(pos);
-
-                    // OFFset 계산해서 넣기
-                    var cangrid = objectOffsets
-                            .Select(o => pos + o.ReverseSign())
-                            .Where(p => LevelGrid.Instance.IsValidGridPosition(p))
-                            .Except(notplaceGrid[pos.floor][E_GridCheckType.Obstacle])
-                            .Where(p => m_CacheWalkableFloor[pos.floor].Contains(p));
-            
-                    notPlaceGridOffset[e.type][pos] = Enumerable.ToHashSet(cangrid);
-                }
-            
-            }
-            // 그리드 배치가 가능해졌다!
-            else
-            {
-                foreach (var pos in e.ListGridPosition)
-                {
-                    notplaceGrid[pos.floor][e.type].Remove(pos);
-
-                    if(notPlaceGridOffset[e.type].ContainsKey(pos))
-                        notPlaceGridOffset[e.type][pos].Clear();
-                }
-            }
-        }
-
-
-        // 3. 결과 리스트 (Red: 불가능 / White: 가능)
-        HashSet<GridPosition> redList = new();
-        HashSet<GridPosition> whiteList = new();
-
-        // 4. 그리드 최종 결과
-        foreach (var floor in m_CacheCheckFloor.Where(info => info.Value == true).Select(i => i.Key))
-        {
-            redList.AddRange(notplaceGrid[floor][E_GridCheckType.HasUnit]);
-            redList.AddRange(notplaceGrid[floor][E_GridCheckType.Reserved]);
-        
-            redList.AddRange(notPlaceGridOffset[E_GridCheckType.HasUnit].SelectMany(x => x.Value));
-            redList.AddRange(notPlaceGridOffset[E_GridCheckType.Reserved].SelectMany(x => x.Value));
-            redList.AddRange(notPlaceGridOffset[E_GridCheckType.Obstacle].SelectMany(x => x.Value));
-
-            var white = m_CacheWalkableFloor[floor]
-                        .Except(redList);
-
-            whiteList.AddRange(white);
-        }
-
-
-        // 5. 시각화 갱신
-        ShowGridPositionList(redList, E_GridVisualType_Color.Red, E_GridVisualType_Intensity.Light);
-        ShowGridPositionList(whiteList, E_GridVisualType_Color.White, E_GridVisualType_Intensity.Medium);
-    }
-
-    #endregion
 
     /// <summary>
     /// 전체 Grid Visual을 갱신.
@@ -611,6 +240,10 @@ public class GridSystemVisual : MonoBehaviour
     /// </summary>
     private void UpdateGridVisual()
     {
+        // 현재 배치중인 오브젝트가 없으면 건너 띔
+        if (GridBuildingSystem.Instance.m_PlacedObject != null)
+            return;
+
         // 전체 초기화
         HideAllGridPosition();
         
@@ -626,7 +259,7 @@ public class GridSystemVisual : MonoBehaviour
                 (obj => obj.GetAction<CommandMoveAction>().GetValidActionGridPositionList());
 
             ActionGrid = UnitCommonGetValidactionGridPositionList<CombatAction>( 
-                obj => Managers.Game.GetAttackPatternPosition(obj, obj.m_Target, obj.GetAction<CombatAction>().m_ThisTimeAttack),
+                obj => obj.GetAction<CombatAction>().m_ThisTimeAttack.GetAttackGridPositions(obj, obj.m_Target),
                 unit => unit.GetAction<CombatAction>().m_ThisTimeAttack != null);
 
         }
@@ -641,6 +274,78 @@ public class GridSystemVisual : MonoBehaviour
 
         ShowGridPositionList(commonGrid, E_GridVisualType_Color.White, E_GridVisualType_Intensity.Medium);
         ShowGridPositionList(ActionGrid, E_GridVisualType_Color.Red, E_GridVisualType_Intensity.Light);
+    }
+
+    // 건물 배치할 때 보여주는 용도
+    public void UpdateGridPositionPlace()
+    {
+        // 현재 배치중인 오브젝트가 없으면 건너 띔
+        if (GridBuildingSystem.Instance.m_PlacedObject == null)
+            return;
+
+        var buildingSystem = GridBuildingSystem.Instance;
+        var levelGrid = LevelGrid.Instance;
+        var camera = CameraController.Instance;
+        int currentFloor = camera.m_CurrentLookFloor;
+
+        // 2️ 현재 층의 모든 Grid 상태 가져오기
+        var walkableGrids = levelGrid.GetFloorAndTypeGridPositions(currentFloor, E_GridCheckType.Walkable);
+        var obstacleGrids = levelGrid.GetFloorAndTypeGridPositions(currentFloor, E_GridCheckType.Obstacle);
+        var reservedGrids = levelGrid.GetFloorAndTypeGridPositions(currentFloor, E_GridCheckType.Reserve);
+        var unitGrids = levelGrid.GetFloorAndTypeGridPositions(currentFloor, E_GridCheckType.GameEntity);
+        var voidGrids = levelGrid.GetFloorAndTypeGridPositions(currentFloor, E_GridCheckType.Void);
+
+        // 3️ 오브젝트의 현재 방향 기준 오프셋 좌표
+        var objectOffsets = GridBuildingSystem.Instance.GetPlacedObject().GetGridPositionListAtCurrentDir();
+
+        // 4️ 설치 불가능 지역(장애물, 예약, 유닛)
+        HashSet<GridPosition> blockedGrids = new();
+        blockedGrids.UnionWith(obstacleGrids);
+        blockedGrids.UnionWith(reservedGrids);
+        blockedGrids.UnionWith(unitGrids);
+
+        // 5️ 충돌 예측 (설치 불가능 지역 주변 계산)
+        foreach (var npos in blockedGrids.ToList())
+        {
+            var affected = objectOffsets
+                .Select(offset => npos + offset.ReverseSign())
+                .Where(p => levelGrid.IsValidGridPosition(p));
+
+            blockedGrids.UnionWith(affected);
+        }
+
+
+        // 6️ 장애물 및 비활성(GridType.Void) 위치는 시각화 제외
+        blockedGrids.ExceptWith(obstacleGrids);
+        blockedGrids.ExceptWith(voidGrids);
+
+        // 7️ 설치 가능한 영역 계산
+        HashSet<GridPosition> placeableGrids = Enumerable.ToHashSet(walkableGrids.Where(p => !blockedGrids.Contains(p)));
+
+        // 8️⃣ 마우스 위치 기준 오브젝트 배치 영역
+        var mousePosition = MouseWorld.Instance.GetGridPosition();
+        var previewGrids = buildingSystem.GetPlacedObject().GetGridPositionListAtSelectPosition(mousePosition);
+
+        if (previewGrids.All(p => levelGrid.IsValidGridPosition(p) && !obstacleGrids.Contains(p)))
+        {
+            // 8-1️ 배치 가능한 경우: 초록색
+            ShowGridPositionList(previewGrids, E_GridVisualType_Color.Green, E_GridVisualType_Intensity.Medium);
+
+            // 8-2️ 배치 불가능 겹침(경고) 영역: 노란색
+            var warningGrids = previewGrids
+                .Where(p => blockedGrids.Contains(p))
+                .ToList();
+            if (warningGrids.Count > 0)
+                ShowGridPositionList(warningGrids, E_GridVisualType_Color.Yellow, E_GridVisualType_Intensity.Medium);
+
+            // 배치된 오브젝트 영역은 일반 흰색/빨강 영역에서 제외
+            placeableGrids.ExceptWith(previewGrids);
+            blockedGrids.ExceptWith(previewGrids);
+        }
+
+        // 9️ 시각화 표시
+        ShowGridPositionList(blockedGrids, E_GridVisualType_Color.Red, E_GridVisualType_Intensity.Medium);
+        ShowGridPositionList(placeableGrids, E_GridVisualType_Color.White, E_GridVisualType_Intensity.Medium);
     }
 
     /// <summary>
@@ -675,7 +380,8 @@ public class GridSystemVisual : MonoBehaviour
         foreach (var obj in filterList)
         {
             var grids = gridSelector(obj.unit);
-            gridPositions.AddRange(grids);
+            if(grids != null)
+                gridPositions.AddRange(grids);
         }
 
         return gridPositions;
@@ -695,7 +401,7 @@ public class GridSystemVisual : MonoBehaviour
         // 예약된 그리드를 flatten 해서 하나의 List<GridPosition>으로
         var reservedGrids = list
             .GroupBy(x => x.floor)
-            .SelectMany(g => LevelGrid.Instance.GetReserveGridPositions(g.Key, true))
+            .SelectMany(g => LevelGrid.Instance.GetFloorAndTypeGridPositions(g.Key, E_GridCheckType.Reserve))
             .ToList();
 
         // 예약된 위치는 파란색으로 표시
@@ -735,6 +441,4 @@ public class GridSystemVisual : MonoBehaviour
 
         return list;
     }
-
-
 }

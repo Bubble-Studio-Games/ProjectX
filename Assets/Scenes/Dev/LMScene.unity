@@ -8360,7 +8360,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e5a2a4ab56bf724faae15359b0ee526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_isStateInit: 0
+  m_SceneMainTemaAudioclip: {fileID: 0}
 --- !u!1001 &139188149
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -58644,14 +58644,24 @@ MonoBehaviour:
   gridVisualTypeMaterialList:
   - gridVisualType: 0
     material: {fileID: 2100000, guid: ca3558981fce5b944823af1d5d88d2f9, type: 2}
+    UpIntensity: 0
+    DownIntensity: 0
   - gridVisualType: 1
     material: {fileID: 2100000, guid: 9853decdb83ca2647b833b11486e7be2, type: 2}
+    UpIntensity: 0
+    DownIntensity: 0
   - gridVisualType: 2
     material: {fileID: 2100000, guid: 89d7968915e0ea24596bed8e400999f5, type: 2}
+    UpIntensity: 0
+    DownIntensity: 0
   - gridVisualType: 4
     material: {fileID: 2100000, guid: 676403002645de141824ed7a33cf298c, type: 2}
+    UpIntensity: 0
+    DownIntensity: 0
   - gridVisualType: 3
     material: {fileID: 2100000, guid: 33d0f3425c63f0d4182ec071ab56fd38, type: 2}
+    UpIntensity: 0
+    DownIntensity: 0
 --- !u!4 &853526371
 Transform:
   m_ObjectHideFlags: 0
@@ -109970,6 +109980,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4166812853502322991, guid: 0dee6131ffa82c64e85916e2d37bd206, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5056415774185284310, guid: 0dee6131ffa82c64e85916e2d37bd206, type: 3}
+      propertyPath: m_SpawnAnimationClip.Array.size
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5935185308483016057, guid: 0dee6131ffa82c64e85916e2d37bd206, type: 3}

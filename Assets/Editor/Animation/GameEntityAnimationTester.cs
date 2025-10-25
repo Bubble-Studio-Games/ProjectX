@@ -32,7 +32,7 @@ public partial class CustomToolWindow : EditorWindow
             isEventRegistered = true;
 
             RefreshActiveEntity();
-            Debug.Log("[AnimationTester] 이벤트 등록 완료");
+            //Debug.Log("[AnimationTester] 이벤트 등록 완료");
         }
     }
 
@@ -45,7 +45,7 @@ public partial class CustomToolWindow : EditorWindow
             Sound_Test.OnActiveEntityChanged -= RefreshActiveEntity;
             isEventRegistered = false;
 
-            Debug.Log("[AnimationTester] 이벤트 해제 완료");
+            //Debug.Log("[AnimationTester] 이벤트 해제 완료");
         }
     }
 

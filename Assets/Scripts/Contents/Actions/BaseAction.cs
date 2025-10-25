@@ -14,7 +14,7 @@ public abstract class BaseAction : MonoBehaviour
         public ControllableObject obj;
     }
 
-    public ControllableObject m_BaseObject { get; protected set; }
+    public GameEntity m_BaseObject { get; protected set; }
     protected AttributeSystem m_StatSystem;
     protected bool m_bIsActive;
     protected Action onActionComplete;
@@ -25,7 +25,7 @@ public abstract class BaseAction : MonoBehaviour
 
     protected virtual void Awake()
     {
-        m_BaseObject = GetComponentInParent<ControllableObject>();
+        m_BaseObject = GetComponentInParent<GameEntity>();
         m_StatSystem = GetComponentInParent<AttributeSystem>();
     }
 
@@ -77,7 +77,7 @@ public abstract class BaseAction : MonoBehaviour
 
     }
 
-    public ControllableObject GetObject()
+    public GameEntity GetObject()
     {
         return m_BaseObject;
     }

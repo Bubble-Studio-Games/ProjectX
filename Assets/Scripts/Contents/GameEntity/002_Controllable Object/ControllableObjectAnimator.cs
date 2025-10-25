@@ -11,7 +11,6 @@ using static Define;
 public class ControllableObjectAnimator : GameEntityAnimator
 {
     private ControllableObject m_ControllableObject;
-    [SerializeField] protected Transform m_ActionsTransform;
 
 
     [Header("Base Clips")]
@@ -32,17 +31,13 @@ public class ControllableObjectAnimator : GameEntityAnimator
 
         m_ControllableObject = GetComponentInParent<ControllableObject>();
 
-        foreach (var move in m_ActionsTransform.GetComponents<MoveAction>())
+        foreach (var move in m_ControllableObject.m_ActionsTransform.GetComponents<MoveAction>())
         {
             move.OnStartMoving += MoveAction_OnStartMoving;
             move.OnStopMoving += MoveAction_OnStopMoving;
             move.OnChangedFloorsStarted += MoveAction_OnChangedFloorsStarted;
         }
 
-        if (m_ActionsTransform.TryGetComponent<CombatAction>(out CombatAction combatAction))
-        {
-            combatAction.OnStartAttack += CombatAction_OnAttack;
-        }
 
         #endregion
 
@@ -90,47 +85,6 @@ public class ControllableObjectAnimator : GameEntityAnimator
     {
         // 움직이지 않으니까 제자리
         m_Animator.CrossFade("Idle", m_fCrossTime);
-    }
-
-    private void CombatAction_OnAttack(object sender, CombatAction.OnAttackBaseEventArgs e)
-    {
-        if (e.attackPattern.Validate(true) == false)
-        {
-            Debug.LogError($"{m_ControllableObject.name} 공격 애니메이션 검증 오류");
-            return;
-        }
-
-        AttackPatternInfoClip m_TempInfo = null;
-
-        if (e.attackPattern is  AttackPattern_Range range)
-        {
-            m_TempInfo = range.GetAttackPatternInfoClip(e);
-        }
-        else if (e.attackPattern is AttackPattern_Melee melee )
-        {
-            m_TempInfo = e.attackPattern.GetBaseClip().RandomPick();
-        }
-        else if (e.attackPattern is AttackPattern_Ready radey)
-        {
-            m_TempInfo = e.attackPattern.GetBaseClip().RandomPick();
-        }
-        else if (e.attackPattern is AttackPattern_Summon summon)
-        {
-            m_TempInfo = e.attackPattern.GetBaseClip().RandomPick();
-        }
-
-        if (m_TempInfo == null)
-        {
-            Debug.LogError($"{m_ControllableObject.name} 공격 애니메이션 클립이 존재하지 않습니다.");
-            return;
-        }
-
-        ChangeAnimationAtStart(E_GameEntityClipType.Attack.ToString(), m_TempInfo.AttackAnimationClip);
-
-        // 선택한 공격 패턴의 공격 스피드를 애니메이터 스테이트의 스피드를 조정함.
-        // 공격 스피드 조정
-        // 런타임 중에 state의 speed 값 변경은 불가함.
-        m_Animator.speed =  e.attackPattern.m_fAttackSpeed;
     }
 
     protected override void Animation_Damaged(object sender, AttributeSystem.OnAttackInfoEventArgs e)
@@ -190,31 +144,25 @@ public class ControllableObjectAnimator : GameEntityAnimator
     }
 
     // 애니메이션 이벤트에서 호출한다.
-    public void AttackPoint()
+    public override void AttackPoint()
     {
+        base.AttackPoint();
+
+        if (!_attackValid) 
+            return; // 부모에서 실패하면 즉시 중단
+
         // 어택
         var combatAction = m_ControllableObject.GetAction<CombatAction>();
 
-        // Fail
-        if (combatAction.m_ThisTimeAttack == null)
-        {
-            Debug.Log("attack null " + m_ControllableObject.name);
-            //combatAction.OnEndAttackEventInvoke();
-            return;
-        }
-
         // Success
-        else if (m_ControllableObject.m_Target != null && !m_ControllableObject.m_Target.m_AttributeSystem.m_IsDead)
+        if (m_ControllableObject.m_Target != null && !m_ControllableObject.m_Target.m_AttributeSystem.m_IsDead)
         {
             combatAction.m_ThisTimeAttack.Attack(m_ControllableObject, m_ControllableObject.m_Target);
         }
-
-
-        // 사운드
-        m_ControllableObject.GetSounderManager().AttackSoundPlay(combatAction.m_ThisTimeAttack);
+        else
+            _attackValid = false;
 
         // Reduce Mana
         m_ControllableObject.m_AttributeSystem.ReduceMP((int)combatAction.m_ThisTimeAttack.m_iManaCost.Value);
     }
-
 }
