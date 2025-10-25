@@ -49,8 +49,10 @@ public class GridSystem<TGridObject>
         );
     }
 
-    public void CreateDebugObjects(Transform debugPrefab)
+    public Dictionary<GridPosition, GridDebugObject > CreateDebugObjects(Transform debugPrefab)
     {
+        Dictionary<GridPosition, GridDebugObject> gridDebugObjects = new();
+
         for (int x = 0; x < width; x++)
         {
             for (int z = 0; z < height; z++)
@@ -59,11 +61,15 @@ public class GridSystem<TGridObject>
 
                 Transform debugTransform = GameObject.Instantiate(debugPrefab, GetWorldPosition(gridPosition), Quaternion.identity);
                 GridDebugObject gridDebugObject = debugTransform.GetComponent<GridDebugObject>();
-                gridDebugObject.SetGridObject(GetGridObject(gridPosition));
+                gridDebugObject.SetGridObject(gridPosition);
 
                 debugTransform.SetParent(LevelGrid.Instance.transform);
+
+                gridDebugObjects[gridPosition] = gridDebugObject;
             }
         }
+
+        return gridDebugObjects;
     }
 
     public TGridObject GetGridObject(GridPosition gridPosition)

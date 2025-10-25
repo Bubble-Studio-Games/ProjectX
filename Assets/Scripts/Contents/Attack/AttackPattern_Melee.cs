@@ -7,71 +7,75 @@ using static Define;
 [CreateAssetMenu(menuName = "Attack Pattern/Melee")]
 public class AttackPattern_Melee : AttackPattern<AttackPatternInfoClip>
 {
-    private int _totalDamageDealt = 0;      
-
-    public override void StartAttack(ControllableObject attacker, GameEntity target, AttackPattern prevAttackpatern)
+    public override void Attack(GameEntity attacker, GameEntity target) // 종료
     {
-        Clear();
-        base.StartAttack(attacker, target, prevAttackpatern);
-        
-        // 전 준비 단계가 있다면 해시에서 제거
-        if (prevAttackpatern != null && prevAttackpatern.m_iNextAttackPattern.Select(p => p.ID).ToArray().Contains(ID))
+        // 공격하려는 그리드에 오브젝트 정보 가져오기
+        var targets = GetAttackGridPositions(attacker, target)
+            .Select(p => LevelGrid.Instance.GetObjectAtGridPosition(p))
+            .ToList();
+
+        if(targets.Count > 0 )
         {
-            attacker.m_ControllableObjectCombatManager.m_ReadyAttackPattern.Remove(prevAttackpatern as AttackPattern_Ready);
+            foreach (var t in targets)
+                t.m_AttributeSystem.Hit(this, attacker);
         }
     }
 
-    public override void Attack(ControllableObject attacker, GameEntity target) // 종료
+    public override List<GridPosition> GetAttackGridPositions(GameEntity attacker, GameEntity target)
     {
         // 기본적으로 범위 내의 모든 적들을 공격함.
         GridPosition selfPos = attacker.GetGridPosition();
+
+        if (target == null || target.IsDead)
+            return default;
+
         GridPosition targetPos = target.GetGridPosition();
         E_Dir dir = LevelGrid.Instance.GetDirGridPosition(selfPos, targetPos);
 
-        // 범위 내의 공격할 수 있는 모든 그리드 체크
-        HashSet<GridPosition> attackGridPostison =
-            m_RangeOffset
-            .Select(x => LevelGrid.Instance.ToGridPosition(x, selfPos, dir))
-            .Where(pos => LevelGrid.Instance.IsValidGridPosition(pos))
+        HashSet<GridPosition> attackGridOffsets = Managers.Game.GetPatternOffsets(this);
+        
+        // 실제 공격 범위 내 좌표 변환 및 필터링
+        HashSet <GridPosition> attackedGridPositions = attackGridOffsets
+            .Select(offset => LevelGrid.Instance.ToGridPosition(offset, selfPos, dir))
+            .Where(pos => LevelGrid.Instance.IsGridPositionCheckType(pos, m_GridCheckTypes))
             .ToHashSet();
 
-        // 해당 오브젝트가 공격자 유닛과 적인지 체크
-        var targets = attackGridPostison
-            .Select(p => LevelGrid.Instance.GetObjectAtGridPosition(p))
-            .Where(unit => unit != null && attacker.IsEnemy(unit))
-            .ToList();
-
-        //if (E_AttackEffectType == E_AttackEffectType.Damage)
-        foreach (var t in targets)
+        // 만약 그리드 체크 타입이 유닛이라면 적인지 아군인지 구분
+        if (m_GridCheckTypes.Contains(E_GridCheckType.GameEntity))
         {
-            int hpBefore = (int)t.m_AttributeSystem.m_Stat.m_iCurrentHp;
-            t.m_AttributeSystem.Hit(this, attacker);
-            int hpAfter = (int)t.m_AttributeSystem.m_Stat.m_iCurrentHp;
-            
-            _totalDamageDealt += hpBefore - hpAfter;
+            // 공격 대상이 플레이어 진영인지 / 적 진영인지에 따라 필터링
+            switch (m_ApplyTargetE_Tendency)
+            {
+                case E_TargetTendencyType.All:
+                    break;
+                case E_TargetTendencyType.Ally: // 플레이어 아군만 적용
+                    attackedGridPositions = attackedGridPositions
+                        .Where(pos =>
+                        {
+                            var obj = LevelGrid.Instance.GetObjectAtGridPosition(pos);
+                            return obj != null && !attacker.IsEnemy(obj);
+                        })
+                        .ToHashSet();
+                    break;
+
+                case E_TargetTendencyType.Enemy: // 적 유닛만 적용
+                    attackedGridPositions = attackedGridPositions
+                        .Where(pos =>
+                        {
+                            var obj = LevelGrid.Instance.GetObjectAtGridPosition(pos);
+                            return obj != null && attacker.IsEnemy(obj);
+                        })
+                        .ToHashSet();
+                    break;
+
+                case E_TargetTendencyType.Neutral: // 중립 유닛은 양쪽 다 무시
+                    attackedGridPositions.Clear();
+                    break;
+            }
         }
 
-        ApplyLifeSteal(attacker);
-        Clear();
-    }
+        //Debug.Log($"{attacker.name}가 {target}을 향해 공격함. 타겟 그리드 {string.Join(" ", attackedGridPositions)}");
 
-    public override void EndAttack(ControllableObject attacker, GameEntity target)
-    {
-        base.EndAttack(attacker, target);
-    }
-
-    private void Clear()
-    {
-        _totalDamageDealt = 0;
-    }
-
-    public void ApplyLifeSteal(ControllableObject attacker)
-    {
-        if (m_fLifeStealPercent <= 0 || _totalDamageDealt <= 0 || attacker == null)
-            return;
-
-        // 백분율 처리: m_fLifeStealPercent가 0.1이면 10%
-        int healAmount = Mathf.RoundToInt(_totalDamageDealt * m_fLifeStealPercent.Value);
-        attacker.m_AttributeSystem.Heal(healAmount, E_HealType.LifeSteal, attacker);
+        return attackedGridPositions.ToList();
     }
 }

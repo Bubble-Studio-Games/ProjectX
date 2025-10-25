@@ -118,22 +118,8 @@ MonoBehaviour:
   m_ReviveAnimationClip: []
   m_DeathAnimationClip: []
   m_OrderAnimationClip: []
---- !u!65 &2202915906044149034 stripped
-BoxCollider:
-  m_CorrespondingSourceObject: {fileID: 365125848364588134, guid: 6f6aa069d0cf45a4a93f4f9a7935710b, type: 3}
-  m_PrefabInstance: {fileID: 1982538616328692044}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &3609383346990181632 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2996159675630308428, guid: 6f6aa069d0cf45a4a93f4f9a7935710b, type: 3}
-  m_PrefabInstance: {fileID: 1982538616328692044}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8851821627881308874}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c347f21394851804cbdfd5dd3f0642a2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_orderAnimationStateName: []
+  m_AnimatorOriginalVale: 1
 --- !u!4 &7018120482664855036 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8855830842462016688, guid: 6f6aa069d0cf45a4a93f4f9a7935710b, type: 3}
@@ -142,6 +128,11 @@ Transform:
 --- !u!4 &7484757761064678859 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8961133948111393927, guid: 6f6aa069d0cf45a4a93f4f9a7935710b, type: 3}
+  m_PrefabInstance: {fileID: 1982538616328692044}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8128800433647312053 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7731599409591549433, guid: 6f6aa069d0cf45a4a93f4f9a7935710b, type: 3}
   m_PrefabInstance: {fileID: 1982538616328692044}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &8851821627881308874 stripped
@@ -181,12 +172,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbb541832ceb6124eb8ad2c846f7860d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_StatSystem: {fileID: 3609383346990181632}
-  m_Collider: {fileID: 2202915906044149034}
+  m_AttributeSystem: {fileID: 0}
   m_ModelTransforms:
   - {fileID: 7018120482664855036}
   m_GridPositionOffsets: []
   m_CurrentEDir: 4
   m_TeamId: 1
+  currentAction: {fileID: 0}
+  m_NextAction: {fileID: 0}
+  m_BeforeAction: {fileID: 0}
+  m_ActionsTransform: {fileID: 8128800433647312053}
   m_fDelayDestroyTime: 3
+  m_IsDirectDesawnAtDeath: 1
   crateDestroyedPrefab: {fileID: 0}

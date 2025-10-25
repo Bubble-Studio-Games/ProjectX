@@ -40,11 +40,11 @@ public class CommandMoveAction : MoveAction
             if (!LevelGrid.Instance.HasAnyUnitOnGridPosition(pathGridPositionList[0]))
             {
                 if (forwardPosition != default)
-                    LevelGrid.Instance.SetReserveGridPosition(LevelGrid.Instance.GetGridPosition(forwardPosition), false, m_BaseObject);
+                    LevelGrid.Instance.SetGridPositionCellInfo(LevelGrid.Instance.GetGridPosition(forwardPosition), E_GridCheckType.Walkable);
 
                 forwardPosition = LevelGrid.Instance.GetWorldPosition(pathGridPositionList[0]);
 
-                LevelGrid.Instance.SetReserveGridPosition(pathGridPositionList[0], true, m_BaseObject);
+                LevelGrid.Instance.SetGridPositionCellInfo(pathGridPositionList[0], E_GridCheckType.Reserve, m_BaseObject);
 
                 // Event
                 ActionStart(onActionComplete);
@@ -97,18 +97,10 @@ public class CommandMoveAction : MoveAction
                         continue;
                     }
 
-                    // Detect Object
-                    if (LevelGrid.Instance.HasAnyUnitOnGridPosition(testGridPosition))
+                    // 빈 곳이어야만 함.
+                    if (!LevelGrid.Instance.IsGridPositionCheckType(testGridPosition, E_GridCheckType.Walkable))
                         continue;
 
-                    // 예약된 장소면 패스
-                    if (LevelGrid.Instance.IsReservedGridPosition(testGridPosition))
-                        continue;
-
-                    if (!Pathfinding.Instance.IsWalkableGridPosition(testGridPosition))
-                    {
-                        continue;
-                    }
 
                     if (!Pathfinding.Instance.HasPath(unitGridPosition, testGridPosition))
                     {

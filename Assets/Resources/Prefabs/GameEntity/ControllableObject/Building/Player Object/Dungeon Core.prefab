@@ -79,6 +79,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_originalStat: {fileID: 11400000, guid: dbf842e7b90eee54c8d00ab3314efc68, type: 2}
+  m_Stat: {fileID: 0}
+  m_AttackPatterns:
+  - {fileID: 11400000, guid: dcb102ea5718602488dbb7494404ad0d, type: 2}
   m_RewardData: {fileID: 0}
 --- !u!82 &2770252723233560099
 AudioSource:

@@ -19,7 +19,7 @@ public class BarrelInteract : MonoBehaviour, IInteractable
     {
         gridPosition = LevelGrid.Instance.GetGridPosition(transform.position);
         LevelGrid.Instance.SetInteractableAtGridPosition(gridPosition, this);
-        Pathfinding.Instance.SetIsWalkableGridPosition(gridPosition, false);
+        //Pathfinding.Instance.SetIsWalkableGridPosition(gridPosition, false);
     }
 
     private void Update()
@@ -36,7 +36,7 @@ public class BarrelInteract : MonoBehaviour, IInteractable
             isActive = false;
 
             LevelGrid.Instance.ClearInteractableAtGridPosition(gridPosition);
-            Pathfinding.Instance.SetIsWalkableGridPosition(gridPosition, true);
+            //Pathfinding.Instance.SetIsWalkableGridPosition(gridPosition, true);
 
             Destroy(gameObject);
             onInteractionComplete();

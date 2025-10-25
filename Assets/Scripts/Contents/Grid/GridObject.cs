@@ -6,55 +6,38 @@ public class GridObject
 {
     private GridSystem<GridObject> gridSystem;
     private GridPosition gridPosition;
-    private List<GameEntity> unitList;
+    private GameEntity unit;
     private IInteractable interactable;
 
     public GridObject(GridSystem<GridObject> gridSystem, GridPosition gridPosition)
     {
         this.gridSystem = gridSystem;
         this.gridPosition = gridPosition;
-        unitList = new List<GameEntity>();
     }
 
     public override string ToString()
     {
-        string unitString = "";
-        foreach (GameEntity unit in unitList)
-        {
-            unitString += unit + "\n";
-        }
-
-        return gridPosition.ToString() + "\n" + unitString;
+        return gridPosition.ToString() + "\n" + unit?.name;
     }
 
     public void AddUnit(GameEntity unit)
     {
-        unitList.Add(unit);
+        this.unit = unit;
     }
 
     public void RemoveUnit(GameEntity unit)
     {
-        unitList.Remove(unit);
-    }
-
-    public List<GameEntity> GetUnitList()
-    {
-        return unitList;
+        this.unit = null;
     }
 
     public bool HasAnyUnit()
     {
-        return unitList.Count > 0;
+        return unit != null;
     }
 
     public GameEntity GetObject()
     {
-        if (HasAnyUnit())
-        {
-            return unitList[0];
-        } 
-
-        return null;
+        return unit;
     }
 
     public IInteractable GetInteractable()

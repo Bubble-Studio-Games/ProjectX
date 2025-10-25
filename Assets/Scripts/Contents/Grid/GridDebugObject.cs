@@ -8,26 +8,29 @@ public class GridDebugObject : MonoBehaviour
 
     [SerializeField] private TextMeshPro textMeshPro;
 
-
     private object gridObject;
 
     public virtual void SetGridObject(object gridObject)
     {
         this.gridObject = gridObject;
+        textMeshPro.text = $"{gridObject}";
     }
 
-    protected virtual void Update()
+    public void UpdateGridObject()
     {
-        bool isReserve = LevelGrid.Instance.IsReservedGridPosition(LevelGrid.Instance.GetGridPosition(transform.position));
-        if(isReserve)
+        var cellInfo = LevelGrid.Instance.GetGridPositionCellInfo(LevelGrid.Instance.GetGridPosition(transform.position));
+        var unit = cellInfo.Entity;
+        var gridType = cellInfo.gridType;
+
+        if(gridType == Define.E_GridCheckType.GameEntity || gridType == Define.E_GridCheckType.Reserve)
         {
-            textMeshPro.text = gridObject.ToString() + " isReserve";
+            textMeshPro.text = $"{gridObject} \n {gridType} \n {unit}";
+
         }
         else
-            textMeshPro.text = gridObject.ToString();
-
-
+        {
+            textMeshPro.text = $"{gridObject} \n {gridType}";
+        }
 
     }
-
 }

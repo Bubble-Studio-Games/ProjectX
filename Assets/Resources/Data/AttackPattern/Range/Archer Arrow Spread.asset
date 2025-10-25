@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78c37a08149180b49ab810b26c0645c6, type: 3}
+  m_Name: Archer Arrow Spread
+  m_EditorClassIdentifier: 
+  ID: 303
+  AttackName: Archer 2 Front Arrow Spread
+  m_EAttackType: 1
+  m_IsEnableSelfAttack: 0
+  m_ERangeFillType: 1
+  m_ERangeShapeType: 6
+  m_RangeOffset:
+  - x: 0
+    z: 2
+    floor: 0
+  - x: -1
+    z: 2
+    floor: 0
+  - x: 1
+    z: 2
+    floor: 0
+  m_ArcAngle: 90
+  m_IsAttackStartPositionAtAttacker: 1
+  m_StartOffset:
+    x: 0
+    z: 0
+    floor: 0
+  m_GridCheckTypes: 02000000
+  m_ApplyTargetE_Tendency: 2
+  m_iNextAttackPattern: []
+  m_iConditionPrevAttackPattern: {fileID: 11400000, guid: 1ef4771bde04aec4a8a75b4aa6d59b1c, type: 2}
+  m_iCoolTime:
+    _value: 2
+  lastCooltime:
+    _value: -2
+  m_iManaCost:
+    _value: 0
+  m_IsTwoHandAttack: 0
+  m_iPhysicalAttackDamage:
+    _value: 30
+  m_iMagicAttackDamage:
+    _value: 0
+  m_iPhysicalFixedDamage:
+    _value: 0
+  m_iMagicFixedDamage:
+    _value: 0
+  m_fPhysicalArmorPenetraion:
+    _value: 0
+  m_fMagicalArmorPenetraion:
+    _value: 0
+  m_iCriticalChance:
+    _value: 0
+  m_fCriticalDamageUp:
+    _value: 0
+  m_fAccuracy:
+    _value: 95
+  m_fAttackSpeed:
+    _value: 1
+  m_iKnockbackChance:
+    _value: 0
+  m_fLifeStealPercent:
+    _value: 0
+  AttackAudioClip: {fileID: 8300000, guid: 84d43626e6df6454287af37f6f518c90, type: 3}
+  m_Clips:
+  - AttackAnimationClip: {fileID: -203655887218126122, guid: 6d812cfad9062314983d3d95e412bfc4, type: 3}
+  m_ProjectilePrefab: {fileID: 3399050517368323396, guid: f6a671fc0bec79b4bb5c33df90d1ce54, type: 3}
+  _selectType: 1
+  m_iSpawnProjectileCount: 3
+  m_IsImmediateLaunch: 0
+  m_SpawnFromWeapon: 1
