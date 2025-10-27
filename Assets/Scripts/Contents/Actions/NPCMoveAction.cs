@@ -49,19 +49,9 @@ public class NPCMoveAction : MoveAction
 
         forwardPosition = LevelGrid.Instance.GetWorldPosition(path[0]);
 
-        LevelGrid.Instance.SetReserveGridPosition(path[0], true, m_BaseObject);
+        LevelGrid.Instance.SetGridPositionCellInfo(path[0], E_GridCheckType.Reserve, m_BaseObject);
 
-        Action moveCompleteCallback = () =>
-        {
-            // 최종 목표 도달 확인
-            if (m_BaseObject.GetGridPosition() == dungeonCoreGridPos)
-            {
-                // npc.OnGoalReached();
-                // Debug.Log($"[NPCMoveAction] {npc.name}이 던전 코어에 도달했습니다.");
-            }
-        };
-
-        SetActionComlete(moveCompleteCallback);
+        SetActionComlete(onActionComplete);
         ActionStart(onActionComplete);
 
         Debug.Log($"[NPCMoveAction] {m_BaseObject.name}: 던전 코어로의 경로 발견 (길이: {pathLength})");

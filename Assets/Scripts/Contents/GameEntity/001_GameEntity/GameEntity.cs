@@ -55,6 +55,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     public Transform m_ActionsTransform;
 
     protected Dictionary<Type, BaseAction> baseActionDict = new Dictionary<Type, BaseAction>();
+    [SerializeField] protected List<BaseAction> m_BaseActions;  // 디버깅용 List
 
     [SerializeField] float m_fDelayDestroyTime = 3f;
 
@@ -85,8 +86,12 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
         m_SetupAnimation = GetComponent<SetupAnimation>();
 
+        m_BaseActions = new List<BaseAction>();
         foreach (var action in GetComponentsInChildren<BaseAction>())
+        {
             baseActionDict[action.GetType()] = action;
+            m_BaseActions.Add(action);
+        }
     }
 
     protected virtual void Start()
@@ -110,6 +115,12 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
     public virtual void OnDestroy()
     {
+        m_BaseActions?.Clear();
+        baseActionDict?.Clear();
+        m_BaseActions = null;
+        m_CurrentAction = null;
+        m_NextAction = null;
+        m_BeforeAction = null;   
     }
 
     protected virtual void Update()

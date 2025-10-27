@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static Define;
 
 public class NPCSpawner : MonoBehaviour
 {
@@ -65,7 +66,7 @@ public class NPCSpawner : MonoBehaviour
 
                     // 유효한 그리드이고, 이동 가능한 위치만 추가
                     if (LevelGrid.Instance.IsValidGridPosition(testPos) &&
-                        Pathfinding.Instance.IsWalkableGridPosition(testPos))
+                        LevelGrid.Instance.GetGridPositionCellInfo(testPos).gridType == E_GridCheckType.Walkable)
                     {
                         _spawnGridPos.Add(testPos);
                     }
@@ -150,7 +151,7 @@ public class NPCSpawner : MonoBehaviour
         // 스폰 가능한 위치 필터링 (유닛이 없고, 예약되지 않은 위치)
         enableSpawnPos = _spawnGridPos
            .Where(pos => LevelGrid.Instance.HasAnyUnitOnGridPosition(pos) == false &&
-                         LevelGrid.Instance.IsReservedGridPosition(pos) == false)
+                         LevelGrid.Instance.GetGridPositionCellInfo(pos).gridType != E_GridCheckType.Reserve)
            .ToHashSet().ToList();
 
         if (enableSpawnPos == null || enableSpawnPos.Count <= 0)

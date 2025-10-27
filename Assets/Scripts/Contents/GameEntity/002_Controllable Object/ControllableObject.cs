@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using static Define;
 using static Util;   // 👈 추가!
@@ -25,17 +23,6 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
     public ControllableObjectCombatManager m_ControllableObjectCombatManager { get; private set; }
 
     [Header("Action")]
-    private Dictionary<Type, BaseAction> baseActionDict = new Dictionary<Type, BaseAction>();
-    [SerializeField] private List<BaseAction> m_BaseActions;
-    [SerializeField] private BaseAction currentAction;
-    public BaseAction m_CurrentAction
-    {
-        get => currentAction;
-        protected set => currentAction = value;
-    }
-
-    [SerializeField] private BaseAction m_NextAction;
-    [SerializeField] private BaseAction m_BeforeAction;
     [SerializeField] public BaseAction m_CommandAction;
 
     public GameEntity m_Target { get; protected set; }
@@ -57,11 +44,6 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
     protected override void Awake()
     {
         base.Awake();
-        foreach (var action in GetComponentsInChildren<BaseAction>())
-        {
-            baseActionDict[action.GetType()] = action;
-            m_BaseActions.Add(action);
-        }
 
         m_ControllableObjectCombatManager = GetComponent<ControllableObjectCombatManager>();
 
@@ -107,11 +89,6 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
 
         if (UnitActionSystem.Instance != null)
             UnitActionSystem.Instance.OnUpdateActionTick -= ExecuteAction;
-
-        baseActionDict.Clear();
-        m_BaseActions.Clear();
-        m_BaseActions = null;   
-        m_CurrentAction = null;
     }
 
     protected override void Update()

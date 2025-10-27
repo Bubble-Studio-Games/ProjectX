@@ -8,9 +8,8 @@ public partial class Define
 
     public enum E_Projectile
     {
+        Guided,
         Straight,
-        Parabola,
-        Multiple,
     }
 
     public enum E_AttackStartPos
@@ -48,12 +47,6 @@ public partial class Define
         Plus,       // 플러스 형태 (상하좌우)
         Vertical,   // 세로 일자 (ㅣ)
         Horizontal  // 가로 일자 (ㅡ)
-    }
-
-    public enum E_Projectile
-    {
-        Guided, // 유도탄
-        Straight, // 직격탄
     }
 
     public enum E_AttackType
@@ -274,7 +267,7 @@ public partial class Define
         AutoTrigger = 4,
         Obstacle,
         Skill,
-        PassiveObject
+        PassiveObject,
         NPC = 7,
     }
 

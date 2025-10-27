@@ -59,12 +59,12 @@ public class NPCIdleAction : BaseAction
         // 타겟 검증
         if (obj == null || obj.m_AttributeSystem.m_IsDead == true || obj.gameObject.activeSelf == false)
         {
-            m_BaseObject.SetTarget(null);
+            _owner.SetTarget(null);
             return _owner.ToAction<NPCIdleAction>();
         }
         else
         {
-            m_BaseObject.SetTarget(obj);
+            _owner.SetTarget(obj);
         }
 
         ActionStart(onActionComplete);
@@ -72,7 +72,7 @@ public class NPCIdleAction : BaseAction
         // 공격 가능 여부 확인
         var attackPatterns = Managers.Game.EvaluateAttackPatternsByCondition
                             (m_BaseObject,
-                             m_BaseObject.m_Target,
+                             _owner.m_Target,
                              E_AttackCondition.Success,
                              E_AttackCondition.Fail_Distance);
 
@@ -147,12 +147,12 @@ public class NPCIdleAction : BaseAction
                     if (LevelGrid.Instance.HasEnemyAtGridPosition(m_BaseObject.GetGridPosition(), testGridPosition) == false)
                         continue;
 
-                    if (Pathfinding.Instance.IsWalkableGridPosition(testGridPosition) == false)
+                    if (LevelGrid.Instance.GetGridPositionCellInfo(testGridPosition).gridType != E_GridCheckType.Walkable)
                     {
                         continue;
                     }
 
-                    if (Pathfinding.Instance.HasPath(unitGridPosition, testGridPosition) == false)
+                    if (Pathfinding.Instance.HasPath(m_BaseObject.GetGridPosition(), testGridPosition) == false)
                     {
                         continue;
                     }
