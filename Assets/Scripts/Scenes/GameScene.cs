@@ -7,6 +7,7 @@ using static Define;
 
 public class GameScene : BaseScene
 {
+
     protected override void Init()
     {
         base.Init();

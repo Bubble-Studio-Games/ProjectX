@@ -61,7 +61,8 @@ public abstract class AttackPattern : ScriptableObject
     [Header("Range & Shape")]
     public E_RangeFillType m_ERangeFillType;
     public E_RangeShapeType m_ERangeShapeType;
-    public List<GridPosition> m_RangeOffset = new(); 
+    public List<GridPosition> m_RangeOffset = new();
+    private (int MinX, int MaxX, int MinZ, int MaxZ, int MinFloor, int MaxFloor) rangeOffsetMinMax;
     public float m_ArcAngle = 90f;
 
     [Header("Attack Start Pos")]
@@ -72,19 +73,18 @@ public abstract class AttackPattern : ScriptableObject
 
     [Header("Condition")]
     public List<E_GridCheckType> m_GridCheckTypes = new List<E_GridCheckType>();
-    public E_TeamId m_ApplyTargetTeampId;
+    public E_TargetTendencyType m_ApplyTargetE_Tendency; // 영향 받을 타겟 성향 ally의 경우 플레이어 유닛은 같은 플레이어 유닛만 스킬 범주에 넣는다.
 
     [Header("Combo / Chain Links")]
+    List<int> m_iNextIds;
     public AttackPattern[] m_iNextAttackPattern;
-
-    [Tooltip("선행 패턴 조건 (null이면 조건 없음)")] 
-    public AttackPattern m_iConditionPrevAttackPattern; // 
+    public AttackPattern m_iConditionPrevAttackPattern;
 
     [Header("Condition")]
-    public StatValue m_iCoolTime = 2f;
-    public StatValue lastCooltime { get; private set; }
+    public StatValue m_iCoolTime = new StatValue(1, false);
+    [HideInInspector] public StatValue lastCooltime = new StatValue(1, false);
     public bool m_bCoolTimeIsFinishied => Time.time - lastCooltime >= m_iCoolTime;
-    public StatValue m_iManaCost;
+    public StatValue m_iManaCost = new StatValue(0, false);
     public bool m_IsTwoHandAttack; // 두 손 행동인가?
 
     [Header("Damage Info")]
@@ -115,64 +115,159 @@ public abstract class AttackPattern : ScriptableObject
     public virtual void Init()
     {
         lastCooltime = -m_iCoolTime;              // 쿨타임 끝난 상태로 시작
+        rangeOffsetMinMax = GetRangeMinMaxFromOffsets();
     }
 
-    public virtual E_AttackCondition CanExecute(ControllableObject attacker, GameEntity target)
+    public virtual (E_AttackCondition condition, HashSet<GridPosition> CanAttackablePos) 
+        CanExecute(GameEntity attacker, GameEntity target)
     {
-        // Mana
-        if (attacker.m_AttributeSystem.m_Stat.m_iCurrentMP < m_iManaCost)
-            return E_AttackCondition.Fail_ManaCost;
 
-        // CoolTime
+        // 쿨타임 체크
         if (!m_bCoolTimeIsFinishied)
-            return E_AttackCondition.Fail_CoolTime;
+            return (E_AttackCondition.Fail_CoolTime, default);
 
-        //// 공격 패턴이 없는지 확인
-        //if (attacker.GetAction<CombatAction>().m_ThisTimeAttack == null)
-        //    return E_AttackCondition.Fail_IndividualCondition;
+        AttackPattern attack = attacker.GetAction<CombatAction>().m_ThisTimeAttack;
 
-        // 전 공격 준비 단계가 있어야 하는지 확인
-        if (m_iConditionPrevAttackPattern != null)
+        if (attack != null)
         {
-            AttackPattern attack = attacker.GetAction<CombatAction>().m_ThisTimeAttack;
-            if (attack == null || attack.ID != m_iConditionPrevAttackPattern.ID)
+            // 다음 콤보 필터링
+            if (m_iConditionPrevAttackPattern != null)
             {
-                return E_AttackCondition.Fail_NotHasPrevAttack;
+                if (attack.ID != m_iConditionPrevAttackPattern.ID)
+                    return (E_AttackCondition.Fail_Combo, default);
             }
+
+            // 관계 없는 콤보 필터링
+            if (attack.m_iNextAttackPattern.Count() > 0 && !attack.GetNextIds().Contains(ID))
+                return (E_AttackCondition.Fail_Combo, default);
         }
 
-        // 🔹 4. 거리(공격 범위) 검사
-        if (target != null)
+
+
+        if (attacker is PassiveObject pobj)
         {
-            // 실제 공격 가능한 모든 그리드 계산
-            HashSet<GridPosition> attackablePositions = Managers.Game.GetAttackPatternPosition(attacker, target, this);
-            GridPosition targetPos = target.GetGridPosition();
+            var attackerGridPosition = attacker.GetGridPosition();
 
-            // 타겟이 범위 내에 없으면 실패
-            if (!attackablePositions.Contains(targetPos))
-                return E_AttackCondition.Fail_Distance;
+            // 현재 위치에서 주변에 빈 그리드가 있는지 체크
+            if (m_GridCheckTypes.Contains(E_GridCheckType.Walkable))
+            {
+                var spawnOffsets = Managers.Game.GetPatternOffsets(this);
+
+                HashSet<GridPosition> validAttackablePositions = new();
+
+                // 반경 내로 빈 자리가 있는지 체크
+                foreach (var offset in spawnOffsets)
+                {
+                    var testGridPosition = attackerGridPosition + offset;
+
+                    // 시전 위치 제거
+                    if (testGridPosition == attackerGridPosition)
+                        continue;
+
+                    // 시전 위치가 1개라도 존재하는가?
+                    if (LevelGrid.Instance.IsGridPositionCheckType(testGridPosition, E_GridCheckType.Walkable))
+                    {
+                        validAttackablePositions.Add(testGridPosition);
+                        break;
+                    }
+                }
+
+                // 6️⃣ 최종 판정
+                if (validAttackablePositions.Count > 0)
+                    return (E_AttackCondition.Success, new HashSet<GridPosition>() { attackerGridPosition });
+                else
+                    return (E_AttackCondition.Fail_ConditionGridType, default);
+            }
+
+            return (E_AttackCondition.Success, new HashSet<GridPosition>() { attackerGridPosition });
         }
 
-        return E_AttackCondition.Success;
+        // 적 타겟을 공격할 수 있는 자리가 있는가?
+        else if (attacker is ControllableObject cobj)
+        {
+            // 마나 체크
+            if (attacker.m_AttributeSystem.m_Stat.m_iCurrentMP < m_iManaCost)
+                return (E_AttackCondition.Fail_ManaCost, default);
+
+            // 공격 가능한 타일 위치 계산
+            HashSet<GridPosition> attackablePositions =
+                Managers.Game.GetCanAttackPosition(attacker, target, this);
+
+            // 거리(사거리) 검사
+            if (target != null && !attackablePositions.Contains(attacker.GetGridPosition()))
+                return (E_AttackCondition.Fail_Distance, attackablePositions);
+
+            HashSet<GridPosition> validAttackablePositions = new();
+
+            // 타입 체크
+            // Walkable(소환형 같은 경우) 공격인 경우: 빈 공간 탐색
+            if (m_GridCheckTypes.Contains(E_GridCheckType.Walkable))
+            {
+                foreach (var gridPosition in attackablePositions)
+                {
+                    var spawnOffsets = Managers.Game.GetPatternOffsets(this);
+
+                    // 반경 내로 빈 자리가 있는지 체크
+                    foreach (var offset in spawnOffsets)
+                    {
+                        var testGridPosition = gridPosition + offset;
+
+                        // 시전 위치 제거
+                        if (testGridPosition == gridPosition)
+                            continue;
+
+                        // 빈 그리드를 체크했으니 공격 가능한 자리에 추가
+                        if (LevelGrid.Instance.IsGridPositionCheckType(testGridPosition, E_GridCheckType.Walkable))
+                            validAttackablePositions.Add(gridPosition);
+                    }
+                }
+            }
+            else
+            {
+                // 그 외 패턴(즉시 공격 등)은 그대로 공격 가능 위치 사용
+                validAttackablePositions = attackablePositions;
+            }
+
+            // 6️⃣ 최종 판정
+            if (validAttackablePositions.Count > 0)
+                return (E_AttackCondition.Success, validAttackablePositions);
+            else
+                return (E_AttackCondition.Fail_ConditionGridType, default);
+        }
+        else
+        {
+            return (E_AttackCondition.Success, default);
+        }
     }
 
-    public virtual void StartAttack(ControllableObject attacker, GameEntity target, AttackPattern prevAttackpatern) // 실행
+    public virtual void StartAttack(GameEntity attacker, GameEntity target, AttackPattern prevAttackpatern) // 실행
     {
         // 쿨타임 갱신
         lastCooltime = Time.time;
 
-        // 전 준비 단계가 있다면 해시에서 제거
-        if (prevAttackpatern != null && prevAttackpatern.m_iNextAttackPattern.Select(p => p.ID).ToArray().Contains(ID))
+        if (attacker is PassiveObject pobj)
         {
-            attacker.m_ControllableObjectCombatManager.m_ReadyAttackPattern.Remove(prevAttackpatern as AttackPattern_Ready);
+
+        }
+        else if (attacker is ControllableObject cobj)
+        {
+            // 전 준비 단계가 있다면 해시에서 제거
+            if (prevAttackpatern != null && prevAttackpatern.m_iNextAttackPattern.Select(p => p.ID).ToArray().Contains(ID))
+            {
+                cobj.m_ControllableObjectCombatManager.m_ReadyAttackPattern.Remove(prevAttackpatern as AttackPattern_Ready);
+            }
+        }
+        else
+        {
+
         }
     }
 
-    public virtual void Attack(ControllableObject attacker, GameEntity target) { } // 종료
+    public virtual void Attack(GameEntity attacker, GameEntity target) { } // 종료
 
-    public virtual void EndAttack(ControllableObject attacker, GameEntity target) { } // 종료
+    public virtual void EndAttack(GameEntity attacker, GameEntity target) { } // 종료
 
-    public virtual void StartAttackFail(ControllableObject attacker, GameEntity target)
+    public virtual void StartAttackFail(GameEntity attacker, GameEntity target)
     {
         //Debug.Log($"{attacker.name}의 {AttackName} 공격 실패");
     }
@@ -189,7 +284,7 @@ public abstract class AttackPattern : ScriptableObject
         Managers.Resource.Destroy(go);
     }
 
-    public GridPosition GetStartOrigin(ControllableObject owner, GameEntity target)
+    public GridPosition GetStartOrigin(GameEntity owner, GameEntity target)
     {
         GridPosition origin = owner.GetGridPosition();
         E_Dir dir = LevelGrid.Instance.GetDirGridPosition(owner.GetGridPosition(), target.GetGridPosition());
@@ -209,5 +304,42 @@ public abstract class AttackPattern : ScriptableObject
 
 
     public abstract bool Validate(bool log = false);
+
+
+    public (int MinX, int MaxX, int MinZ, int MaxZ, int MinFloor, int MaxFloor)
+    GetRangeMinMaxFromOffsets()
+    {
+        if (m_RangeOffset == null || m_RangeOffset.Count == 0)
+            return (0, 0, 0, 0, 0, 0);
+
+        int minX = 0, maxX = 0;
+        int minZ = 0, maxZ = 0;
+        int minF = 0, maxF = 0;
+
+        foreach (var o in m_RangeOffset)
+        {
+            minX = Mathf.Min(minX, o.x);
+            maxX = Mathf.Max(maxX, o.x);
+            minZ = Mathf.Min(minZ, o.z);
+            maxZ = Mathf.Max(maxZ, o.z);
+            minF = Mathf.Min(minF, o.floor);
+            maxF = Mathf.Max(maxF, o.floor);
+        }
+
+        return (minX, maxX, minZ, maxZ, minF, maxF);
+    }
+
+    // 패턴에 의해 영향을 받을 그리드 리스트 가져오기
+    public virtual List<GridPosition> GetAttackGridPositions(GameEntity attacker, GameEntity target = null) { return default; }
+
+    public List<int> GetNextIds()
+    {
+        if(m_iNextIds == null)
+        {
+            m_iNextIds = m_iNextAttackPattern.Select(a => a.ID).ToList();
+        }
+
+        return m_iNextIds;
+    }
 }
 

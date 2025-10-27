@@ -4,7 +4,8 @@ using System.Linq;
 using UnityEngine;
 using static Define;
 using Material = UnityEngine.Material;
-
+using Random = UnityEngine.Random;
+using Type = System.Type;
 
 public interface IAccessories<TAnimator, TSounder> 
     where TAnimator : GameEntityAnimator 
@@ -36,9 +37,24 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     [Header("Info")]
     public GridPosition[] m_GridPositionOffsets;
     public GridPosition m_GridPosition { get; protected set; }
-    public E_ObjectType m_ObjectType { get; protected set; }
+    public E_ObjectType m_ObjectType;
     public E_Dir m_CurrentEDir = E_Dir.South;
     public E_TeamId m_TeamId;
+
+    [Header("Action")]
+    [SerializeField] protected BaseAction currentAction;
+    public BaseAction m_CurrentAction
+    {
+        get => currentAction;
+        protected set => currentAction = value;
+    }
+
+    [SerializeField] protected BaseAction m_NextAction;
+    [SerializeField] protected BaseAction m_BeforeAction;
+
+    public Transform m_ActionsTransform;
+
+    protected Dictionary<Type, BaseAction> baseActionDict = new Dictionary<Type, BaseAction>();
 
     [SerializeField] float m_fDelayDestroyTime = 3f;
 
@@ -68,12 +84,14 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
             m_SounderManager = GetComponent<GameEntitySounder>();
 
         m_SetupAnimation = GetComponent<SetupAnimation>();
+
+        foreach (var action in GetComponentsInChildren<BaseAction>())
+            baseActionDict[action.GetType()] = action;
     }
 
     protected virtual void Start()
     {
         CheckRotateSymmetry();
-
 
         if (m_IsSetuping)
             return;
@@ -90,6 +108,9 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         m_IsSetuping = false;
     }
 
+    public virtual void OnDestroy()
+    {
+    }
 
     protected virtual void Update()
     {
@@ -146,9 +167,9 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         if (newGridPosition != m_GridPosition)
         {
             // Unit changed Grid Position
-            List<GridPosition> oldGridPositions = GetGridPositionListAtCurrentPosition();
+            List<GridPosition> oldGridPositions = GetGridPositionListAtCurrentDir();
             m_GridPosition = newGridPosition;
-            List<GridPosition> newGridPositions = GetGridPositionListAtCurrentPosition();
+            List<GridPosition> newGridPositions = GetGridPositionListAtCurrentDir();
 
             LevelGrid.Instance.UnitMovedGridPosition(this, oldGridPositions, newGridPositions);
         }
@@ -200,7 +221,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
 
     // GameEntity의 GridOffset과 원점인 GridPosition을 반환한다.
-    public List<GridPosition> GetGridPositionListAtCurrentPosition()
+    public List<GridPosition> GetGridPositionListAtCurrentDir()
     {
         return GetGridPositionListAtSelectPosition(m_GridPosition);
     }
@@ -251,8 +272,8 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
         //Level grid 
         m_GridPosition = LevelGrid.Instance.GetGridPosition(transform.position);
-        LevelGrid.Instance.SetReserveGridPosition(GetGridPositionListAtCurrentPosition(), false, this);
-        LevelGrid.Instance.AddUnitAtGridPosition(GetGridPositionListAtCurrentPosition(), this);
+        LevelGrid.Instance.SetGridPositionCellInfo(GetGridPositionListAtCurrentDir(), E_GridCheckType.Walkable);
+        LevelGrid.Instance.AddUnitAtGridPosition(GetGridPositionListAtCurrentDir(), this);
 
         // 타격 콜라이더 켜기
 
@@ -260,9 +281,8 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         if (m_HitCollider == null)
         {
             m_HitCollider = GetChildColliders().FirstOrDefault();
+            m_HitCollider.enabled = true;
         }
-
-        m_HitCollider.enabled = true;
     }
 
     // 조작 가능해짐
@@ -281,7 +301,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     //
     public virtual void DeSpawnComplete()
     {
-        LevelGrid.Instance.RemoveUnitAtGridPosition(GetGridPositionListAtCurrentPosition(), this);
+        LevelGrid.Instance.RemoveUnitAtGridPosition(GetGridPositionListAtCurrentDir(), this);
 
         Managers.Object.Remove(gameObject);
 
@@ -349,7 +369,46 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
     #endregion
 
+    #region Action
 
+    protected virtual void ExecuteAction(object sender, GridPosition args) { }
+
+
+    public virtual void SwitchToNextStateAction(BaseAction nextAction)
+    {
+        m_CurrentAction = nextAction;
+    }
+
+    public void ClearAction(object sender, EventArgs e)
+    {
+        m_CurrentAction = null;
+    }
+
+    public IEnumerable<BaseAction> GetActions()
+    {
+        return baseActionDict.Values;
+    }
+
+    public T GetAction<T>() where T : BaseAction
+    {
+        if (baseActionDict.TryGetValue(typeof(T), out var action))
+            return action as T;
+        return null;
+    }
+
+    public BaseAction GetBackStateAction()
+    {
+        if (m_BeforeAction == null)
+        {
+            return GetAction<IdleAction>();
+        }
+        else
+        {
+            return m_BeforeAction;
+        }
+    }
+
+    #endregion
 
     public bool IsEnemy(GameEntity target)
     {

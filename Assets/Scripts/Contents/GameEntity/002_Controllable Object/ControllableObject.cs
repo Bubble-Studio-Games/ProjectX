@@ -10,8 +10,6 @@ using static Util;   // 👈 추가!
 [RequireComponent(typeof(ControllableObjectCombatManager), typeof(SetupAnimation) /*,typeof(Poolable)*/)]
 public class ControllableObject : GameEntity, IAccessories<ControllableObjectAnimator, ControllableObjectSounder>
 {
-    //[Header("Event")]
-    public static event EventHandler OnAnyActionPointsChanged;
     public event EventHandler<OnChangeGradeEventArgs> OnChangeGrade;
     public class OnChangeGradeEventArgs: EventArgs
     {
@@ -103,8 +101,10 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
         UnitActionSystem.Instance.OnUpdateActionTick += ExecuteAction;
     }
 
-    public virtual void OnDestroy()
+    public override void OnDestroy()
     {
+        base.OnDestroy();
+
         if (UnitActionSystem.Instance != null)
             UnitActionSystem.Instance.OnUpdateActionTick -= ExecuteAction;
 
@@ -127,7 +127,7 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
     #region Action
 
     // UnitActionSystem에서 관리
-    private void ExecuteAction(object sender, GridPosition args)
+    protected override void ExecuteAction(object sender, GridPosition args)
     {
         if (m_AttributeSystem.m_IsDead)
             return;
@@ -151,26 +151,13 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
                 SwitchToNextStateAction(m_NextAction);
             }
         }
-
     }
 
-    public void SwitchToNextStateAction(BaseAction nextAction)
+    public override void SwitchToNextStateAction(BaseAction nextAction)
     {
-        m_CurrentAction = nextAction;
+        base.SwitchToNextStateAction(nextAction);
 
         UpdateMoveState();
-    }
-
-    public BaseAction GetBackStateAction()
-    {
-        if(m_BeforeAction == null)
-        {
-            return GetAction<IdleAction>();
-        }
-        else
-        {
-            return m_BeforeAction;
-        }
     }
 
     private void UpdateMoveState()
@@ -204,24 +191,6 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
             default:
                 return 0;
         }
-    }
-
-
-    public void ClearAction(object sender, EventArgs e)
-    {
-        m_CurrentAction = null;
-    }
-
-    public IEnumerable<BaseAction> GetActions()
-    {
-        return baseActionDict.Values;
-    }
-
-    public T GetAction<T>() where T : BaseAction
-    {
-        if (baseActionDict.TryGetValue(typeof(T), out var action))
-            return action as T;
-        return null;
     }
 
     public void DirectCommand<TAction>(BaseAction action, Action<ControllableObject, TAction> onActionComplete) where TAction : BaseAction

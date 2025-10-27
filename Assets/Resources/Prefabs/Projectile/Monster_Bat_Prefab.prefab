@@ -377,6 +377,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e576c410550537c4ead21874d0b00641, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_fStraightSpeed: 3
+  ParabolaSpeed: 3
+  m_DetectionHitRadius: 2
   m_hasDestoryAnimation: 0
   m_ProjectileFlyingAudioClip: {fileID: 0}
   m_ProjectileHitAudioClip: {fileID: 0}

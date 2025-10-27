@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using TMPro;
 using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.Animations;
@@ -29,7 +30,7 @@ public class GameManager
     public float sessionStartTime;
 
     // 패턴별로, (owner, field, originalClip) 목록을 저장
-    private static readonly Dictionary<AttackPattern, List<ClipBackup>> _attackPatternOriginals = new();
+    private static readonly Dictionary<AttackPattern, List<ClipBackup>> _attackPatternAnimationOriginals = new();
 
     private sealed class ClipBackup
     {
@@ -37,6 +38,10 @@ public class GameManager
         public FieldInfo Field;       // AnimationClip 필드 자체
         public AnimationClip Original; // 원본 클립
     }
+
+    // 클래스 상단에 캐시 추가
+    private readonly Dictionary<(E_RangeShapeType, (int, int, int, int, int, int), E_RangeFillType), HashSet<GridPosition>> _patternOffsetCache
+        = new();
 
 
     #region Init
@@ -50,6 +55,9 @@ public class GameManager
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void InitAllRewards()
     {
+        if (Managers.Instance.m_IsCaculateReward == false)
+            return;
+
         if (CheckRunMethodThisScene() == false)
             return;
 
@@ -70,16 +78,21 @@ public class GameManager
     {
         //if (!CheckRunMethodThisScene()) return;
 
-        var patterns = Resources.LoadAll<AttackPattern>("Data/Unit");
+        if (Managers.Instance.m_IsUseAnimationStep == false)
+            return;
+
+        var patterns = Resources.LoadAll<AttackPattern>("Data/AttackPattern");
         int convertedCount = 0;
 
         foreach (var pattern in patterns)
         {
             if (pattern == null) continue;
 
+            pattern.Init();
+
             // 백업용 사전 초기화
-            if (!_attackPatternOriginals.ContainsKey(pattern))
-                _attackPatternOriginals[pattern] = new();
+            if (!_attackPatternAnimationOriginals.ContainsKey(pattern))
+                _attackPatternAnimationOriginals[pattern] = new();
 
             // 모든 AnimationClip 필드 검색 (배열/리스트/Serializable 내부 포함)
             var clipFields = Util.FindAllFieldsOfType<AnimationClip>(pattern);
@@ -90,9 +103,9 @@ public class GameManager
                 if (clip.name.Contains("_stepped_")) continue;
 
                 // 🔸 (owner, field) 단위로 한 번만 백업
-                if (!_attackPatternOriginals[pattern].Exists(b => ReferenceEquals(b.Owner, owner) && b.Field == field))
+                if (!_attackPatternAnimationOriginals[pattern].Exists(b => ReferenceEquals(b.Owner, owner) && b.Field == field))
                 {
-                    _attackPatternOriginals[pattern].Add(new ClipBackup
+                    _attackPatternAnimationOriginals[pattern].Add(new ClipBackup
                     {
                         Owner = owner,
                         Field = field,
@@ -111,15 +124,18 @@ public class GameManager
             }
         }
 
-        Debug.Log($"✅ AttackPattern 스텝 애니메이션 변환 완료: {convertedCount}개 변환됨 ({patterns.Length}개 패턴)");
+        //Debug.Log($"✅ AttackPattern 스텝 애니메이션 변환 완료: {convertedCount}개 변환됨 ({patterns.Length}개 패턴)");
     }
 
     // 🔹 게임 종료 시 원본 복원
     public static void RestoreOriginalClips()
     {
+        if (Managers.Instance.m_IsUseAnimationStep == false)
+            return;
+
         int restoreCount = 0;
 
-        foreach (var kvp in _attackPatternOriginals)
+        foreach (var kvp in _attackPatternAnimationOriginals)
         {
             var pattern = kvp.Key;
             var backups = kvp.Value;
@@ -139,7 +155,7 @@ public class GameManager
             }
         }
 
-        Debug.Log($"♻️ AttackPattern 원본 복원 완료: {restoreCount}개 필드 복원 (패턴 {_attackPatternOriginals.Count}개)");
+        //Debug.Log($"♻️ AttackPattern 원본 복원 완료: {restoreCount}개 필드 복원 (패턴 {_attackPatternOriginals.Count}개)");
     }
 
 
@@ -453,12 +469,37 @@ public class GameManager
 
     public HashSet<GridPosition> GetPatternOffsets(AttackPattern pattern)
     {
+        if (pattern == null)
+            return new();
+
+        // 키 생성
+        var key = (
+            pattern.m_ERangeShapeType,
+            pattern.GetRangeMinMaxFromOffsets(),
+            pattern.m_ERangeFillType
+        );
+
+        // 이미 계산된 캐시가 있으면 그대로 반환
+        if (_patternOffsetCache.TryGetValue(key, out var cached))
+            return cached;
+
+        // 없으면 새로 계산
+        var computed = CalculatePatternOffsets(pattern);
+
+        // 캐싱
+        _patternOffsetCache[key] = computed;
+
+        return computed;
+    }
+
+    public HashSet<GridPosition> CalculatePatternOffsets(AttackPattern pattern)
+    {
         var unique = new HashSet<GridPosition>();
         if (pattern == null)
             return unique;
 
         // 1) bounding box 결정: custom offsets가 있으면 그것의 박스, 없으면 radius 기반 박스
-        var range = GetRangeBoxFromOffsets(pattern.m_RangeOffset);
+        var range = pattern.GetRangeMinMaxFromOffsets();
 
         switch (pattern.m_ERangeShapeType)
         {
@@ -597,10 +638,6 @@ public class GameManager
                     break;
                 }
 
-
-
-
-
             case E_RangeShapeType.Arc: // 수정 필요
                 {
                     float halfAngle = pattern.m_ArcAngle * 0.5f;
@@ -690,7 +727,6 @@ public class GameManager
                     break;
                 }
 
-
             case E_RangeShapeType.ReverseTriangle:
                 {
                     int zMax = range.MaxZ;
@@ -728,8 +764,6 @@ public class GameManager
                     }
                     break;
                 }
-
-
 
             case E_RangeShapeType.Plus:
                 for (int f = range.MinFloor; f <= range.MaxFloor; f++)
@@ -823,78 +857,121 @@ public class GameManager
                 break;
 
             case E_RangeShapeType.CustomList:
-                unique.AddRange(pattern.m_RangeOffset);
-                break;
+                {
+                    if (pattern.m_RangeOffset == null || pattern.m_RangeOffset.Count == 0)
+                        break;
+
+                    var (minX, maxX, minZ, maxZ, minF, maxF) = pattern.GetRangeMinMaxFromOffsets();
+
+                    HashSet<GridPosition> fullRange = new();
+                    HashSet<GridPosition> outerRing = new();
+                    HashSet<GridPosition> innerRange = new();
+
+                    // 1️⃣ FullRange: min~max 전부 포함
+                    for (int f = minF; f <= maxF; f++)
+                    {
+                        for (int x = minX; x <= maxX; x++)
+                        {
+                            for (int z = minZ; z <= maxZ; z++)
+                            {
+                                fullRange.Add(new GridPosition(x, z, f));
+                            }
+                        }
+                    }
+
+                    // 2️⃣ OuterRing: 사용자 지정 오프셋 그대로
+                    outerRing.UnionWith(pattern.m_RangeOffset);
+
+                    // 3️⃣ InnerRange: FullRange - OuterRing
+                    innerRange.UnionWith(fullRange);
+                    innerRange.ExceptWith(outerRing);
+
+                    // 4️⃣ FillType에 따라 결과 반환
+                    switch (pattern.m_ERangeFillType)
+                    {
+                        case E_RangeFillType.FullRange:
+                            unique.UnionWith(fullRange);
+                            break;
+
+                        case E_RangeFillType.OuterRing:
+                            unique.UnionWith(outerRing);
+                            break;
+
+                        case E_RangeFillType.Inner:
+                            unique.UnionWith(innerRange);
+                            break;
+                    }
+
+                    break;
+                }
+
         }
 
         return unique;
     }
 
-    private (int MinX, int MaxX, int MinZ, int MaxZ, int MinFloor, int MaxFloor)
-    GetRangeBoxFromOffsets(List<GridPosition> offsets)
-    {
-        if (offsets == null || offsets.Count == 0)
-            return (0, 0, 0, 0, 0, 0);
 
-        int minX = 0, maxX = 0;
-        int minZ = 0, maxZ = 0;
-        int minF = 0, maxF = 0;
-
-        foreach (var o in offsets)
-        {
-            minX = Mathf.Min(minX, o.x);
-            maxX = Mathf.Max(maxX, o.x);
-            minZ = Mathf.Min(minZ, o.z);
-            maxZ = Mathf.Max(maxZ, o.z);
-            minF = Mathf.Min(minF, o.floor);
-            maxF = Mathf.Max(maxF, o.floor);
-        }
-
-        return (minX, maxX, minZ, maxZ, minF, maxF);
-    }
-
-    // ② 실제 공격 범위 반환 (GridPosition)
-    public HashSet<GridPosition> GetAttackPatternPosition
-        (ControllableObject owner, 
+    // ② 공격할 위치 가져오기
+    public HashSet<GridPosition> GetCanAttackPosition
+        (GameEntity owner, 
         GameEntity target, 
-        AttackPattern pattern)
+        AttackPattern pattern,
+        bool canAccess = true )
     {
         HashSet<GridPosition> result = new();
         if (owner == null || pattern == null)
             return result;
 
-        // 시작 위치(origin) 및 방향 계산
-        GridPosition startOrigin;
-        E_Dir dir;
-
-        if (pattern.m_IsAttackStartPositionAtAttacker)
-        {
-            dir = target != null
-                ? LevelGrid.Instance.GetDirGridPosition(owner.GetGridPosition(), target.GetGridPosition())
-                : owner.m_CurrentEDir;
-
-            startOrigin = LevelGrid.Instance.ToGridPosition(pattern.m_StartOffset, owner.GetGridPosition(), dir);
-        }
-        else
-        {
-            if (target == null) return result;
-            dir = LevelGrid.Instance.GetDirGridPosition(target.GetGridPosition(), owner.GetGridPosition());
-            startOrigin = LevelGrid.Instance.ToGridPosition(pattern.m_StartOffset, target.GetGridPosition(), dir);
-        }
-
         // 로컬 오프셋 → 월드 좌표
         var offsets = GetPatternOffsets(pattern);
+        var attackerGridPosition = owner.GetGridPosition();
+        var targetGridPosition = target.GetGridPosition();
 
-        foreach (var off in offsets)
+
+        // 시작 위치(origin) 및 방향 계산
+        // 8방향 모두 조사해야함.
+        foreach (var dir in Enum.GetValues(typeof(E_Dir)).Cast<E_Dir>())
         {
-            var world = LevelGrid.Instance.ToGridPosition(off, startOrigin, dir);
-            if (!LevelGrid.Instance.IsValidGridPosition(world))
-                continue;
+            foreach (var offset in offsets)
+            {
+                GridPosition canAttackPos = LevelGrid.Instance.ToGridPosition(offset, targetGridPosition, dir);
 
-            result.Add(world);
+                if(attackerGridPosition == canAttackPos)
+                {
+                    return new HashSet<GridPosition> { canAttackPos };
+                }
+
+                // 유효한 범위만 가져오기
+                if (!LevelGrid.Instance.IsValidGridPosition(canAttackPos)) // 유효한 위치만 추가
+                    continue;
+
+                if(canAccess)
+                {
+                    var cellInfo = LevelGrid.Instance.GetGridPositionCellInfo(canAttackPos);
+                    if (cellInfo == null)
+                        continue;
+
+                    if (cellInfo.Entity != owner && cellInfo.gridType != E_GridCheckType.Walkable)
+                        continue;
+
+                    // 갈 수 있는 없는 길이지 체크
+                    if (!Pathfinding.Instance.HasPath(owner.GetGridPosition(), canAttackPos))
+                    continue;
+
+                    // TODO 너무 멀리 돌아가는가?
+                }
+
+
+                result.Add(canAttackPos);
+            }
         }
 
         return result;
+    }
+
+    public void ClearPatternOffsetCache()
+    {
+        _patternOffsetCache.Clear();
     }
 
 
@@ -902,76 +979,35 @@ public class GameManager
     /// 🔍 AttackPattern의 실행 조건을 검사하고,
     /// 지정한 E_AttackCondition만 필터링해서 반환.
     /// </summary>
-    public List<(AttackPattern pattern, E_AttackCondition condition)> EvaluateAttackPatternsByCondition(
-        ControllableObject owner,
+    public List<(AttackPattern pattern, E_AttackCondition condition, HashSet<GridPosition> canAttackPosition)> EvaluateAttackPatternsByCondition(
+        GameEntity owner,
         GameEntity target,
         params E_AttackCondition[] conditions)
     {
-        var result = new List<(AttackPattern, E_AttackCondition)>();
+        List<(AttackPattern pattern, E_AttackCondition condition, HashSet<GridPosition>)> result = new();
 
         IEnumerable<AttackPattern> patterns = owner.m_AttributeSystem.m_AttackPatterns;
 
         if (owner == null || patterns == null)
-            return result;
+            return default;
 
         foreach (var pattern in patterns)
         {
             if (pattern == null)
                 continue;
 
-            var condition = pattern.CanExecute(owner, target);
+            var attackCanResult = pattern.CanExecute(owner, target);
 
             // 지정된 조건 중 하나라도 일치하면 추가
-            if (conditions.Contains(condition))
-                result.Add((pattern, condition));
+            if (conditions.Contains(attackCanResult.condition))
+            {
+                // 원하는 조건을 만족했지만 그리드 타일 조건을 만족하는지 체크?
+                result.Add((pattern, attackCanResult.condition, attackCanResult.CanAttackablePos));
+            }
         }
 
         return result;
     }
-
-
-    /// <summary>
-    /// 지정된 GridPosition이 AttackPattern의 GridCheckType 조건을 만족하는지 검사.
-    /// </summary>
-    private bool IsGridConditionSatisfied(GridPosition pos, E_GridCheckType checkType, ControllableObject owner, GameEntity target, AttackPattern  attack)
-    {
-        var grid = LevelGrid.Instance;
-        bool hasUnit = grid.HasAnyUnitOnGridPosition(pos);
-        //bool isEmpty = !hasUnit && !grid.HasObstacleAtGridPosition(pos) && !grid.IsReservedGridPosition(pos);
-        bool isEmpty = !hasUnit && !grid.IsReservedGridPosition(pos);
-
-        switch (checkType)
-        {
-            case E_GridCheckType.None:
-                return true;
-
-            case E_GridCheckType.Walkable:
-                return grid.IsValidGridPosition(pos);
-
-            case E_GridCheckType.HasUnit:
-                {
-                    var unit = grid.GetObjectAtGridPosition(pos);
-                    if (unit == null) 
-                        return false;
-
-                    return attack.m_ApplyTargetTeampId == unit.m_TeamId;
-                }
-
-            case E_GridCheckType.Reserved:
-                return grid.IsReservedGridPosition(pos);
-
-            //case E_GridCheckType.Obstacle:
-                //return grid.HasObstacleAtGridPosition(pos);
-
-            case E_GridCheckType.Empty:
-                return isEmpty;
-
-            default:
-                return false;
-        }
-    }
-
-
 
     #endregion
 }

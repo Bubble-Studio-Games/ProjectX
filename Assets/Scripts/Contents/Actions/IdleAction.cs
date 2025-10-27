@@ -12,59 +12,76 @@ public class IdleAction : BaseAction
 
     public override BaseAction TakeAction(GridPosition gridPosition, Action onActionComplete)
     {
-        // 감지 범위 내의 적 유닛 탐색
-        var (obj, pos) = LevelGrid.Instance.GetClosestTargetGridInfo(m_BaseObject.GetGridPosition(), GetValidActionGridPositionList());
-
-        // 타겟 검증: 타겟이 없거나 사망했거나 유효하지 않으면 타겟 초기화
-        if (obj == null || obj.m_AttributeSystem.m_IsDead || !obj.gameObject.activeSelf)
+        if (m_BaseObject is PassiveObject pobj)
         {
-            m_BaseObject.SetTarget(null);
+            return this;
+        }
+        else if (m_BaseObject is ControllableObject cobj)
+        {
+            // 감지 범위 내의 적 유닛 탐색
+            var (obj, pos) = LevelGrid.Instance.GetClosestTargetGridInfo(cobj.GetGridPosition(), GetValidActionGridPositionList());
 
-            // 몬스터의 최종 목적지는 던전 핵!
-            if (m_BaseObject.m_TeamId == E_TeamId.Monster)
+            // 타겟 검증: 타겟이 없거나 사망했거나 유효하지 않으면 타겟 초기화
+            if (obj == null || obj.m_AttributeSystem.m_IsDead || !obj.gameObject.activeSelf)
             {
-                if(DungeonCore.instance == null || DungeonCore.instance.m_AttributeSystem.m_IsDead || !DungeonCore.instance.gameObject.activeSelf)
+                cobj.SetTarget(null);
+
+                // 몬스터의 최종 목적지는 던전 핵!
+                if (cobj.m_TeamId == E_TeamId.Monster)
                 {
-                    return this;
-                }
-                else
-                {
-                    if (m_BaseObject.m_isChaseCore)
-                    {
-                        m_BaseObject.SetTarget(DungeonCore.instance);
-                    }
-                    else
+                    if (DungeonCore.instance == null || DungeonCore.instance.m_AttributeSystem.m_IsDead || !DungeonCore.instance.gameObject.activeSelf)
                     {
                         return this;
                     }
+                    else
+                    {
+                        if (cobj.m_isChaseCore)
+                        {
+                            cobj.SetTarget(DungeonCore.instance);
+                        }
+                        else
+                        {
+                            return this;
+                        }
+                    }
                 }
+                else if (cobj.m_TeamId == E_TeamId.Player)
+                    return this;
             }
-            else if (m_BaseObject.m_TeamId == E_TeamId.Player)
-                return this;
+            else
+            {
+                cobj.SetTarget(obj);
+            }
+
+            // 현재 적을 발견한 상태
+
+            ActionStart(onActionComplete);
+
+            // 현재 가능한 공격 패턴들 뽑아오기
+            var attackPatterns = Managers.Game.EvaluateAttackPatternsByCondition
+                                (cobj,
+                                 cobj.m_Target,
+                                 E_AttackCondition.Success,
+                                 E_AttackCondition.Fail_Distance);
+
+            // 바로 공격 가능하면 전투로 돌입
+            if (attackPatterns.Count > 0)
+            {
+                return cobj.GetAction<CombatAction>();
+            }
+            // 거리 때문에 멀어졌다면 추적 상태 돌입
+            else
+            {
+                return cobj.GetAction<ChaseAction>();
+            }
         }
         else
         {
-            m_BaseObject.SetTarget(obj);
+            return this;
+
         }
 
-        ActionStart(onActionComplete);
 
-
-        var attackPatterns = Managers.Game.EvaluateAttackPatternsByCondition
-                            (m_BaseObject,
-                             m_BaseObject.m_Target,
-                             E_AttackCondition.Success,
-                             E_AttackCondition.Fail_Distance);
-
-        // 바로 공격 가능
-        if (attackPatterns.Count > 0)
-        {
-            return m_BaseObject.GetAction<CombatAction>();
-        }
-        else
-        {
-            return m_BaseObject.GetAction<ChaseAction>();
-        }
 
     }
 
@@ -106,11 +123,6 @@ public class IdleAction : BaseAction
                     // Detect Object
                     if (!LevelGrid.Instance.HasEnemyAtGridPosition(m_BaseObject.GetGridPosition(), testGridPosition))
                             continue;
-
-                    if (!Pathfinding.Instance.IsWalkableGridPosition(testGridPosition))
-                    {
-                        continue;
-                    }
 
                     if (!Pathfinding.Instance.HasPath(unitGridPosition, testGridPosition))
                     {

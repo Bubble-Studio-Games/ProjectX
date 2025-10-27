@@ -8,13 +8,13 @@ using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCou
 
 public class ControllableObjectCombatManager : MonoBehaviour
 {
-    public Item m_AttackReadyItemObject;
+    public List<(Item obj, Transform spawnTransform)> m_AttackReadyItemObject = new();
 
     [HideInInspector] public ControllableObject m_ControllableObject;
 
     public HashSet<AttackPattern_Ready> m_ReadyAttackPattern = new HashSet<AttackPattern_Ready>();
 
-    private void Awake()
+    protected virtual void Awake()
     {
         m_ControllableObject = GetComponent<ControllableObject>();
         GetComponent<AttributeSystem>().OnDamaged +=(s, e) => AttackReadyFailStart();
@@ -25,7 +25,7 @@ public class ControllableObjectCombatManager : MonoBehaviour
         CheckAttackReady();
     }
 
-    private void CheckAttackReady()
+    protected void CheckAttackReady()
     {
         var currentAttack = m_ControllableObject.GetAction<CombatAction>()?.m_ThisTimeAttack;
 
@@ -71,11 +71,11 @@ public class ControllableObjectCombatManager : MonoBehaviour
         // Sound
         m_ControllableObject.GetSounderManager().AttackReadyFailPlay();
 
-        if (m_AttackReadyItemObject != null)
-        {
-            m_AttackReadyItemObject.Destroy();
-            m_AttackReadyItemObject = null;
-        }
+        foreach (var (obj, _) in m_AttackReadyItemObject)
+            obj.Destroy();
+
+        // 리스트 초기화
+        m_AttackReadyItemObject.Clear();
 
         // 이번 타임 공격 제거
         m_ControllableObject.GetAction<CombatAction>().ChangeAttack(null);
@@ -88,4 +88,11 @@ public class ControllableObjectCombatManager : MonoBehaviour
         combat.m_ThisTimeAttack = null;
         combat.ActiveSet(false);
     }
+
+    public virtual List<Transform> GetProjectileSpawnTransforms(bool isWantSpawnAtWeapon, int getCount = 0)
+    {
+        return default;
+    }
+
+
 }

@@ -50,6 +50,11 @@ public partial class Define
         Horizontal  // 가로 일자 (ㅡ)
     }
 
+    public enum E_Projectile
+    {
+        Guided, // 유도탄
+        Straight, // 직격탄
+    }
 
     public enum E_AttackType
     {
@@ -89,7 +94,6 @@ public partial class Define
     public enum E_BuildingType
     {
         None,
-        Spawner
     }
 
     public enum E_NPC
@@ -123,21 +127,21 @@ public partial class Define
     [System.Flags]
     public enum E_GridCheckType
     {
-        None = 0,
-        Walkable = 1 << 0,
-        HasUnit = 1 << 1,
-        Reserved = 1 << 2,
-        Obstacle = 1 << 3,
-        Empty = 1 << 4, // 유닛/오브젝트/예약 없음
-    }
+        // 비어 있음
+        Walkable = 0,
 
-    //public enum E_GridCheckType
-    //{
-    //    Walkable,   // 그리드가 유효한 위치인지
-    //    HasUnit,    // 유닛이 있는지
-    //    Reserved,    // 예약된 위치인지
-    //    Obstacle // 장애물에 막혀 있는지
-    //}
+        // 유닛이 있음
+        GameEntity = 1 << 1,
+
+        // 예약된 자리임
+        Reserve = 1 << 2,
+
+        // 장애물이 있음
+        Obstacle = 1 << 3,
+
+        // 비어 있음, 공간이 없음
+        Void = 1 << 4,
+    }
 
     public enum E_WeaponItemType
     {
@@ -175,7 +179,8 @@ public partial class Define
         Fail_Distance,
         Fail_IndividualCondition,
         Fail_ManaCost,
-        Fail_NotHasPrevAttack,
+        Fail_Combo,
+        Fail_ConditionGridType,
     }
 
     public enum E_AttackEffectType
@@ -231,6 +236,7 @@ public partial class Define
         Blue,       // 이동 예약
         Red,        // 주의 표시 (공격 혹은 배치 불가 자리)
         Yellow,     // 주의 표시
+        Green
     }
 
     public enum E_GridVisualType_Intensity
@@ -266,8 +272,9 @@ public partial class Define
         Building = 2,
         Interact = 3,
         AutoTrigger = 4,
-        Obstacle = 5,
-        Skill = 6,
+        Obstacle,
+        Skill,
+        PassiveObject
         NPC = 7,
     }
 
@@ -279,6 +286,14 @@ public partial class Define
         Monster,
         NPC,
         None,
+    }
+
+    public enum E_TargetTendencyType
+    {
+        All, // 모두
+        Ally, // 같은 팀
+        Enemy, // 적
+        Neutral, // 중립?
     }
 
     public enum Scene

@@ -110127,6 +110127,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5056415774185284310, guid: 0dee6131ffa82c64e85916e2d37bd206, type: 3}
+      propertyPath: m_SpawnAnimationClip.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5935185308483016057, guid: 0dee6131ffa82c64e85916e2d37bd206, type: 3}
       propertyPath: RunClipList.Array.size
       value: 0
