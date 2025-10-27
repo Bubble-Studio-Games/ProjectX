@@ -1,25 +1,48 @@
 using System;
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 using static Define;
+
+public static class NPCEx
+{
+    public static BaseAction ToAction<T>(this NPC npc) where T : BaseAction
+    {
+        return npc.GetAction<T>();
+    }
+}
 
 public class NPC : Unit
 {
     [Header("NPC Behavior / 디버그용")]
     [SerializeField] private Vector3 _targetPos;
-    [SerializeField] private bool _hasReachedGoal = false;
-    [SerializeField] private bool _isInteractable = false;
+    [SerializeField] public bool _hasReachedGoal = false;
     [SerializeField] private bool _isInit = false;
-    [SerializeField] private GameObject _interactionIcon;
     [SerializeField] private NPCStat _npcStat;
-
-    private Coroutine _shopTimerCoroutine;
-    private NPCExclamationIcon _exclamationIcon;
-    private Color _outlineColor = Color.gray;
+    [SerializeField] private NPCOutlineView _outline;
+    [SerializeField] private NPCExclamationIcon _exclamationIcon;
+    [SerializeField] private Player _player;
+    public Player Player 
+    {
+        get 
+        {
+            if (_player == null)
+                _player = FindObjectOfType<Player>();
+            return _player;
+        }
+    }
+    public bool TryGetPlayer(out Player player)
+    {
+        player = Player;
+        if (player == null)
+        {
+            Debug.LogError($"{name}: Player를 찾을 수 없습니다.");
+            return false;
+        }
+        return true;
+    }
 
     public E_ObjectType m_ObjectType => E_ObjectType.NPC;
-    private E_NPCState _state = E_NPCState.Neutral;
+    [SerializeField] private E_NPCState _state = E_NPCState.Neutral;
     public E_NPCState State
     {
         get => _state;
@@ -32,26 +55,26 @@ public class NPC : Unit
             _state = value;
             EnterState(_state);
             UpdateTeamID();
-            UpdateOutlineColor();
-            OnStateChanged?.Invoke(this, EventArgs.Empty);
+            OnStateChanged?.Invoke(this, _state);
         }
     }
 
     private Transform _dungeonCoreTransform => DungeonCore.instance.transform;
+    private Coroutine _shopTimerCoroutine;
 
-    public bool IsInteractable => _isInteractable;
     public Vector3 TargetPos => _targetPos;
     public NPCStat NPCStat { get => _npcStat; set => _npcStat = value; }
 
-    public event EventHandler OnStateChanged;
-    public event EventHandler OnReachedGoal;
-    public event EventHandler OnInteractionStarted;
-    public event EventHandler OnDeath;
+    public static event Action<NPC> OnAnyNPCDeath;
+    public event Action<NPC, E_NPCState> OnStateChanged;
+    public event Action<NPC> OnReachedGoal;
+    public event Action<NPC> OnInteractionStarted;
+    
+    public void SetTarget(Vector3 targetPos) => _targetPos = targetPos;
 
-    public void SetTarget(Vector3 targetPos)
-    {
-        _targetPos = targetPos;
-    }
+    [ContextMenu("Neutral 성향")] public void SetNeutralState() => State = E_NPCState.Neutral;
+    [ContextMenu("Hostile 성향")] public void SetHostileState() => State = E_NPCState.Hostile;
+    [ContextMenu("Friendly 성향")] public void SetFriendlyState() => State = E_NPCState.Friendly;
 
     protected override void Awake()
     {
@@ -60,13 +83,26 @@ public class NPC : Unit
         if (this.TryGetMyStat(out NPCStat npcStat))
         {
             _npcStat = npcStat;
-            _state = _npcStat.InitialState;
+            _state = _npcStat.InitState;
             _isInit = true;
         }
 
-        SetupExclamationIcon();
+        _exclamationIcon = this.gameObject.GetComponentInChildren<NPCExclamationIcon>(true);
+        _exclamationIcon.Init(this);
+        _outline = this.gameObject.GetOrAddComponent<NPCOutlineView>();
+        _outline.Init(this);    
     }
 
+    public override void OnDestroy()
+    {
+        base.OnDestroy();
+        _exclamationIcon = null;
+        _outline = null;
+        OnAnyNPCDeath = null;
+        OnStateChanged = null;
+        OnReachedGoal = null;
+        OnInteractionStarted = null;
+    }
 
     protected override void Start()
     {
@@ -74,6 +110,15 @@ public class NPC : Unit
             return;
 
         State = _state;
+    }
+
+    protected override void InitStateAction()
+    {
+        var initAction = GetAction<NPCIdleAction>();
+        if (initAction != null)
+            SwitchToNextStateAction(initAction);
+        else
+            Debug.LogError($"{name}: NPCIdleAction을 찾을 수 없습니다.");
     }
 
     protected override void Update()
@@ -147,67 +192,6 @@ public class NPC : Unit
         }
     }
 
-    private void UpdateOutlineColor()
-    {
-        Color previousColor = _outlineColor;
-
-        switch (_state)
-        {
-            case E_NPCState.Hostile:
-                _outlineColor = new Color(0.5f, 0f, 0f, 1f);
-                break;
-            case E_NPCState.Neutral:
-                _outlineColor = Color.gray;
-                break;
-            case E_NPCState.Friendly:
-                _outlineColor = Color.green;
-                break;
-        }
-
-        if (previousColor != _outlineColor)
-            StartCoroutine(AnimateOutlineColorChange(previousColor, _outlineColor));
-        else
-            ApplyOutlineColor();
-    }
-
-    private void ApplyOutlineColor()
-    {
-        foreach (var (mat, obj) in GetModelsMaterial())
-        {
-            if (mat.HasProperty("_OutlineColor"))
-                mat.SetColor("_OutlineColor", _outlineColor);
-        }
-    }
-
-    private IEnumerator AnimateOutlineColorChange(Color previousColor, Color targetColor)
-    {
-        // 이전 색상과 새 색상이 같으면 애니메이션 불필요
-        if (previousColor == targetColor)
-            yield break;
-
-        float animationDuration = 1.0f; // 1초 동안 애니메이션
-        float elapsedTime = 0f;
-
-
-        // 색상 보간 
-        while (elapsedTime < animationDuration)
-        {
-            elapsedTime += Time.deltaTime;
-
-            float t = elapsedTime / animationDuration;
-            Color currentColor = Color.Lerp(previousColor, targetColor, t);
-
-            foreach (var (mat, obj) in GetModelsMaterial())
-            {
-                if (mat.HasProperty("_OutlineColor"))
-                    mat.SetColor("_OutlineColor", currentColor);
-            }
-
-            yield return null;
-        }
-
-        ApplyOutlineColor();
-    }
 
     /// <summary>
     /// 공격받았을 때 호출 - 중립 -> 적대 전환
@@ -231,14 +215,12 @@ public class NPC : Unit
     {
         if (_npcStat.NPCType == E_NPC.Shop)
         {
-            EnableInteraction();
-
             if (_shopTimerCoroutine != null)
                 StopCoroutine(_shopTimerCoroutine);
             _shopTimerCoroutine = StartCoroutine(ShopOperationTimer());
         }
 
-        OnReachedGoal?.Invoke(this, EventArgs.Empty);
+        OnReachedGoal?.Invoke(this);
     }
 
     private IEnumerator ShopOperationTimer()
@@ -258,11 +240,7 @@ public class NPC : Unit
             SetTarget(transform.position);
 
             // NPCMoveAction 다시 시작
-            NPCMoveAction moveAction = GetComponent<NPCMoveAction>();
-            if (moveAction != null)
-            {
-                moveAction.TakeAction();
-            }
+            m_CommandAction = GetAction<NPCMoveAction>();
         }
 
         _shopTimerCoroutine = null;
@@ -270,44 +248,22 @@ public class NPC : Unit
 
     public void EnableInteraction()
     {
-        _isInteractable = true;
-        UpdateInteractionIcon();
+        _exclamationIcon.SetVisible(true);
     }
 
     public void DisableInteraction()
     {
-        _isInteractable = false;
-        _interactionIcon?.SetActive(false);
-    }
-
-    private void UpdateInteractionIcon()
-    {
-        _exclamationIcon?.SetVisible(_isInteractable);
-    }
-
-    private void SetupExclamationIcon()
-    {
-        // _exclamationIcon = _interactionIcon?.GetOrAddComponent<NPCExclamationIcon>();
-        // _exclamationIcon?.SetOwnerNPC(this);
+        _exclamationIcon.SetVisible(false);
     }
 
     public void OnExclamationIconClicked()
     {
-        if (_isInteractable)
-        {
-            Interact();
-        }
+        Interact();
     }
 
     public void Interact()
     {
-        if (_isInteractable == false)
-        {
-            Debug.LogWarning($"[NPC] {name}은(는) 아직 상호작용 불가능합니다.");
-            return;
-        }
-
-        OnInteractionStarted?.Invoke(this, EventArgs.Empty);
+        OnInteractionStarted?.Invoke(this);
 
         Debug.Log($"[NPC] {name}과(와) 상호작용 시작!");
 
@@ -336,14 +292,14 @@ public class NPC : Unit
     {
         Debug.Log($"NPC - 대화 시작 - {name}");
         DialogueUI dialogueUI = Managers.UI.ShowPopupUI<DialogueUI>();
-        dialogueUI.StartDialogue(this, name, _npcStat.DialogueScriptPath);
+        dialogueUI.StartDialogue(this);
     }
 
 
     public override void DeSpawnStart()
     {
         base.DeSpawnStart();
-        OnDeath?.Invoke(this, EventArgs.Empty);
+        OnAnyNPCDeath?.Invoke(this); 
     }
 
     private void EnterHostileState()
@@ -368,8 +324,7 @@ public class NPC : Unit
 
         SetTarget(_dungeonCoreTransform.position);
 
-        NPCMoveAction moveAction = GetComponent<NPCMoveAction>();
-        moveAction?.TakeAction();
+        m_CommandAction = GetAction<NPCMoveAction>();
     }
 
     private void UpdateNeutralState()

@@ -36,7 +36,7 @@ public class NPCSpawner : MonoBehaviour
 
     [Header("Debug")]
     [SerializeField] private List<NPC> _npcInstances = new List<NPC>();
-    [SerializeField] private List<RespawnInfo> _respawnNPCs = new();  
+    [SerializeField] private List<RespawnInfo> _respawnNPCs = new();
 
     private Transform _dungeonCoreTarget => DungeonCore.instance.transform;
     private HashSet<GridPosition> _spawnGridPos = new HashSet<GridPosition>();
@@ -45,6 +45,8 @@ public class NPCSpawner : MonoBehaviour
     private void Start()
     {
         InitSpawnArea();
+        NPC.OnAnyNPCDeath += OnNPCDeath;
+        SpawnNPCAtPosition();
     }
 
     private void InitSpawnArea()
@@ -84,13 +86,31 @@ public class NPCSpawner : MonoBehaviour
         SpawnNPCs(1, 1);
     }
 
+    [SerializeField] private Transform _testSpawnPos;
+
+    [ContextMenu("NPC 지정된 위치에 스폰")]
+    private void SpawnNPCAtPosition()
+    {
+        var gridPos = LevelGrid.Instance.GetGridPosition(_testSpawnPos.position);
+        SpawnNPCs(1, 1, gridPos);
+    }
+
     /// <summary>
     /// 지정된 개수만큼 NPC를 생성
     /// </summary>
-    private void SpawnNPCs(int minCount, int maxCount)
+    private void SpawnNPCs(int minCount, int maxCount, GridPosition? testPos = null)
     {
-        if (TryGetSpawnAreaInfo(out List<GridPosition> enableSpawnPos) == false)
-            return;
+        List<GridPosition> enableSpawnPos;
+
+        if (testPos.HasValue)
+        {
+            enableSpawnPos = new List<GridPosition> { testPos.Value };
+        }
+        else
+        {
+            if (TryGetSpawnAreaInfo(out enableSpawnPos) == false)
+                return;
+        }
 
         int rand = UnityEngine.Random.Range(minCount, maxCount + 1);
         int spawnCount = Mathf.Min(rand, enableSpawnPos.Count);
@@ -105,7 +125,6 @@ public class NPCSpawner : MonoBehaviour
 
             npc.SetTarget(_dungeonCoreTarget.position);
             npc.SpawnStart();
-            npc.OnDeath += OnNPCDeath;  // OnRespawn → OnDeath로 변경
             _npcInstances.Add(npc);
 
             // 스폰 위치 제거 - 중복 스폰 방지
@@ -146,34 +165,30 @@ public class NPCSpawner : MonoBehaviour
     /// <summary>
     /// NPC 사망 이벤트 핸들러 - 즉시 파괴 + 재소환 타이머 시작
     /// </summary>
-    private void OnNPCDeath(object sender, EventArgs e)
+    private void OnNPCDeath(NPC owner)
     {
-        if (sender is NPC npc)
+        _npcInstances.Remove(owner);
+
+        // 재소환 정보 저장
+        var respawnInfo = new RespawnInfo
         {
-            _npcInstances.Remove(npc);
-            npc.OnDeath -= OnNPCDeath;
+            OriginalPrefab = GetOriginalPrefab(owner),
+            RespawnTime = owner.NPCStat.RespawnTime,
+            NPCName = owner.name
+        };
 
-            // 재소환 정보 저장
-            var respawnInfo = new RespawnInfo
-            {
-                OriginalPrefab = GetOriginalPrefab(npc),
-                RespawnTime = npc.NPCStat.RespawnTime,
-                NPCName = npc.name
-            };
-
-            // 재소환 타이머 시작
-            if (respawnInfo.RespawnTime > 0)
-            {
-                respawnInfo.RespawnCoroutine = StartCoroutine(RespawnNPCAfterDelay(respawnInfo));
-                _respawnNPCs.Add(respawnInfo);
-            }
-
-            // 즉시 파괴
-            Managers.Resource.Destroy(npc.gameObject);
-
-            ShowNPCDeathNotification(npc.name);
-            Debug.Log($"NPCSpawner - {npc.name}이(가) 사망했습니다. {npc.NPCStat.RespawnTime}초 후 재소환 예정.");
+        // 재소환 타이머 시작
+        if (respawnInfo.RespawnTime > 0)
+        {
+            respawnInfo.RespawnCoroutine = StartCoroutine(RespawnNPCAfterDelay(respawnInfo));
+            _respawnNPCs.Add(respawnInfo);
         }
+
+        // 즉시 파괴
+        Managers.Resource.Destroy(owner.gameObject);
+
+        ShowNPCDeathNotification(owner.name);
+        Debug.Log($"NPCSpawner - {owner.name}이(가) 사망했습니다. {owner.NPCStat.RespawnTime}초 후 재소환 예정.");
     }
 
     /// <summary>
@@ -196,7 +211,6 @@ public class NPCSpawner : MonoBehaviour
         npc.transform.position = LevelGrid.Instance.GetWorldPosition(spawnPos);
         npc.SetTarget(_dungeonCoreTarget.position);
         npc.SpawnStart();
-        npc.OnDeath += OnNPCDeath;
         _npcInstances.Add(npc);
 
         ShowNPCRespawnNotification(npc.name);
@@ -262,6 +276,8 @@ public class NPCSpawner : MonoBehaviour
 
     private void OnDestroy()
     {
+        NPC.OnAnyNPCDeath -= OnNPCDeath; 
+
         _npcInstances.Clear();
         _spawnGridPos.Clear();
 

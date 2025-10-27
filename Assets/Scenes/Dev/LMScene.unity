@@ -21861,6 +21861,7 @@ GameObject:
   - component: {fileID: 330585548}
   - component: {fileID: 330585549}
   - component: {fileID: 330585551}
+  - component: {fileID: 330585552}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -22043,6 +22044,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2a9be06ea3fe3c6418191e9352de0547, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &330585552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b0c31c55ae696b41aab90c4a51d3cd4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &330805116
@@ -38325,7 +38338,8 @@ MonoBehaviour:
   _spawnRangeZ: 15
   _spawnFloorRange: 0
   _npcInstances: []
-  _respawns: []
+  _respawnNPCs: []
+  _testSpawnPos: {fileID: 1062523810}
 --- !u!4 &557165051
 Transform:
   m_ObjectHideFlags: 0
@@ -71425,6 +71439,37 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 299938df647d45c4ab22be95f7ab2a86, type: 3}
+--- !u!1 &1062523809
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1062523810}
+  m_Layer: 0
+  m_Name: NPCSpawnPos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1062523810
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1062523809}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 20.7, y: -4.6618614, z: 22.98}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1063337723 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1484705169480768675, guid: 299938df647d45c4ab22be95f7ab2a86, type: 3}
@@ -74499,6 +74544,10 @@ MonoBehaviour:
   m_Follow: {fileID: 1940850547}
   m_UICamera: {fileID: 1746142469}
   m_CMImpulseListener: {fileID: 0}
+  _enableVerticalMovement: 1
+  _verticalMoveSpeed: 10
+  _minHeight: -100
+  _maxHeight: 100
 --- !u!1 &1114005162
 GameObject:
   m_ObjectHideFlags: 0
@@ -144449,6 +144498,7 @@ SceneRoots:
   m_Roots:
   - {fileID: 974751707}
   - {fileID: 557165051}
+  - {fileID: 1062523810}
   - {fileID: 481383990}
   - {fileID: 1421653917}
   - {fileID: 715756099}

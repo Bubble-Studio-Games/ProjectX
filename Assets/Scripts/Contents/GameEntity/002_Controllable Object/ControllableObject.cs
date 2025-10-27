@@ -7,7 +7,7 @@ using UnityEngine;
 using static Define;
 using static Util;   // 👈 추가!
 
-[RequireComponent(typeof(ControllableObjectCombatManager), typeof(SetupAnimation), typeof(Poolable))]
+[RequireComponent(typeof(ControllableObjectCombatManager), typeof(SetupAnimation) /*,typeof(Poolable)*/)]
 public class ControllableObject : GameEntity, IAccessories<ControllableObjectAnimator, ControllableObjectSounder>
 {
     //[Header("Event")]
@@ -28,6 +28,7 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
 
     [Header("Action")]
     private Dictionary<Type, BaseAction> baseActionDict = new Dictionary<Type, BaseAction>();
+    [SerializeField] private List<BaseAction> m_BaseActions;
     [SerializeField] private BaseAction currentAction;
     public BaseAction m_CurrentAction
     {
@@ -59,7 +60,10 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
     {
         base.Awake();
         foreach (var action in GetComponentsInChildren<BaseAction>())
-              baseActionDict[action.GetType()] = action;
+        {
+            baseActionDict[action.GetType()] = action;
+            m_BaseActions.Add(action);
+        }
 
         m_ControllableObjectCombatManager = GetComponent<ControllableObjectCombatManager>();
 
@@ -80,21 +84,34 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
         base.Start();
     }
 
+    /// <summary>
+    /// 초기 상태 액션 설정
+    /// </summary>
+    protected virtual void InitStateAction()
+    {
+        // Base Action
+        SwitchToNextStateAction(GetAction<IdleAction>());
+    }
+
     public override void SpawnComplete()
     {
         base.SpawnComplete();
 
-        // Base Action
-        SwitchToNextStateAction(GetAction<IdleAction>());
+        InitStateAction();
 
         // UnitActionSystem
         UnitActionSystem.Instance.OnUpdateActionTick += ExecuteAction;
     }
 
-    public void OnDestroy()
+    public virtual void OnDestroy()
     {
         if (UnitActionSystem.Instance != null)
             UnitActionSystem.Instance.OnUpdateActionTick -= ExecuteAction;
+
+        baseActionDict.Clear();
+        m_BaseActions.Clear();
+        m_BaseActions = null;   
+        m_CurrentAction = null;
     }
 
     protected override void Update()

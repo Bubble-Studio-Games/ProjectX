@@ -154,7 +154,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: RatAttack1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5866666021909216657, guid: edd9b7a9c7634ea47a0b6579b780d861, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -172,6 +173,11 @@ Transform:
 --- !u!4 &1654432347342449545 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -2977505917889424760, guid: edd9b7a9c7634ea47a0b6579b780d861, type: 3}
+  m_PrefabInstance: {fileID: 4636595802109704449}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2692322884897622721 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -1944022084645899328, guid: edd9b7a9c7634ea47a0b6579b780d861, type: 3}
   m_PrefabInstance: {fileID: 4636595802109704449}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &2815240937993977524 stripped
@@ -277,6 +283,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 818846330975870313, guid: c0a2690303fad354c97c4d12d8169898, type: 3}
       propertyPath: m_AttackPatterns.Array.data[0]
+      value: 
+      objectReference: {fileID: 11400000, guid: d68328f3d3dde9c4fa5a87cb70e0720b, type: 2}
+    - target: {fileID: 818846330975870313, guid: c0a2690303fad354c97c4d12d8169898, type: 3}
+      propertyPath: m_AttackPatterns.Array.data[1]
+      value: 
+      objectReference: {fileID: 11400000, guid: d68328f3d3dde9c4fa5a87cb70e0720b, type: 2}
+    - target: {fileID: 818846330975870313, guid: c0a2690303fad354c97c4d12d8169898, type: 3}
+      propertyPath: m_AttackPatterns.Array.data[2]
       value: 
       objectReference: {fileID: 11400000, guid: d68328f3d3dde9c4fa5a87cb70e0720b, type: 2}
     - target: {fileID: 1380709507287741048, guid: c0a2690303fad354c97c4d12d8169898, type: 3}
@@ -1095,6 +1109,18 @@ PrefabInstance:
       propertyPath: solver.chain.Array.data[0].childConstraints.Array.data[1].pullElasticity
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3647006873379440749, guid: c0a2690303fad354c97c4d12d8169898, type: 3}
+      propertyPath: m_TeamId
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3647006873379440749, guid: c0a2690303fad354c97c4d12d8169898, type: 3}
+      propertyPath: m_ModelTransforms.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3647006873379440749, guid: c0a2690303fad354c97c4d12d8169898, type: 3}
+      propertyPath: m_ModelTransforms.Array.data[0]
+      value: 
+      objectReference: {fileID: 2692322884897622721}
     - target: {fileID: 3845997506172946025, guid: c0a2690303fad354c97c4d12d8169898, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -1131,7 +1157,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: Rat
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5889395681688140942, guid: c0a2690303fad354c97c4d12d8169898, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 1380709507287741048, guid: c0a2690303fad354c97c4d12d8169898, type: 3}

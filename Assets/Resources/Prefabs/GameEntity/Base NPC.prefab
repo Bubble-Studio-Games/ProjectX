@@ -102,13 +102,62 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 7601346721002605746, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+    - {fileID: 793488998550642668, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+    - {fileID: 626778957585321761, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+    - {fileID: 6505905636300009639, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1915249964115312908, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3647006873379440749}
+    - targetCorrespondingSourceObject: {fileID: 1915249964115312908, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 708974699505150030}
+    - targetCorrespondingSourceObject: {fileID: 9048837873983921411, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5675546946360826276}
+    - targetCorrespondingSourceObject: {fileID: 9048837873983921411, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3344614304969545124}
   m_SourcePrefab: {fileID: 100100000, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+--- !u!1 &2637556965034962604 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9048837873983921411, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+  m_PrefabInstance: {fileID: 6415819738683650991}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5675546946360826276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2637556965034962604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84d914b1ce88b5340a33fe20427021a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DestGirdPosition:
+    x: 0
+    z: 0
+    floor: 0
+--- !u!114 &3344614304969545124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2637556965034962604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 008b8a0426425564da49cabf6d95b56a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DestGirdPosition:
+    x: 0
+    z: 0
+    floor: 0
 --- !u!1 &4872269993762484899 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1915249964115312908, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
@@ -133,9 +182,68 @@ MonoBehaviour:
   m_TeamId: 0
   m_fDelayDestroyTime: 3
   m_IsDirectDesawnAtDeath: 1
+  m_BaseActions: []
+  currentAction: {fileID: 0}
+  m_NextAction: {fileID: 0}
+  m_BeforeAction: {fileID: 0}
+  m_CommandAction: {fileID: 0}
+  IsAttackStand: 0
+  m_isDetectionsurroundingsEnabled: 1
+  m_isChaseCore: 1
+  m_originalGrade: 0
+  m_fEnhanceChance: 0
+  n_EnhanceTypeList: 
+  isTwoHandingWeapon: 0
+  isUsingRightHand: 0
+  isUsingLeftHand: 0
+  m_UnitEquipEquipmentManager: {fileID: 0}
+  m_UnitWeaponSlotManager: {fileID: 0}
   _targetPos: {x: 0, y: 0, z: 0}
   _hasReachedGoal: 0
   _isInteractable: 0
   _isInit: 0
   _interactionIcon: {fileID: 0}
-  _interactionRange: 3
+  _npcStat: {fileID: 0}
+  _outline: {fileID: 0}
+  _exclamationIcon: {fileID: 0}
+  _state: 1
+--- !u!114 &708974699505150030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4872269993762484899}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bab23ab847ff59443a1aad0b861208b0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _hostileColor: {r: 0.5, g: 0, b: 0, a: 0.5019608}
+  _neutralColor: {r: 1, g: 1, b: 1, a: 0.5019608}
+  _friendlyColor: {r: 0, g: 1, b: 0, a: 0.5019608}
+  _transitionDuration: 1
+  _transitionCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4

@@ -9,7 +9,7 @@ public class NPCStat : BaseStat
     public E_NPC NPCType = E_NPC.None;
 
     [Header("NPC State & Relationship")]
-    public E_NPCState InitialState = E_NPCState.Neutral;
+    public E_NPCState InitState = E_NPCState.Neutral;
 
     [Header("NPC Movement")]
     [Tooltip("던전 코어를 향해 자동으로 이동할지 여부")]

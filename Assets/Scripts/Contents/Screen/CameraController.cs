@@ -25,6 +25,14 @@ public class CameraController : MonoBehaviour
     private CinemachineInputAxisController m_CMInputAxisController;
     public CinemachineImpulseListener m_CMImpulseListener;
 
+#if UNITY_EDITOR
+    [Header("Vertical Movement / 에디터 테스트 전용")]
+    [SerializeField] private bool _enableVerticalMovement = true;
+    [SerializeField] private float _verticalMoveSpeed = 10f;
+    [SerializeField] private float _minHeight = 0f;
+    [SerializeField] private float _maxHeight = 50f;
+#endif
+
     private void Awake()
     {
         Instance = this;
@@ -43,6 +51,10 @@ public class CameraController : MonoBehaviour
     private void Update()
     {
         HandleMovement();
+#if UNITY_EDITOR
+        if (_enableVerticalMovement)
+            HandleVerticalMovement();
+#endif
         HandleEnableCMController();
     }
 
@@ -86,6 +98,36 @@ public class CameraController : MonoBehaviour
         }
     }
 
+#if UNITY_EDITOR
+    /// <summary>
+    /// 수직 이동 처리 - 에디터 테스트 전용
+    /// - "[" 아래로 이동
+    /// - "]" 위로 이동
+    /// </summary>
+    private void HandleVerticalMovement()
+    {
+        Vector3 newPos = m_Follow.position;
+        bool moved = false;
+
+        if (Input.GetKey(KeyCode.LeftBracket))
+        {
+            newPos.y -= _verticalMoveSpeed * Time.deltaTime;
+            moved = true;
+        }
+        
+        if (Input.GetKey(KeyCode.RightBracket))
+        {
+            newPos.y += _verticalMoveSpeed * Time.deltaTime;
+            moved = true;
+        }
+
+        if (moved)
+        {
+            newPos.y = Mathf.Clamp(newPos.y, _minHeight, _maxHeight);
+            m_Follow.position = newPos;
+        }
+    }
+#endif
 
     public float GetCameraHeight()
     {
