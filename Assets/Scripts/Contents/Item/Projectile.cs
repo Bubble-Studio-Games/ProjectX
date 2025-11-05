@@ -1,3 +1,4 @@
+using Data;
 using System.Collections;
 using UnityEngine;
 
@@ -15,7 +16,6 @@ public class Projectile : Item
 
     [Header("Destroy")]
     public bool m_hasDestoryAnimation;
-    private GameEntity m_Owner;
     private AttackPattern m_AttackPattern;
     public GameEntity m_Target { get; private set; }
 
@@ -69,6 +69,7 @@ public class Projectile : Item
         m_Rigidbody.Sleep(); // 완전히 물리 시뮬레이션 중단
         m_IsHit = false;
     }
+
 
     public override void Destroy(float seconds = 3.0f)
     {
@@ -124,13 +125,7 @@ public class Projectile : Item
         }
 
         m_IsHit = true;
-
-
     }
-
-    // Projectile.cs
-
-    // ... (기존 코드)
 
     private void OnCollisionEnter(Collision col)
     {
@@ -203,4 +198,51 @@ public class Projectile : Item
     {
         m_Rigidbody.isKinematic = false; // 더 이상 물리 영향 안 받게
     }
+
+    #region Data Save & Load
+
+    public override BaseData CaptureSaveData()
+    {
+        var iData = base.CaptureSaveData() as ItemData;
+
+        ProjectileData pdata = new ProjectileData
+        {
+            prefabName = name,
+            spawnPosition = spawnTransform.position,
+            spawnRotation = spawnTransform.rotation,
+            position = transform.position,
+            rotation = transform.rotation,
+            velocity = m_Rigidbody.velocity,
+            angularVelocity = m_Rigidbody.angularVelocity,
+            guid = _guid,
+            targetGuid = m_Target != null ? m_Target._guid : string.Empty,
+            onwerGuid = iData.onwerGuid,
+
+        };
+
+        return pdata;
+    }
+
+    public override void RestoreSaveData(BaseData baseData)
+    {
+        base.RestoreSaveData(baseData);
+
+        ProjectileData data = baseData as ProjectileData;
+
+        m_Rigidbody = GetComponent<Rigidbody>();    
+
+        if (m_Rigidbody != null)
+        {
+            m_Rigidbody.velocity = data.velocity;
+            m_Rigidbody.angularVelocity = data.angularVelocity;
+        }
+
+        if (!string.IsNullOrEmpty(data.targetGuid))
+        {
+            // 로드 후 Managers.Object에서 해당 guid를 가진 GameEntity를 찾아 연결
+            m_Target = Managers.Object.FindByGuidObject<GameEntity>(data.targetGuid);
+        }
+    }
+
+    #endregion
 }

@@ -28,9 +28,6 @@ public abstract class BaseScene : MonoBehaviour
     protected virtual void Start()
     {
         Managers.Game.ResumeGame();
-
-        // Sound
-        Managers.Sound.Play(m_SceneMainTemaAudioclip, 1, Sound.Bgm);
     }
 
     public abstract void Clear();

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43755161b97bd1948b6b5a64e4f4b73b, type: 3}
   m_Name: Zombi Attack
   m_EditorClassIdentifier: 
-  ID: 1001
+  ID: 10
   AttackName: 
   m_EAttackType: 1
   m_IsEnableSelfAttack: 0
@@ -34,8 +34,8 @@ MonoBehaviour:
   m_iConditionPrevAttackPattern: {fileID: 0}
   m_iCoolTime:
     _value: 2
-  lastCooltime:
-    _value: -2
+  m_fLastCooltime:
+    _value: 0
   m_iManaCost:
     _value: 0
   m_IsTwoHandAttack: 0

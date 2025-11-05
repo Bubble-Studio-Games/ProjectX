@@ -49,19 +49,18 @@ public class GameManager
     public void Init()
     {
         sessionStartTime = Time.realtimeSinceStartup;
+
+        m_PlaySlotId = Managers.Data.playStatistics?.lastSlotID ?? 0;
     }
 
     // 보상품 리스트의 뽑힐 확률의 총합을 1.0으로 맞춤.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void InitAllRewards()
     {
-        if (Managers.Instance.m_IsCaculateReward == false)
-            return;
-
         if (CheckRunMethodThisScene() == false)
             return;
 
-        RewardData[] rewards = Resources.LoadAll<RewardData>("Data/Reward");
+        Reward[] rewards = Resources.LoadAll<Reward>("Data/Reward");
         foreach (var reward in rewards)
         {
             reward.Init();
@@ -76,10 +75,7 @@ public class GameManager
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void InitAttackAnimationStepAnimation()
     {
-        //if (!CheckRunMethodThisScene()) return;
-
-        if (Managers.Instance.m_IsUseAnimationStep == false)
-            return;
+        if (!CheckRunMethodThisScene()) return;
 
         var patterns = Resources.LoadAll<AttackPattern>("Data/AttackPattern");
         int convertedCount = 0;
@@ -130,9 +126,6 @@ public class GameManager
     // 🔹 게임 종료 시 원본 복원
     public static void RestoreOriginalClips()
     {
-        if (Managers.Instance.m_IsUseAnimationStep == false)
-            return;
-
         int restoreCount = 0;
 
         foreach (var kvp in _attackPatternAnimationOriginals)
@@ -158,21 +151,14 @@ public class GameManager
         //Debug.Log($"♻️ AttackPattern 원본 복원 완료: {restoreCount}개 필드 복원 (패턴 {_attackPatternOriginals.Count}개)");
     }
 
-
-
-
     static bool CheckRunMethodThisScene()
     {
-        if (Managers.Scene.CurrentScene == null)
+        string sceneName = SceneManager.GetActiveScene().name;
+
+        if (!sceneName.Contains(Scene.Dungeon.ToString()) && !sceneName.Contains(Scene.Test.ToString()))
             return false;
 
-        if (Managers.Scene.CurrentScene.SceneType == Scene.Game)
-            return true;
-
-        if (Managers.Scene.CurrentScene.SceneType == Scene.Test)
-            return true;
-
-        return false;
+        return true;
     }
 
 
@@ -273,15 +259,13 @@ public class GameManager
     {
         Debug.Log("Data Save...");
 
-        PauseGame();
         // 게임 일시 정지
-        // 팝업 표시하기
+        PauseGame();
 
-        //sessionStartTime = Time.realtimeSinceStartup; // 실행된 시간 기록
-        await Managers.Data.asyncSave();
-        // 세이브가 전부 되면 action 실행
+        // 저장 팝업 표시하기
 
-        //ResumeGame();
+        await Managers.Save.SaveAllData();
+
         action?.Invoke();
     }
 
@@ -1007,6 +991,42 @@ public class GameManager
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Game Entity 타입에 따라 하이어 라키가 배치되게 한다.
+    /// 나중에..
+    /// </summary>
+    public void SetTransformGameEntityOfType(GameEntity entity)
+    {
+        if(Managers.Scene.CurrentScene is DungeonScene dungeonScene)
+        {
+            switch (entity.m_ObjectType)
+            {
+                case E_ObjectType.None:
+                    break;
+                case E_ObjectType.Unit:
+                    if(entity.m_TeamId == E_TeamId.Player)
+                        entity.transform.SetParent(dungeonScene.PlayerUnits);
+                    else if (entity.m_TeamId == E_TeamId.Monster)
+                        entity.transform.SetParent(dungeonScene.EnemyUnits);
+                    break;
+                case E_ObjectType.Building:
+                    break;
+                case E_ObjectType.Interact:
+                    break;
+                case E_ObjectType.AutoTrigger:
+                    break;
+                case E_ObjectType.Obstacle:
+                    break;
+                case E_ObjectType.Skill:
+                    break;
+                case E_ObjectType.PassiveObject:
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     #endregion

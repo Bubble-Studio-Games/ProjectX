@@ -4,6 +4,7 @@ using UnityEngine;
 using static Define;
 using Random = UnityEngine.Random;
 
+[Serializable]
 public  class GameEntitySounder : MonoBehaviour
 {
     [SerializeField] private Transform m_AudiosTransform;

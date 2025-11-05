@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e73c5523d7733e48b8f96dae88a24a6, type: 3}
   m_Name: Archer Draw Arrow
   m_EditorClassIdentifier: 
-  ID: 304
+  ID: 17
   AttackName: Archer Attack Ready
   m_EAttackType: 1
   m_IsEnableSelfAttack: 0
@@ -39,8 +39,8 @@ MonoBehaviour:
   m_iConditionPrevAttackPattern: {fileID: 0}
   m_iCoolTime:
     _value: 2
-  lastCooltime:
-    _value: -2
+  m_fLastCooltime:
+    _value: 0
   m_iManaCost:
     _value: 0
   m_IsTwoHandAttack: 0

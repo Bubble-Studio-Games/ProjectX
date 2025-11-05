@@ -1,3 +1,4 @@
+using Data;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ public class AttackPatternInfoClipWithReady : AttackPatternInfoClip
     public AnimationClip ReadyFailAnimationClip;
 }
 
+[Serializable]
 public class AttackPattern<TClip> : AttackPattern
     where TClip : AttackPatternInfoClip
 {
@@ -48,6 +50,7 @@ public class AttackPattern<TClip> : AttackPattern
 }
 
 // 데이터
+[Serializable]
 public abstract class AttackPattern : ScriptableObject
 {
     #region 공격 데이터
@@ -82,8 +85,8 @@ public abstract class AttackPattern : ScriptableObject
 
     [Header("Condition")]
     public StatValue m_iCoolTime = new StatValue(1, false);
-    [HideInInspector] public StatValue lastCooltime = new StatValue(1, false);
-    public bool m_bCoolTimeIsFinishied => Time.time - lastCooltime >= m_iCoolTime;
+    [HideInInspector] public StatValue m_fLastCooltime = new StatValue(1, false);
+    public bool m_bCoolTimeIsFinishied => Time.time - m_fLastCooltime >= m_iCoolTime;
     public StatValue m_iManaCost = new StatValue(0, false);
     public bool m_IsTwoHandAttack; // 두 손 행동인가?
 
@@ -114,7 +117,7 @@ public abstract class AttackPattern : ScriptableObject
 
     public virtual void Init()
     {
-        lastCooltime = -m_iCoolTime;              // 쿨타임 끝난 상태로 시작
+        m_fLastCooltime = -m_iCoolTime;              // 쿨타임 끝난 상태로 시작
         rangeOffsetMinMax = GetRangeMinMaxFromOffsets();
     }
 
@@ -128,18 +131,20 @@ public abstract class AttackPattern : ScriptableObject
 
         AttackPattern attack = attacker.GetAction<CombatAction>().m_ThisTimeAttack;
 
-        if (attack != null)
+        // 다음 콤보 필터링
+        if (m_iConditionPrevAttackPattern != null)
         {
-            // 다음 콤보 필터링
-            if (m_iConditionPrevAttackPattern != null)
-            {
-                if (attack.ID != m_iConditionPrevAttackPattern.ID)
-                    return (E_AttackCondition.Fail_Combo, default);
-            }
-
-            // 관계 없는 콤보 필터링
-            if (attack.m_iNextAttackPattern.Count() > 0 && !attack.GetNextIds().Contains(ID))
+            if (attack == null || attack.ID != m_iConditionPrevAttackPattern.ID)
                 return (E_AttackCondition.Fail_Combo, default);
+        }
+
+        // 관계 없는 콤보 필터링
+        if(attack != null)
+        {
+            if (attack.m_iNextAttackPattern.Count() > 0 && !attack.GetNextIds().Contains(ID))
+            {
+                return (E_AttackCondition.Fail_Combo, default);
+            }
         }
 
 
@@ -243,7 +248,7 @@ public abstract class AttackPattern : ScriptableObject
     public virtual void StartAttack(GameEntity attacker, GameEntity target, AttackPattern prevAttackpatern) // 실행
     {
         // 쿨타임 갱신
-        lastCooltime = Time.time;
+        m_fLastCooltime = Time.time;
 
         if (attacker is PassiveObject pobj)
         {
@@ -275,7 +280,7 @@ public abstract class AttackPattern : ScriptableObject
     public void EndAttackFail()
     {
         // 쿨타임 갱신
-        lastCooltime = Time.time;
+        m_fLastCooltime = Time.time;
     }
 
     protected IEnumerator ObjectDestroy(GameObject go, float time)
@@ -341,5 +346,62 @@ public abstract class AttackPattern : ScriptableObject
 
         return m_iNextIds;
     }
+
+    #region Data Save & Load
+
+    public AttackPatternData CaptureSaveData()
+    {
+        return new AttackPatternData()
+        {
+            id = ID,
+            coolTime = m_iCoolTime,
+            lastCoolTime = m_fLastCooltime,
+            manaCost = m_iManaCost,
+
+            physicalAttackDamage = m_iPhysicalAttackDamage,
+            magicAttackDamage = m_iMagicAttackDamage,
+
+            physicalFixedDamage = m_iPhysicalFixedDamage,
+            magicFixedDamage  = m_iMagicFixedDamage,
+
+            physicalArmorPenetraion = m_fPhysicalArmorPenetraion,
+            magicalArmorPenetraion = m_fMagicalArmorPenetraion,
+
+            criticalChance = m_iCriticalChance,
+            criticalDamageUp = m_fCriticalDamageUp,
+
+            accuracy = m_fAccuracy,
+            attackSpeed = m_fAttackSpeed,
+            knockbackChance = m_iKnockbackChance,
+            lifeStealPercent = m_fLifeStealPercent,
+        };
+    }
+
+    public void RestoreSaveData(BaseData data)
+    {
+        var attackData = data as AttackPatternData;
+        m_iCoolTime = attackData.coolTime;
+        m_fLastCooltime = attackData.lastCoolTime;
+        m_iManaCost = attackData.manaCost;
+
+        m_iPhysicalAttackDamage = attackData.physicalAttackDamage;
+        m_iMagicAttackDamage = attackData.magicAttackDamage;
+
+        m_iPhysicalFixedDamage = attackData.physicalFixedDamage;
+        m_iMagicFixedDamage = attackData.magicFixedDamage;
+
+        m_fPhysicalArmorPenetraion = attackData.physicalArmorPenetraion;
+        m_fMagicalArmorPenetraion = attackData.magicalArmorPenetraion;
+
+        m_iCriticalChance = attackData.criticalChance;
+        m_fCriticalDamageUp = attackData.criticalDamageUp;
+
+        m_fAccuracy = attackData.accuracy;
+        m_fAttackSpeed = attackData.attackSpeed;
+        m_iKnockbackChance = attackData.knockbackChance;
+        m_fLifeStealPercent = attackData.lifeStealPercent;
+    }
+
+    #endregion
 }
 
