@@ -1,3 +1,4 @@
+using Data;
 using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ public class BuildingCard : UI_Base,
     IBeginDragHandler, IDragHandler, IEndDragHandler,
     IPointerEnterHandler, IPointerExitHandler
 {
-    GameEntity m_GameEntity;
+    public GameEntity m_GameEntity { get; private set; }
     public Image m_objectImage;
     public TextMeshProUGUI cardName;
     public TextMeshProUGUI m_Type;

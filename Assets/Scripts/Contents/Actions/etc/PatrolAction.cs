@@ -1,16 +1,26 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class PatrolAction : MonoBehaviour
+public class PatrolAction : BaseAction
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public override string GetActionName()
     {
-        
+        throw new NotImplementedException();
     }
 
-    // Update is called once per frame
-    void Update()
+    public override EnemyAIAction GetEnemyAIAction(GridPosition gridPosition)
     {
-        
+        throw new NotImplementedException();
+    }
+
+    public override List<GridPosition> GetValidActionGridPositionList()
+    {
+        throw new NotImplementedException();
+    }
+
+    public override BaseAction TakeAction(GridPosition gridPosition = default, Action onActionComplete = null)
+    {
+        throw new NotImplementedException();
     }
 }

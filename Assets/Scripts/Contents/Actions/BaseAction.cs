@@ -4,6 +4,14 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
+// 1. AttributeSystem의 "상태"만 담는 순수 데이터 클래스 (MonoBehaviour 상속 금지)
+[Serializable]
+public class BaseActionData
+{
+    public bool isActive;
+
+}
+
 public abstract class BaseAction : MonoBehaviour
 {
     public static event EventHandler OnAnyActionStarted;
@@ -21,7 +29,6 @@ public abstract class BaseAction : MonoBehaviour
 
     [Header("Grid Position")]
     public GridPosition DestGirdPosition;
-
 
     protected virtual void Awake()
     {

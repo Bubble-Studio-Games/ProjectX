@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using static Define;
 
 public class InputManager : MonoBehaviour
 {
@@ -140,27 +141,32 @@ public class InputManager : MonoBehaviour
 
     public void ESC()
     {
-
-
-        // 유닛의 액션 창이 떠 있다면 액션 창 닫기 
-        // 상점 창, 미션 창 등의 팝업이 떠 있다면 닫기
-        if (!Managers.Game.m_IsGamePauseing) 
-        { 
-            Managers.UI.ShowPopupUI<MenuUI>();
-            Managers.Game.PauseGame();
-        } 
-        else 
+        if(Managers.Scene.CurrentScene.SceneType == Scene.Dungeon)
         {
-            // 메인 메뉴 창 말고 한 개 더 있는가?
-            if (Managers.UI._popupStack.Count > 1)
+            // 유닛의 액션 창이 떠 있다면 액션 창 닫기 
+            // 상점 창, 미션 창 등의 팝업이 떠 있다면 닫기
+            if (!Managers.Game.m_IsGamePauseing)
             {
-                Managers.UI.ClosePopupUI();
-                return;
+                Managers.UI.ShowPopupUI<MenuUI>();
+                Managers.Game.PauseGame();
             }
+            else
+            {
+                // 메인 메뉴 창 말고 한 개 더 있는가?
+                if (Managers.UI._popupStack.Count > 1)
+                {
+                    Managers.UI.ClosePopupUI();
+                    return;
+                }
 
-            Managers.UI.ClosePopupUI<MenuUI>();
-            Managers.Game.ResumeGame(); 
-
+                Managers.UI.ClosePopupUI<MenuUI>();
+                Managers.Game.ResumeGame();
+            }
+        }
+        else if(Managers.Scene.CurrentScene.SceneType == Scene.Start)
+        {
+            if(Managers.UI._popupStack.Count >= 2)
+                Managers.UI.ClosePopupUI();
         }
     }
 }

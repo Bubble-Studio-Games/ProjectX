@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -83,11 +84,14 @@ public struct StatValue
 
 
 [CreateAssetMenu(menuName = "Stat/GameEntityStat")]
+[Serializable]
 public class BaseStat : ScriptableObject
 {
     [Header("Base")]
     public int ID;
     public string Name ;
+
+    [JsonIgnore]
     public Sprite sprite; // 카드에 넣을 대표 이미지
     public string m_sDescription; // 설명
 

@@ -1,10 +1,13 @@
+using Data;
 using DG.Tweening;
 using GLTF.Schema;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using static Define;
 
-public class BuildingTypeSelectUI : MonoBehaviour
+public class BuildingTypeSelectUI : MonoBehaviour, ISaveable
 {
     public static BuildingTypeSelectUI Instance;
 
@@ -12,7 +15,7 @@ public class BuildingTypeSelectUI : MonoBehaviour
     public Canvas m_Canvas;
     public RectTransform m_RectTransform;
 
-    public List<BuildingCard> ShowGameEntityCard { get; private set; } = new();
+    public List<BuildingCard> ShowGameEntityCard { get; set; } = new();
     private int m_iMaxHaveCard = 10;
 
     [SerializeField] private BuildingCard m_BuildingCardPrefab;
@@ -41,17 +44,9 @@ public class BuildingTypeSelectUI : MonoBehaviour
 
     private void Start()
     {
-        // Temp
-        var list = Inventory.Instance.GetEnableCardList();
-
-        // Data Load
-        for (int i = 0; i < 10; i++)
-        {
-            AddCard(list[Random.Range(0, list.Count)], default, true);
-        }
     }
 
-    public void AddCard(GameEntity addCard, Vector3 worldPosition = default, bool isInit = false)
+    public void AddCard(GameEntity addUnit, Vector3 worldPosition = default, bool isInit = false)
     {
         // 초과 지급시 제일 첫 장은 버린다.
         if (ShowGameEntityCard.Count >= m_iMaxHaveCard)
@@ -60,7 +55,6 @@ public class BuildingTypeSelectUI : MonoBehaviour
 
             // TODO 자원 획득
         }
-
 
         BuildingCard card = Managers.Resource.Instantiate<BuildingCard>(m_BuildingCardPrefab.gameObject, transform.parent);
 
@@ -108,7 +102,7 @@ public class BuildingTypeSelectUI : MonoBehaviour
         card.m_RectTransform.DOMove(new Vector3(xinterval, m_fYOffset, 0), m_fXMoveTime);
         card.ResetTransform(new Vector2(xinterval, m_fYOffset));
 
-        card.Init(addCard);
+        card.Init(addUnit);
 
         ShowGameEntityCard.Add(card);
     }
@@ -172,4 +166,45 @@ public class BuildingTypeSelectUI : MonoBehaviour
         GridBuildingSystem.Instance.ChangePlaceObject(null);
     }
 
+    #region Data Save & Load
+
+    BaseData ISaveable.CaptureSaveData() => null;
+    public void RestoreSaveData(BaseData data) { }
+
+    public List<BaseData> CaptureSaveData()
+    {
+        List<BaseData> datas = new();
+
+
+        foreach (var card in ShowGameEntityCard)
+        {
+            BuildingCardData carddata = new BuildingCardData();
+            carddata.gameEntitySaveData = card.m_GameEntity.CaptureSaveData() as GameEntityData;
+            datas.Add(carddata);
+        }
+
+        return datas;
+    }
+
+    public void RestoreSaveDatas(IEnumerable<BaseData> datas) 
+    { 
+        foreach (BuildingCardData data in datas)
+        {
+            BuildingCard card = Managers.Resource.Instantiate<BuildingCard>(m_BuildingCardPrefab.gameObject, transform.parent);
+
+            float xinterval = ShowGameEntityCard.Count * m_fXInteraval + m_fXStartOffset;
+
+            card.m_RectTransform.anchoredPosition = new Vector2(xinterval, m_fYOffset);
+            //card.m_RectTransform.DOMove(new Vector3(xinterval, m_fYOffset, 0), m_fXMoveTime);
+            card.ResetTransform(new Vector2(xinterval, m_fYOffset));
+            Debug.Log($"{card.name} 카드의 위치 : {xinterval} {m_fYOffset}");
+
+            GameEntity addUnit = Managers.Object.GetPrefabByName(data.gameEntitySaveData.prefabName).GetComponent<GameEntity>();
+            card.Init(addUnit);
+
+            ShowGameEntityCard.Add(card);
+        }
+    }
+
+    #endregion
 }

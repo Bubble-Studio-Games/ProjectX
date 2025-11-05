@@ -17,6 +17,7 @@ using static Table_Camera_Shake;
  */
 
 [RequireComponent(typeof(Animator))]
+[Serializable]
 public class GameEntityAnimator : MonoBehaviour
 {
     [SerializeField] protected float m_fCrossTime = 0f;
@@ -233,7 +234,6 @@ public class GameEntityAnimator : MonoBehaviour
         // 공격 스피드 조정
         // 런타임 중에 state의 speed 값 변경은 불가함.
         m_Animator.speed = e.attackPattern.m_fAttackSpeed;
-
     }
 
     protected bool _attackValid = true;
