@@ -1,3 +1,4 @@
+using Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,7 +6,8 @@ using System.Security.Cryptography.X509Certificates;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using static Define;
-using static Util;   // 👈 추가!
+using static Util;
+
 
 [RequireComponent(typeof(ControllableObjectCombatManager), typeof(SetupAnimation), typeof(Poolable))]
 public class ControllableObject : GameEntity, IAccessories<ControllableObjectAnimator, ControllableObjectSounder>
@@ -38,7 +40,9 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
     public E_MoveType m_EMoveType { get; private set; }
 
     [Header("Grade")]
-    public E_ObjectGrade m_originalGrade;
+    public E_ObjectGrade m_originalEObjectGrade; //원래 등급
+    public E_ObjectGrade m_EObjectGrade; //조정된 등급
+    public OnChangeGradeEventArgs m_OnChangeGradeEventArgs; // 조정 수치
     [SerializeField] [Range(0, 100)] private float m_fEnhanceChance;
     [SerializeField] private List<E_ObjectEnhanceType> n_EnhanceTypeList;
     
@@ -64,6 +68,11 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
     protected override void Start()
     {
         base.Start();
+
+        if(m_originalEObjectGrade != m_EObjectGrade)
+        {
+            OnChangeGrade?.Invoke(this, m_OnChangeGradeEventArgs);
+        }
     }
 
     public override void SpawnComplete()
@@ -71,11 +80,13 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
         base.SpawnComplete();
 
         // Base Action
-        SwitchToNextStateAction(GetAction<IdleAction>());
+        if(m_CurrentAction == null)
+            SwitchToNextStateAction(GetAction<IdleAction>());
 
         // UnitActionSystem
         UnitActionSystem.Instance.OnUpdateActionTick += ExecuteAction;
     }
+
 
     public override void OnDestroy()
     {
@@ -240,26 +251,28 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
         }
 
         float value = Mathf.Round(UnityEngine.Random.Range(0f, 100f) * 100f) / 100f;
-        E_ObjectGrade toGrade;
 
         // 강화 성공
         if (value < m_fEnhanceChance)
         {
-            toGrade = E_ObjectGrade.Elite;
+            m_EObjectGrade = E_ObjectGrade.Elite;
         }
         // 원래 등급으로
         else
         {
-            toGrade = m_originalGrade;
+            m_EObjectGrade = m_originalEObjectGrade;
         }
 
-        OnChangeGrade?.Invoke(this, new OnChangeGradeEventArgs
+        m_OnChangeGradeEventArgs = new OnChangeGradeEventArgs()
         {
-            objGrade = toGrade,
+            objGrade = m_EObjectGrade,
             enhanceValue = GetRandomValue(1.2f, 1.5f, 0.1f),
             gradeEnhanceType = n_EnhanceTypeList.RandomPick(),
-            isSuccessGrade = toGrade != m_originalGrade
-        });
+            isSuccessGrade = m_EObjectGrade != m_originalEObjectGrade
+        };
+
+        // 업그레이드 실행
+        OnChangeGrade?.Invoke(this, m_OnChangeGradeEventArgs);
     }
 
     // 등급 변화에 따른 변화
@@ -290,6 +303,62 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
                 material.Item1.SetColor("_OutlineColor", color);
             }
         }
+    }
+
+    #endregion
+
+    #region Data Save & Load
+
+    public override BaseData CaptureSaveData()
+    {
+        var baseData =  base.CaptureSaveData() as GameEntityData;
+
+        return new ControllableObjectData()
+        {
+            // 공통 필드 복사
+            prefabName = baseData.prefabName,
+            position = baseData.position,
+            rotation = baseData.rotation,
+            guid = baseData.guid,
+            attributeSystemData = baseData.attributeSystemData,
+            gradeArgs = m_OnChangeGradeEventArgs,
+
+            // 하위 클래스 고유 데이터 추가
+            attackReadyItemData =
+                m_ControllableObjectCombatManager?.m_AttackReadyItemObject.Select(item => item.obj.CaptureSaveData()).ToList(),
+
+            readyAttackPatternData =
+               m_ControllableObjectCombatManager?.m_ReadyAttackPattern != null
+                   ? m_ControllableObjectCombatManager.m_ReadyAttackPattern
+                       .Select(attack => attack?.CaptureSaveData())
+                       .Where(data => data != null)
+                       .ToHashSet()
+                   : new HashSet<AttackPatternData>(),
+
+            targetGuid = m_Target?.guid
+        };
+    }
+
+    public override void RestoreSaveData(BaseData data)
+    {
+        base.RestoreSaveData(data);
+
+        ControllableObjectData cData = data as ControllableObjectData;
+
+        // readyAttackPatternData가 null이 아니고, 비어있지 않을 때만 복원
+        if (cData.readyAttackPatternData != null && cData.readyAttackPatternData.Count > 0)
+        {
+            m_ControllableObjectCombatManager.m_ReadyAttackPattern =
+                m_AttributeSystem.m_AttackPatterns
+                    .Where(a => cData.readyAttackPatternData.Any(b => a.ID == b.id))
+                    .OfType<AttackPattern_Ready>() // 타입 안전 변환
+                    .ToHashSet();
+        }
+
+        m_OnChangeGradeEventArgs = cData.gradeArgs;
+        m_EObjectGrade = m_OnChangeGradeEventArgs.objGrade;
+
+        SetTarget(Managers.Object.FindByGuidObject<GameEntity>(cData.targetGuid));
     }
 
     #endregion

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78c37a08149180b49ab810b26c0645c6, type: 3}
   m_Name: Archer Arrow Spread
   m_EditorClassIdentifier: 
-  ID: 303
+  ID: 11
   AttackName: Archer 2 Front Arrow Spread
   m_EAttackType: 1
   m_IsEnableSelfAttack: 0
@@ -40,8 +40,8 @@ MonoBehaviour:
   m_iConditionPrevAttackPattern: {fileID: 11400000, guid: 1ef4771bde04aec4a8a75b4aa6d59b1c, type: 2}
   m_iCoolTime:
     _value: 2
-  lastCooltime:
-    _value: -2
+  m_fLastCooltime:
+    _value: 0
   m_iManaCost:
     _value: 0
   m_IsTwoHandAttack: 0

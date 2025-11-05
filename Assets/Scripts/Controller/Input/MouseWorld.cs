@@ -238,7 +238,7 @@ public class MouseWorld : MonoBehaviour
         if (BuildingTypeSelectUI.Instance.m_IsDrawing)
             return;
 
-        if (Managers.Scene.CurrentScene.SceneType != Define.Scene.Game)
+        if (Managers.Scene.CurrentScene.SceneType != Define.Scene.Dungeon)
             return;
 
         if (Input.GetMouseButtonDown(0))
