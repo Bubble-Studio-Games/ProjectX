@@ -24,7 +24,7 @@ public class DungeonScene : BaseScene
         var data = Managers.Load.GetContinueSaveData();
 
         // 기존 플레이 했던 데이터가 있는 경우
-        if (data != null && data.dungeondata.gameEntityDatas.Count > 0)
+        if (data != null && data.dungeondata.gameEntityDatas.Count > 0 && useLoadSaveFile)
         {
             m_InitObject.SetActive(false);
 
@@ -47,7 +47,7 @@ public class DungeonScene : BaseScene
         var data = Managers.Load.GetContinueSaveData();
 
         // 기존 플레이 했던 데이터가 있는 경우
-        if (data != null && data.dungeondata.gameEntityDatas.Count > 0)
+        if (data != null && data.dungeondata.gameEntityDatas.Count > 0 && useLoadSaveFile)
         {
             // 배치 오브젝트
             Managers.Object.Clear();

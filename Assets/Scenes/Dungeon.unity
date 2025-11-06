@@ -2363,6 +2363,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e5a2a4ab56bf724faae15359b0ee526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  useLoadSaveFile: 0
+  isSaveFile: 0
   m_SceneMainTemaAudioclip: {fileID: 8300000, guid: d44e5948cc9026542be9ff4a2ec488de, type: 3}
   m_InitObject: {fileID: 1870912803}
   PlayerUnits: {fileID: 0}
