@@ -13,7 +13,7 @@ found=false
 echo "[husky] pre-push running" >&2
 
 # 1) 커밋에 포함된 파일 검사
-(git diff --cached --name-only --diff-filter=AM && git ls-files) | sort -u -z | \
+git diff --cached --name-only -z --diff-filter=AM | \
 while IFS= read -r -d '' file; do
     if [ -f "$file" ]; then
         ext="${file##*.}"
