@@ -57,6 +57,9 @@ public class GameManager
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void InitAllRewards()
     {
+        if (Managers.Instance.m_IsCaculateReward == false)
+            return;
+
         if (CheckRunMethodThisScene() == false)
             return;
 
@@ -75,8 +78,14 @@ public class GameManager
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void InitAttackAnimationStepAnimation()
     {
-        if (!CheckRunMethodThisScene()) return;
+        //if (!CheckRunMethodThisScene()) return;
 
+<<<<<<< HEAD
+=======
+        if (Managers.Instance.m_IsUseAnimationStep == false)
+            return;
+
+>>>>>>> develop
         var patterns = Resources.LoadAll<AttackPattern>("Data/AttackPattern");
         int convertedCount = 0;
 
@@ -126,6 +135,9 @@ public class GameManager
     // 🔹 게임 종료 시 원본 복원
     public static void RestoreOriginalClips()
     {
+        if (Managers.Instance.m_IsUseAnimationStep == false)
+            return;
+
         int restoreCount = 0;
 
         foreach (var kvp in _attackPatternAnimationOriginals)
@@ -993,6 +1005,7 @@ public class GameManager
         return result;
     }
 
+<<<<<<< HEAD
     /// <summary>
     /// Game Entity 타입에 따라 하이어 라키가 배치되게 한다.
     /// 나중에..
@@ -1029,5 +1042,7 @@ public class GameManager
         }
     }
 
+=======
+>>>>>>> develop
     #endregion
 }

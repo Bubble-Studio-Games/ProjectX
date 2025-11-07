@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Plugins/Animated Loading Icons.meta
 guid: 6d05d1406071cfb47bc314bb11fede53
+========
+guid: 0f3a3f7ec0214ab40b3f1297f43d792f
+>>>>>>>> develop:Assets/Resources/Data/AttackPattern/Range.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

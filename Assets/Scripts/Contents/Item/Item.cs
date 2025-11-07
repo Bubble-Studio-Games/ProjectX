@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 using Data;
+=======
+>>>>>>> develop
 using System;
 using System.Collections;
 using UnityEngine;
@@ -67,12 +70,17 @@ public class Item : MonoBehaviour, ISaveable, IGuidObject
     protected IEnumerator ObjectDestroy(float seconds = 3.0f)
     {
         yield return new WaitForSeconds(seconds);
+<<<<<<< HEAD
 
         // UnityEngine.Object는 == 연산자 오버라이드로 "Missing"도 null로 판단함
         if (gameObject == null)
             yield break;
 
         Managers.Resource.Destroy(gameObject);
+=======
+        if(gameObject != null)
+            Managers.Resource.Destroy(gameObject);
+>>>>>>> develop
     }
 
 

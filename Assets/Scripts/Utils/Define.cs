@@ -51,6 +51,49 @@ public partial class Define
         Straight, // 직격탄
     }
 
+    public enum E_AttackStartPos
+    {
+        Attacker,
+        Target,
+        None,
+    }
+
+    public enum E_RangeFillType
+    {
+        // 지정 범위 내 모든 타일을 대상으로 함
+        FullRange,
+
+        // 가장 바깥쪽 칸만 대상으로 함
+        OuterRing,
+
+        // 중심 제외하고 안쪽 3x3 또는 n-1 범위만
+        Inner,
+    }
+
+    public enum E_RangeShapeType
+    {
+        Square,     // 사각형 형태 (정사각형 범위)
+        // 일정 간격마다만 적용 (예: 1칸 건너)
+        Checker,
+
+        // 대각선 축 방향만 대상으로 함
+        Diamond,
+
+        Arc,          // 호(부채꼴) 형태
+        ReverseTriangle,      // 삼각형(시전자가 꼭지점 기준 ▼) 형태
+        Triangle,      // 삼각형(시전자가 밑변의 가운데 기준 ▲) 형태
+        CustomList,      // 임의 리스트(분석 불가)
+        Plus,       // 플러스 형태 (상하좌우)
+        Vertical,   // 세로 일자 (ㅣ)
+        Horizontal  // 가로 일자 (ㅡ)
+    }
+
+    public enum E_Projectile
+    {
+        Guided, // 유도탄
+        Straight, // 직격탄
+    }
+
     public enum E_AttackType
     {
         None,           // 비공격형
@@ -64,6 +107,92 @@ public partial class Define
         Knockback,      // 밀치기 등 위치 이동
     }
 
+<<<<<<< HEAD
+=======
+    #endregion
+
+
+    public enum E_ObjectEnhanceType
+    {
+        Health, 
+        Magic, 
+        Physical, 
+        Defense, 
+        Speed, 
+        Critical, 
+        Range, 
+        Skill
+    }
+
+    public enum E_ObjectGrade
+    {
+        Normal,
+        Elite,
+        Boss
+    }
+
+    public enum E_BuildingType
+    {
+        None,
+    }
+
+    public enum E_SetupObjectOffsetChange
+    {
+        None,
+        YOffset,
+        XZOffset,
+        All
+            
+    }
+
+
+    [System.Flags]
+    public enum E_GridCheckType
+    {
+        // 비어 있음
+        Walkable = 0,
+
+        // 유닛이 있음
+        GameEntity = 1 << 1,
+
+        // 예약된 자리임
+        Reserve = 1 << 2,
+
+        // 장애물이 있음
+        Obstacle = 1 << 3,
+
+        // 비어 있음, 공간이 없음
+        Void = 1 << 4,
+    }
+
+    public enum E_WeaponItemType
+    {
+        None,
+        Sword,
+        Bow
+    }
+
+    public enum E_DamagedValueTextDisplayType
+    {
+        Up,
+        MiddleBounce,
+
+    }
+
+    public enum E_HitDecisionType
+    {
+        Hit, // 공격 적중
+        CriticalHit, // 치명타 공격 적중
+        AttackMiss, // 공격 미스
+        Evasion, // 회피
+        Counter, // 반격
+    }
+>>>>>>> develop
+
+    public enum E_HealType
+    {
+        LifeSteal,      // 흡혈
+    }
 
     public enum E_AttackCondition
     {
@@ -88,7 +217,11 @@ public partial class Define
         Knockback,  // 밀치기 등 위치 이동
     }
 
+<<<<<<< HEAD
     public enum E_HitDecisionType
+=======
+    public enum E_UISoundType
+>>>>>>> develop
     {
         Hit, // 공격 적중
         CriticalHit, // 치명타 공격 적중
@@ -192,6 +325,25 @@ public partial class Define
         Evasion
     }
 
+<<<<<<< HEAD
+=======
+    public enum E_GridVisualType_Color
+    {
+        White,      // 이동 가능, 배치 가능
+        Blue,       // 이동 예약
+        Red,        // 주의 표시 (공격 혹은 배치 불가 자리)
+        Yellow,     // 주의 표시
+        Green
+    }
+
+    public enum E_GridVisualType_Intensity
+    {
+        Light,
+        Medium,
+        Strong
+    }
+
+>>>>>>> develop
     public enum E_Dir
     {
         North,

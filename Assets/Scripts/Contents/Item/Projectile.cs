@@ -16,6 +16,10 @@ public class Projectile : Item
 
     [Header("Destroy")]
     public bool m_hasDestoryAnimation;
+<<<<<<< HEAD
+=======
+    private GameEntity m_Owner;
+>>>>>>> develop
     private AttackPattern m_AttackPattern;
     public GameEntity m_Target { get; private set; }
 
@@ -70,7 +74,10 @@ public class Projectile : Item
         m_IsHit = false;
     }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> develop
     public override void Destroy(float seconds = 3.0f)
     {
         if (m_hasDestoryAnimation)
@@ -125,7 +132,16 @@ public class Projectile : Item
         }
 
         m_IsHit = true;
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> develop
     }
+
+    // Projectile.cs
+
+    // ... (기존 코드)
 
     private void OnCollisionEnter(Collision col)
     {
@@ -192,6 +208,14 @@ public class Projectile : Item
             Debug.Log($"구조물 오브젝트 충돌!! {col.gameObject.name}");
             // --------------------------------------------------------------------------
         }
+<<<<<<< HEAD
+=======
+    }
+
+    public void Launch()
+    {
+        m_Rigidbody.isKinematic = false; // 더 이상 물리 영향 안 받게
+>>>>>>> develop
     }
 
     public void Launch()

@@ -87,7 +87,10 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
         UnitActionSystem.Instance.OnUpdateActionTick += ExecuteAction;
     }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> develop
     public override void OnDestroy()
     {
         base.OnDestroy();

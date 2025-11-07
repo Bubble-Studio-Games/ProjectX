@@ -14,7 +14,10 @@ using static UnityEngine.UI.Image;
 using Material = UnityEngine.Material;
 using Random = UnityEngine.Random;
 using Type = System.Type;
+<<<<<<< HEAD
 
+=======
+>>>>>>> develop
 
 public interface IAccessories<TAnimator, TSounder> 
     where TAnimator : GameEntityAnimator 
@@ -84,6 +87,14 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     public bool m_IsRotateSymmetry { get; private set; }
 
     public bool IsDead => m_AttributeSystem.m_IsDead;
+<<<<<<< HEAD
+=======
+    public float CurHP 
+    {
+        get => m_AttributeSystem.m_Stat.m_iCurrentHp;
+        set => m_AttributeSystem.m_Stat.m_iCurrentHp = value;
+    }
+>>>>>>> develop
     public float MaxHP => m_AttributeSystem.m_Stat.m_iMaxHP;
     
     protected virtual void Awake()

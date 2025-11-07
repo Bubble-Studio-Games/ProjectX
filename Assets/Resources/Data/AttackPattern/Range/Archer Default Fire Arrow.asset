@@ -34,8 +34,13 @@ MonoBehaviour:
   m_iConditionPrevAttackPattern: {fileID: 11400000, guid: 4473d3c84544fe44897429ddf891ceb1, type: 2}
   m_iCoolTime:
     _value: 2
+<<<<<<< HEAD
   m_fLastCooltime:
     _value: 0
+=======
+  lastCooltime:
+    _value: -2
+>>>>>>> develop
   m_iManaCost:
     _value: 0
   m_IsTwoHandAttack: 0

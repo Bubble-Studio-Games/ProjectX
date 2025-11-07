@@ -16,7 +16,11 @@ MonoBehaviour:
   AttackName: Warior 1 Front Attack Slash
   m_EAttackType: 1
   m_IsEnableSelfAttack: 0
+<<<<<<< HEAD
   m_ERangeFillType: 1
+=======
+  m_ERangeFillType: 0
+>>>>>>> develop
   m_ERangeShapeType: 6
   m_RangeOffset:
   - x: 0
@@ -34,8 +38,13 @@ MonoBehaviour:
   m_iConditionPrevAttackPattern: {fileID: 0}
   m_iCoolTime:
     _value: 2
+<<<<<<< HEAD
   m_fLastCooltime:
     _value: 6.7
+=======
+  lastCooltime:
+    _value: -2
+>>>>>>> develop
   m_iManaCost:
     _value: 0
   m_IsTwoHandAttack: 0

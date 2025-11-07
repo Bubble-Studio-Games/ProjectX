@@ -264,7 +264,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1922872826179673982, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2382093558584436961, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
       propertyPath: m_Name
@@ -404,7 +404,11 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: ff4d4203de4dcde4a91a9e6757bbcdf7, type: 2}
     - target: {fileID: 5940122002470990004, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
       propertyPath: m_AttackPatterns.Array.size
+<<<<<<< HEAD
       value: 0
+=======
+      value: 1
+>>>>>>> develop
       objectReference: {fileID: 0}
     - target: {fileID: 5940122002470990004, guid: e05e84c140205e646896f0fddd1b250c, type: 3}
       propertyPath: m_AttackPatterns.Array.data[0]

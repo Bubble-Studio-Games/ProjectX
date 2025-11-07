@@ -34,6 +34,13 @@ public class AttributeSystem : MonoBehaviour
         public E_HealType HealType;
         public GameEntity Healer; // 흡혈의 경우 자기 자신
     }
+<<<<<<< HEAD
+=======
+
+    [Header("Stat")]
+    [SerializeField] private BaseStat m_originalStat;
+    [HideInInspector] public BaseStat m_Stat;
+>>>>>>> develop
 
     [Header("Stat")]
     [SerializeField] private BaseStat m_originalStat;
@@ -68,7 +75,11 @@ public class AttributeSystem : MonoBehaviour
             //return false;
         }
 
+<<<<<<< HEAD
         if (m_originalAttackPatterns == null || m_originalAttackPatterns.Count <= 0)
+=======
+        if (m_AttackPatterns == null || m_AttackPatterns.Count <= 0)
+>>>>>>> develop
         {
             Debug.LogError($"{this.gameObject.name}: 공격 패턴이 존재하지 않습니다.- AttributeSystem - AttackPatterns");
             //return false;
@@ -93,10 +104,17 @@ public class AttributeSystem : MonoBehaviour
         if(m_originalStat != null)
         {
             m_originalStat = Instantiate(m_originalStat);
+<<<<<<< HEAD
 
             if(m_Stat == default || m_Stat == null)
                 m_Stat = m_originalStat;
         }
+=======
+            m_Stat = m_originalStat;
+        }
+
+
+>>>>>>> develop
 
         // Stat을 Instantiate 한 후에 해야함.
         if (m_GameEntity is ControllableObject cobj)
@@ -108,6 +126,7 @@ public class AttributeSystem : MonoBehaviour
     private void Start()
     {
         // 공격
+<<<<<<< HEAD
         // 로드된 데이터가 없는 경우
         if(m_originalAttackPatterns.Count > 0 && m_AttackPatterns.Count == 0)
         {
@@ -115,6 +134,15 @@ public class AttributeSystem : MonoBehaviour
             .Select(pattern => {
                 var instance = Instantiate(pattern);
                 return instance;})
+=======
+        if(m_AttackPatterns != null)
+        {
+            m_AttackPatterns = m_AttackPatterns
+            .Select(pattern => {
+                var instance = Instantiate(pattern);
+                return instance;
+            })
+>>>>>>> develop
             .ToList();
         }
 

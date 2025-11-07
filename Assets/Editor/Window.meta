@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Editor/Window.meta
 guid: fc4a9d7a39c26944eaf19de6b5bf685b
+========
+guid: aa1993a7679c308428c3b8e39570f0f8
+>>>>>>>> develop:Assets/Resources/Data/AttackPattern.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

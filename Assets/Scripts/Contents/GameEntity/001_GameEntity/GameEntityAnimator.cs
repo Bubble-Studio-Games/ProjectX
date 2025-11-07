@@ -234,6 +234,10 @@ public class GameEntityAnimator : MonoBehaviour
         // 공격 스피드 조정
         // 런타임 중에 state의 speed 값 변경은 불가함.
         m_Animator.speed = e.attackPattern.m_fAttackSpeed;
+<<<<<<< HEAD
+=======
+
+>>>>>>> develop
     }
 
     protected bool _attackValid = true;

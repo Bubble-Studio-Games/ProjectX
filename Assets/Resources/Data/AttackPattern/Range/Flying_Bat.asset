@@ -12,7 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78c37a08149180b49ab810b26c0645c6, type: 3}
   m_Name: Flying_Bat
   m_EditorClassIdentifier: 
+<<<<<<< HEAD
   ID: 14
+=======
+  ID: 2002
+>>>>>>> develop
   AttackName: "\uBC15\uC950 \uB0A0\uB9AC\uAE30"
   m_EAttackType: 7
   m_IsEnableSelfAttack: 0
@@ -34,8 +38,13 @@ MonoBehaviour:
   m_iConditionPrevAttackPattern: {fileID: 0}
   m_iCoolTime:
     _value: 10
+<<<<<<< HEAD
   m_fLastCooltime:
     _value: 0
+=======
+  lastCooltime:
+    _value: -10
+>>>>>>> develop
   m_iManaCost:
     _value: 10
   m_IsTwoHandAttack: 1

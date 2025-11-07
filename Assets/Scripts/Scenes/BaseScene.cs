@@ -9,12 +9,15 @@ public abstract class BaseScene : MonoBehaviour
 {
     public Define.Scene SceneType { get; protected set; } = Define.Scene.Unknown;
 
+<<<<<<< HEAD
     [Tooltip("세이브 파일을 로드할 것인가?")]
     public bool useLoadSaveFile = true;
 
     [Tooltip("데이터를 저장할 것인가?")]
     public bool isSaveFile = true;
 
+=======
+>>>>>>> develop
     [Header("Scene")]
     public AudioClip m_SceneMainTemaAudioclip;
 
@@ -34,6 +37,12 @@ public abstract class BaseScene : MonoBehaviour
     protected virtual void Start()
     {
         Managers.Game.ResumeGame();
+<<<<<<< HEAD
+=======
+
+        // Sound
+        Managers.Sound.Play(m_SceneMainTemaAudioclip, 1, Sound.Bgm);
+>>>>>>> develop
     }
 
     public abstract void Clear();

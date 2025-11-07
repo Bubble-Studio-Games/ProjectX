@@ -29,7 +29,11 @@ MonoBehaviour:
     z: 0
     floor: 0
   m_GridCheckTypes: 
+<<<<<<< HEAD
   m_ApplyTargetE_Tendency: 0
+=======
+  m_ApplyTargetTeampId: 1
+>>>>>>> develop
   m_iNextAttackPattern:
   - {fileID: 11400000, guid: 181cab53489cf9244a388f1efa1f61f1, type: 2}
   m_iConditionPrevAttackPattern: {fileID: 0}
