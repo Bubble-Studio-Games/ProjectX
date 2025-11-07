@@ -68,7 +68,7 @@ MonoBehaviour:
     _value: 0
   AttackAudioClip: {fileID: 0}
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: 5440ad7e57d4e78459c6cbaa87d4f812, type: 2}
+  - AttackAnimationClip: {fileID: 7400000, guid: a0c4034a045ad5641845ce4c0e60dfd8, type: 2}
   _summonUnitPrefab: {fileID: 6932039019377333456, guid: e660127e418b36244a45fabaf68e95ad, type: 3}
   m_IsRandomSpawnCount: 1
   _minSummonCount: 0
