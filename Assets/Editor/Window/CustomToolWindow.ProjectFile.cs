@@ -7,131 +7,165 @@ using System.Reflection;
 
 public partial class CustomToolWindow 
 {
-    #region FBX 파일 안에 있는 애니메이션의 이름을 FBX 파일로 변경
+    #region FBX 파일 안에 있는 애니메이션의 이름을 FBX 파일로 변경 + Rig/Avatar/Loop 확장
 
     private bool renameClipsToFileName = true;
-    private bool FBXapplyRootOptions = true;
-    private bool FBXapplyLoopOptions = true;
 
+    private bool FBXapplyRootOptions = true;
     private bool lockRootRotation = true;
     private bool lockRootHeightY = true;
     private bool lockRootPositionXZ = false;
 
+    private bool FBXapplyLoopOptions = true;
     private bool loop = false;
 
+    // ✅ 추가: Rig/Avatar 옵션
+    private bool applyRigSettings = false;
+    private ModelImporterAnimationType selectedAnimationType = ModelImporterAnimationType.Human;
+    private Avatar avatarOverride;
+
+    // ✅ 추가: 특정 이름 Loop 설정
+    private bool applyLoopByName = true;
+    private string loopKeywords = "idle,walk,run,hover,fly"; // 쉼표 구분 입력
+
+    private bool applyRootBakeOptions = true;
 
     private void Handle_FBXAnimationBatchTool()
     {
         GUILayout.Label("🎬 FBX Animation Batch Processor", EditorStyles.boldLabel);
         GUILayout.Space(5);
 
-        EditorGUILayout.LabelField("✔ 적용 범위: 현재 선택한 FBX 파일만", EditorStyles.helpBox);
+        EditorGUILayout.LabelField("✔ 적용 범위: 현재 선택된 FBX 또는 폴더 내부 전체", EditorStyles.helpBox);
 
         renameClipsToFileName = EditorGUILayout.ToggleLeft("🎯 애니메이션 이름을 FBX 이름으로 변경", renameClipsToFileName);
+
+        // ✅ Rig 설정 UI
+        applyRigSettings = EditorGUILayout.BeginToggleGroup("🦴 Rig 설정 적용", applyRigSettings);
+        selectedAnimationType = (ModelImporterAnimationType)EditorGUILayout.EnumPopup("Animation Type", selectedAnimationType);
+        avatarOverride = (Avatar)EditorGUILayout.ObjectField("Avatar Override (Humanoid)", avatarOverride, typeof(Avatar), false);
+        EditorGUILayout.EndToggleGroup();
+
+        // Root Setting
         FBXapplyRootOptions = EditorGUILayout.BeginToggleGroup("⚙ Root Transform 설정 적용", FBXapplyRootOptions);
-        {
-            lockRootRotation = EditorGUILayout.Toggle("Lock Root Rotation", lockRootRotation);
-            lockRootHeightY = EditorGUILayout.Toggle("Lock Root Height Y", lockRootHeightY);
-            lockRootPositionXZ = EditorGUILayout.Toggle("Lock Root Position XZ", lockRootPositionXZ);
-        }
-
+        lockRootRotation = EditorGUILayout.Toggle("Lock Root Rotation", lockRootRotation);
+        lockRootHeightY = EditorGUILayout.Toggle("Lock Root Height Y", lockRootHeightY);
+        lockRootPositionXZ = EditorGUILayout.Toggle("Lock Root Position XZ", lockRootPositionXZ);
         EditorGUILayout.EndToggleGroup();
 
-        FBXapplyLoopOptions = EditorGUILayout.BeginToggleGroup("⚙ Loop 설정 적용", FBXapplyLoopOptions);
-        loop = EditorGUILayout.Toggle("🔁 loop 설정", loop);
+        // Loop Setting
+        FBXapplyLoopOptions = EditorGUILayout.BeginToggleGroup("🔁 Loop 설정 일괄 적용", FBXapplyLoopOptions);
+        loop = EditorGUILayout.Toggle("기본 Loop 적용", loop);
         EditorGUILayout.EndToggleGroup();
 
-        GUILayout.Space(10);
+        // ✅ 이름 기반 Loop 자동 적용
+        applyLoopByName = EditorGUILayout.BeginToggleGroup("📝 특정 이름 포함 시 Loop 자동 적용", applyLoopByName);
+        loopKeywords = EditorGUILayout.TextField("Loop 키워드 (쉼표 구분)", loopKeywords);
+        EditorGUILayout.EndToggleGroup();
 
+        // ✅ Root Bake 옵션 토글 표시
+        applyRootBakeOptions = EditorGUILayout.ToggleLeft("Root Transform Bake Into Pose Original 일괄 적용", applyRootBakeOptions);
 
+        GUILayout.Space(15);
 
         if (GUILayout.Button("🚀 변경 적용", GUILayout.Height(35)))
-        {
             ApplyChangesToSelectedFBXs();
-        }
     }
+
 
     private void ApplyChangesToSelectedFBXs()
     {
-        UnityEngine.Object[] selectedObjects = Selection.objects;
-
-        if (selectedObjects == null || selectedObjects.Length == 0)
-        {
-            EditorUtility.DisplayDialog("오류", "Project 뷰에서 하나 이상의 FBX 파일을 선택하세요.", "확인");
-            return;
-        }
+        var selectedObjects = Selection.objects;
 
         foreach (var selected in selectedObjects)
         {
-            string assetPath = AssetDatabase.GetAssetPath(selected);
+            string path = AssetDatabase.GetAssetPath(selected);
 
-            if (string.IsNullOrEmpty(assetPath) || !assetPath.ToLower().EndsWith(".fbx"))
+            // 폴더라면 내부 FBX 포함 재귀 처리
+            if (AssetDatabase.IsValidFolder(path))
             {
-                Debug.LogWarning($"무시됨: {selected.name} 은(는) FBX 파일이 아닙니다.");
+                string[] fbxFiles = AssetDatabase.FindAssets("t:Model", new[] { path })
+                    .Select(guid => AssetDatabase.GUIDToAssetPath(guid)).ToArray();
+
+                foreach (var fbx in fbxFiles)
+                    ProcessFBX(fbx);
+
                 continue;
             }
 
-            ModelImporter modelImporter = AssetImporter.GetAtPath(assetPath) as ModelImporter;
-            if (modelImporter == null)
-            {
-                Debug.LogWarning($"ModelImporter를 가져올 수 없습니다: {assetPath}");
-                continue;
-            }
-
-            // Clip 복사 및 옵션 적용
-            ModelImporterClipAnimation[] originalClips = modelImporter.clipAnimations;
-            if (originalClips == null || originalClips.Length == 0)
-            {
-                originalClips = modelImporter.defaultClipAnimations;
-            }
-
-            ModelImporterClipAnimation[] newClips = new ModelImporterClipAnimation[originalClips.Length];
-
-            for (int i = 0; i < originalClips.Length; i++)
-            {
-                var original = originalClips[i];
-                var clip = new ModelImporterClipAnimation
-                {
-                    name = renameClipsToFileName ? Path.GetFileNameWithoutExtension(assetPath) : original.name,
-
-                    firstFrame = original.firstFrame,
-                    lastFrame = original.lastFrame,
-                    keepOriginalPositionXZ = original.keepOriginalPositionXZ,
-                    keepOriginalPositionY = original.keepOriginalPositionY,
-                    keepOriginalOrientation = original.keepOriginalOrientation,
-                    mirror = original.mirror,
-                    takeName = original.takeName,
-
-                    loopTime = FBXapplyLoopOptions ? loop : original.loopTime,
-                    loopPose = original.loopPose,
-                    cycleOffset = original.cycleOffset,
-
-                    lockRootRotation = FBXapplyRootOptions ? lockRootRotation : original.lockRootRotation,
-                    lockRootHeightY = FBXapplyRootOptions ? lockRootHeightY : original.lockRootHeightY,
-                    lockRootPositionXZ = FBXapplyRootOptions ? lockRootPositionXZ : original.lockRootPositionXZ,
-
-
-                    maskType = original.maskType,
-
-                    // 🔥 이벤트 복사 추가
-                    events = original.events,
-                };
-
-                newClips[i] = clip;
-            }
-
-            modelImporter.clipAnimations = newClips;
-
-            AssetDatabase.ImportAsset(assetPath);
-            Debug.Log($"✅ 적용됨: {assetPath}");
+            if (path.EndsWith(".fbx", System.StringComparison.OrdinalIgnoreCase))
+                ProcessFBX(path);
         }
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        Debug.Log("🎉 모든 FBX 적용 완료!");
+        Debug.Log("✅ 모든 FBX 적용 완료!");
+    }
+
+    private void ProcessFBX(string assetPath)
+    {
+        ModelImporter importer = AssetImporter.GetAtPath(assetPath) as ModelImporter;
+        if (importer == null) return;
+
+        // ✅ Rig 설정 적용
+        if (applyRigSettings)
+        {
+            importer.animationType = selectedAnimationType;
+            if (selectedAnimationType == ModelImporterAnimationType.Human && avatarOverride != null)
+                importer.sourceAvatar = avatarOverride;
+        }
+
+        // 기존 Clip 불러오기
+        var clips = importer.clipAnimations.Length > 0 ? importer.clipAnimations : importer.defaultClipAnimations;
+        var newClips = new ModelImporterClipAnimation[clips.Length];
+
+        string[] keywords = loopKeywords.ToLower().Split(',').Select(k => k.Trim()).ToArray();
+
+        for (int i = 0; i < clips.Length; i++)
+        {
+            var src = clips[i];
+            var clip = new ModelImporterClipAnimation()
+            {
+                name = renameClipsToFileName ? Path.GetFileNameWithoutExtension(assetPath) : src.name,
+                firstFrame = src.firstFrame,
+                lastFrame = src.lastFrame,
+
+                lockRootRotation = FBXapplyRootOptions ? lockRootRotation : src.lockRootRotation,
+                lockRootHeightY = FBXapplyRootOptions ? lockRootHeightY : src.lockRootHeightY,
+                lockRootPositionXZ = FBXapplyRootOptions ? lockRootPositionXZ : src.lockRootPositionXZ,
+
+                loopTime = FBXapplyLoopOptions ? loop : src.loopTime,
+            };
+
+            // ✅ 특정 키워드 포함 시 Loop 자동 활성화
+            if (applyLoopByName)
+                if (keywords.Any(k => clip.name.ToLower().Contains(k)))
+                    clip.loopTime = true;
+
+            // 1. Root Transform Rotation 설정
+            if(applyRootBakeOptions)
+            {
+                clip.lockRootRotation = true; // Bake Into Pose: True
+                clip.keepOriginalOrientation = true; // Based Upon: Original
+
+                // 2. Root Transform Position (Y) 설정
+                clip.lockRootHeightY = true; // Bake Into Pose: True
+                clip.keepOriginalPositionY = true; // Based Upon: Original
+
+                // 3. Root Transform Position (XZ) 설정
+                clip.lockRootPositionXZ = true; // Bake Into Pose: True
+                clip.keepOriginalPositionXZ = true; // Based Upon: Original
+            }
+
+            newClips[i] = clip;
+        }
+
+        importer.clipAnimations = newClips;
+        AssetDatabase.ImportAsset(assetPath);
+        Debug.Log($"🎯 적용됨 → {assetPath}");
     }
 
     #endregion
+
 
     #region AddColliderToSelectedAndChildren
 

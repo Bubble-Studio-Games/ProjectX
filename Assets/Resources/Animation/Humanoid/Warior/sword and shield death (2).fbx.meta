@@ -24,7 +24,7 @@ ModelImporter:
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
     importConstraints: 0
-    animationCompression: 3
+    animationCompression: 1
     animationRotationError: 0.5
     animationPositionError: 0.5
     animationScaleError: 0.5
@@ -34,8 +34,8 @@ ModelImporter:
     clipAnimations:
     - serializedVersion: 16
       name: sword and shield death (2)
-      takeName: mixamo.com
-      internalID: -203655887218126122
+      takeName: 
+      internalID: 3060610079319413300
       firstFrame: 0
       lastFrame: 117
       wrapMode: 0
