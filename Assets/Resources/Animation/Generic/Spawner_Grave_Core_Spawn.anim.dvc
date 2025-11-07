@@ -1,5 +1,5 @@
 outs:
-- md5: 3f6896b0aa639d9e3cd685e62d8b2f3c
-  size: 238706048
+- md5: 64de54eafb264c9103564db01e00dd89
+  size: 238706054
   hash: md5
-  path: Dungeon Core Spawn.anim
+  path: Spawner_Grave_Core_Spawn.anim
