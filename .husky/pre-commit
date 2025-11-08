@@ -32,13 +32,28 @@ git diff --cached --name-only -z --diff-filter=AM | while IFS= read -r -d '' fil
     if [ "$process" = true ]; then
         if [ ! -f "$file.dvc" ]; then
             echo "📦 DVC add: $file"
+
+            # 1. 원본 파일 Git 추적 해제 (pre-push에 의존하지 않고 즉시 처리)
+            if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+                git rm --cached "$file"
+            fi
+
+            # 2. dvc add 및 .dvc 파일 스테이징
             dvc add "$file" >/dev/null 2>&1 && git add "$file.dvc"
 
-            # --- 해당 에셋의 .meta도 함께 추가 ---
+            # 3. 해당 에셋의 .meta도 함께 추가
             metafile="${file}.meta"
-            if [ -f "$metafile" ] && [ ! -f "$metafile.dvc" ]; then
-                echo "🧩 Matching META found → DVC add: $metafile"
-                dvc add "$metafile" >/dev/null 2>&1 && git add "$metafile.dvc"
+            if [ -f "$metafile" ]; then
+                if [ ! -f "$metafile.dvc" ]; then
+                    echo "🧩 Matching META found → DVC add: $metafile"
+                    
+                    # .meta 파일 Git 추적 해제 (DVC로 전환)
+                    if git ls-files --error-unmatch "$metafile" >/dev/null 2>&1; then
+                        git rm --cached "$metafile"
+                    fi
+
+                    dvc add "$metafile" >/dev/null 2>&1 && git add "$metafile.dvc"
+                fi
             fi
         fi
     fi
