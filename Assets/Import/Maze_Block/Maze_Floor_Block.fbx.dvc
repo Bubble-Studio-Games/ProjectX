@@ -1,0 +1,5 @@
+outs:
+- md5: 8fb02c6b94f1f2f806265519eac284a2
+  size: 32400
+  hash: md5
+  path: Maze_Floor_Block.fbx
