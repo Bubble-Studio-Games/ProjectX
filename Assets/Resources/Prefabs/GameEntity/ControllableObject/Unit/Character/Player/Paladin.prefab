@@ -455,7 +455,7 @@ PrefabInstance:
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_DamagedAnimationClip.Array.data[0]
       value: 
-      objectReference: {fileID: -203655887218126122, guid: a1713bb240cdbaa48ac19c1c89a01dda, type: 3}
+      objectReference: {fileID: 3060610079319413300, guid: a1713bb240cdbaa48ac19c1c89a01dda, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_CriticalDamagedAnimationClip.Array.size
       value: 1
@@ -463,7 +463,7 @@ PrefabInstance:
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_CriticalDamagedAnimationClip.Array.data[0]
       value: 
-      objectReference: {fileID: -203655887218126122, guid: bff533b89cfa63d4492cc28015d15a11, type: 3}
+      objectReference: {fileID: 3060610079319413300, guid: bff533b89cfa63d4492cc28015d15a11, type: 3}
     - target: {fileID: 4059989982095917379, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

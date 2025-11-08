@@ -22,17 +22,17 @@ MonoBehaviour:
     _value: 100
   m_iIsStepReduceHP: 0
   m_fHPRegenrate:
-    _value: 0
+    _value: 2.6
   m_fMPRegenrate:
     _value: 0
   m_iMaxMP:
     _value: 100
   m_iCurrentMP:
-    _value: 0
+    _value: 50
   m_fChaseSpeed:
     _value: 3
   m_fWalkSpeed:
-    _value: 1.7
+    _value: 1
   m_iCommandMoveDistance: 0
   m_iDetectRange: 0
   m_iChaseRange: 4

@@ -288,11 +288,11 @@ PrefabInstance:
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_DeathAnimationClip.Array.data[0]
       value: 
-      objectReference: {fileID: -203655887218126122, guid: 149fe867a019f334ba5c22565ad1d594, type: 3}
+      objectReference: {fileID: 3060610079319413300, guid: 149fe867a019f334ba5c22565ad1d594, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_DeathAnimationClip.Array.data[1]
       value: 
-      objectReference: {fileID: -203655887218126122, guid: 955b4b7aca3f3e344b3d2cca88d712de, type: 3}
+      objectReference: {fileID: 3060610079319413300, guid: 955b4b7aca3f3e344b3d2cca88d712de, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_DamagedAnimationClip.Array.data[0]
       value: 
