@@ -11,11 +11,7 @@ rm -rf .dvc/tmp/lock .dvc/tmp/rwlock >/dev/null 2>&1 || true
 
 # --- 변경되고 스테이징된 파일만 검사 (요청 1)
 git diff --cached --name-only -z --diff-filter=AM | while IFS= read -r -d '' file; do
-    
-    # 1. .meta 파일이나 .dvc 파일은 무시하고 Git이 관리하게 둠 (요청 2)
-    [[ "$file" == *.meta ]] && continue
-    [[ "$file" == *.dvc ]] && continue
-    
+      
     # 파일 크기 확인
     size=$(stat -c%s "$file" 2>/dev/null || echo 0)
     
