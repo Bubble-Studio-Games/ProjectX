@@ -1,60 +1,52 @@
 #!/bin/sh
 set -e
 
-LIMIT=$((100 * 1024 * 1024))  # 100MB (bytes)
+# --- DVC 관리 임계값: 100MB (bytes) ---
+LIMIT=$((100 * 1024 * 1024))
 
-echo "🔍 Running pre-commit DVC check..."
+echo "🔍 Running pre-commit DVC check (Threshold: 100MB)..."
 
-echo "🧾 Checking DVC cache consistency..."
-dvc status -c || echo "⚠️ Warning: DVC cache inconsistency detected."
-
+# DVC 잠금 파일 정리 (오류 방지)
 rm -rf .dvc/tmp/lock .dvc/tmp/rwlock >/dev/null 2>&1 || true
 
-# --- 변경된 파일만 검사 (스테이징된 대상)
+# --- 변경되고 스테이징된 파일만 검사 (요청 1)
 git diff --cached --name-only -z --diff-filter=AM | while IFS= read -r -d '' file; do
-    # Unity 에셋만 검사
-    [[ "$file" != Assets/* ]] && continue
-
-    # 확장자 추출
-    ext="${file##*.}"
-    process=false
-
-    # 확장자 규칙 적용
-    case "$ext" in
-        fbx|anim|wav|mp4|psd|exr|hdr|tga)  # 무조건 DVC
-            process=true ;;
-        png|jpg|obj|blend|prefab)          # 100MB 초과만 DVC
-            size=$(stat -c%s "$file" 2>/dev/null || echo 0)
-            [ $size -gt $LIMIT ] && process=true ;;
-    esac
-
-    # --- DVC 등록 처리
-    if [ "$process" = true ]; then
+    
+    # 1. .meta 파일이나 .dvc 파일은 무시하고 Git이 관리하게 둠 (요청 2)
+    [[ "$file" == *.meta ]] && continue
+    [[ "$file" == *.dvc ]] && continue
+    
+    # 파일 크기 확인
+    size=$(stat -c%s "$file" 2>/dev/null || echo 0)
+    
+    # 2. 100MB 초과 여부 체크
+    if [ $size -gt $LIMIT ]; then
+        
+        # 3. DVC로 아직 추적되지 않은 경우
         if [ ! -f "$file.dvc" ]; then
-            echo "📦 DVC add: $file"
-
-            # 1. 원본 파일 Git 추적 해제 (pre-push에 의존하지 않고 즉시 처리)
+            
+            size_mb=$(echo "$size" | awk '{print int($1/1048576)}')
+            echo "📦 DVC add: $file (Size: ${size_mb}MB) -> OVER 100MB"
+            
+            # --- Git 추적 해제 후 DVC 등록 (요청 3) ---
+            # 이미 Git에 스테이징된 파일을 DVC로 전환하기 위해 Git 추적을 해제합니다.
             if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
+                echo "ℹ️  File tracked by Git → Untracking: $file"
                 git rm --cached "$file"
             fi
 
-            # 2. dvc add 및 .dvc 파일 스테이징
+            # DVC에 추가 및 .dvc 파일 Git 스테이징
+            # dvc add는 자동으로 해당 파일을 .gitignore에 추가합니다.
             dvc add "$file" >/dev/null 2>&1 && git add "$file.dvc"
-
-            # 3. 해당 에셋의 .meta도 함께 추가
+            
+            # 4. 매칭되는 .meta 파일이 있다면 Git에 추가 (Git으로만 관리)
             metafile="${file}.meta"
             if [ -f "$metafile" ]; then
-                if [ ! -f "$metafile.dvc" ]; then
-                    echo "🧩 Matching META found → DVC add: $metafile"
-                    
-                    # .meta 파일 Git 추적 해제 (DVC로 전환)
-                    if git ls-files --error-unmatch "$metafile" >/dev/null 2>&1; then
-                        git rm --cached "$metafile"
-                    fi
-
-                    dvc add "$metafile" >/dev/null 2>&1 && git add "$metafile.dvc"
-                fi
+                echo "🧩 Matching META found → Git add: $metafile"
+                git add "$metafile"
             fi
+        else
+            echo "⏭️ Already tracked by DVC: $file"
         fi
     fi
 done
