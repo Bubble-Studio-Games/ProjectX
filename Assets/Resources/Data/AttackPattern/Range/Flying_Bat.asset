@@ -65,7 +65,7 @@ MonoBehaviour:
     _value: 0
   AttackAudioClip: {fileID: 0}
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: 9446e72dc11cdd841a7818599eea0d82, type: 2}
+  - AttackAnimationClip: {fileID: -203655887218126122, guid: 77b20c5b35ce77e45a0287eb297400ad, type: 3}
   m_ProjectilePrefab: {fileID: 1625221395402176, guid: c9951ca0f61167b4593ffe21b0a089c8, type: 3}
   _selectType: 0
   m_iSpawnProjectileCount: 3

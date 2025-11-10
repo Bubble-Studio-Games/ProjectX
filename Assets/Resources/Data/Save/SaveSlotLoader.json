@@ -1,0 +1,50 @@
+{
+  "stats": [
+    {
+      "slotId": 0,
+      "dungeondata": {
+        "gameEntityDatas": [],
+        "buildingCardDatas": [],
+        "downJam": 0,
+        "cameraPos": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "magnitude": 0.0,
+          "sqrMagnitude": 0.0
+        },
+        "cameraRot": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 0.0,
+          "eulerAngles": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          },
+          "normalized": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0,
+            "eulerAngles": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            }
+          }
+        }
+      },
+      "campdata": {},
+      "LastScene": 5,
+      "createTime": "2025-11-10 09:09:15",
+      "lastSaveTime": "2025-11-10 09:09:18",
+      "totalPlaySeconds": 18.084914207458496
+    }
+  ]
+}
