@@ -35,7 +35,7 @@ MonoBehaviour:
   m_iCoolTime:
     _value: 2
   m_fLastCooltime:
-    _value: 6.7
+    _value: -2
   m_iManaCost:
     _value: 0
   m_IsTwoHandAttack: 0

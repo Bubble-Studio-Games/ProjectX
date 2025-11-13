@@ -92,7 +92,9 @@ public class GridSystemVisual : MonoBehaviour
         GridBuildingSystem.Instance.OnSelectedChanged += (s, e) => UpdateGridPositionPlace();
         GridBuildingSystem.Instance.OnRotateObject += (s, e) => UpdateGridPositionPlace();
         CameraController.Instance.OnChangeLookFloor += (s, e) => UpdateGridPositionPlace();
-        MouseWorld.Instance.OnMousePositionChanged += (s, e) => UpdateGridPositionPlace();
+
+        if(MouseWorld.Instance != null)
+            MouseWorld.Instance.OnMousePositionChanged += (s, e) => UpdateGridPositionPlace();
 
         // Level Grid
         //LevelGrid.Instance.OnChangeGrid += OnLevelGridChanged;

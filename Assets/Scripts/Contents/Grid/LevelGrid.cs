@@ -635,6 +635,9 @@ public class LevelGrid : MonoBehaviour
 
     private void GridDebugObjectUpdate(object sender, OnChangeGridAgrs info)
     {
+        if (!m_isShowCreateDebugObjects)
+            return;
+
         foreach (var pos in info.ListGridPosition)
             m_griddebug[pos].UpdateGridObject();
     }

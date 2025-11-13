@@ -64,13 +64,13 @@ public class AttributeSystem : MonoBehaviour
     {
         if (m_originalStat == null)
         {
-            Debug.LogError($"{this.gameObject.name}: 스텟이 존재하지 않습니다.- AttributeSystem - Stat");
+            Debug.LogWarning($"{this.gameObject.name}: 스텟이 존재하지 않습니다.- AttributeSystem - Stat");
             //return false;
         }
 
         if (m_originalAttackPatterns == null || m_originalAttackPatterns.Count <= 0)
         {
-            Debug.LogError($"{this.gameObject.name}: 공격 패턴이 존재하지 않습니다.- AttributeSystem - AttackPatterns");
+            Debug.LogWarning($"{this.gameObject.name}: 공격 패턴이 존재하지 않습니다.- AttributeSystem - AttackPatterns");
             //return false;
         }
 
