@@ -1,3 +1,5 @@
+using Data;
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Poolable), typeof(Rigidbody))]
@@ -7,10 +9,15 @@ public class Projectile : Item
     public Rigidbody m_Rigidbody { get; private set; }
     private Collider m_Collider;
 
+    [Header("Info")]
+    public float m_fStraightSpeed = 10f;
+    public float ParabolaSpeed = 5f;
+    public float m_DetectionHitRadius = 2f; // 유도형의 경우 필요
+
     [Header("Destroy")]
     public bool m_hasDestoryAnimation;
-    private ControllableObject m_Owner;
     private AttackPattern m_AttackPattern;
+    public GameEntity m_Target { get; private set; }
 
     [Header("Fly")]
     [SerializeField] private AudioClip m_ProjectileFlyingAudioClip;
@@ -18,6 +25,7 @@ public class Projectile : Item
     [Header("Hit")]
     [SerializeField] private AudioClip m_ProjectileHitAudioClip;
     [SerializeField] private GameObject m_AfterProjectileHitPrefab;
+    public bool m_IsHit { get; private set; } = false;
 
     public override void Awake()
     {
@@ -38,8 +46,14 @@ public class Projectile : Item
         m_AudioSource.clip = null;
         m_AudioSource.playOnAwake = false;
 
-        // 콜라이더 끄기
+        // Rigidbody 초기화 및  콜라이더 끄기
+        m_Rigidbody.isKinematic = true;
+        m_Rigidbody.velocity = Vector3.zero;
+        m_Rigidbody.angularVelocity = Vector3.zero;
         m_Collider.enabled = false;
+
+        foreach (Transform child in transform)
+            child.gameObject.SetActive(true);
     }
 
     public override void OnDisable()
@@ -50,42 +64,52 @@ public class Projectile : Item
         {
             child.gameObject.SetActive(true);
         }
-        m_Rigidbody.isKinematic = false; // 필요시
+        m_Rigidbody.velocity = Vector3.zero;
+        m_Rigidbody.angularVelocity = Vector3.zero;
+        m_Rigidbody.Sleep(); // 완전히 물리 시뮬레이션 중단
+        m_IsHit = false;
     }
 
-    public override void Destroy()
+
+    public override void Destroy(float seconds = 3.0f)
     {
         if (m_hasDestoryAnimation)
         {
             animator.CrossFade("Destroy", 0.2f);
-            StartCoroutine(ObjectDestroy());
+            CoroutineRunner.Instance.StartCoroutine(ObjectDestroy(2f));
         }
         else
         {
-            // 자식들 모두 setactieve false로 바꾸기
-            foreach (Transform child in transform)
-            {
-                child.gameObject.SetActive(false);
-            }
+            CoroutineRunner.Instance.StartCoroutine(ObjectDestroy(seconds));
 
-            StartCoroutine(ObjectDestroy());
+            foreach (Transform child in transform)
+                child.gameObject.SetActive(false);
+
         }
     }
 
-    public void AttackReady(ControllableObject owner, AttackPattern attack)
+    public void AttackReady(GameEntity owner, AttackPattern attack, GameEntity target)
     {
+        foreach (Transform child in transform)
+            child.gameObject.SetActive(true);
+
         // Audio
-        m_AudioSource.PlayOneShot(m_ProjectileFlyingAudioClip);
+        if (m_ProjectileFlyingAudioClip != null)
+            m_AudioSource.PlayOneShot(m_ProjectileFlyingAudioClip);
 
         // 콜라이더 켜기
         m_Collider.enabled = true;
+        
         m_Owner = owner;
         m_AttackPattern = attack;
+        m_Target = target;
     }
 
     private void HitEffect(Vector3 hitPos)
     {
-        m_AudioSource.PlayOneShot(m_ProjectileHitAudioClip);
+        if (m_ProjectileHitAudioClip != null)
+            m_AudioSource.PlayOneShot(m_ProjectileHitAudioClip);
+
         if (m_AfterProjectileHitPrefab != null)
         {
             GameObject go = Managers.Resource.Instantiate(m_AfterProjectileHitPrefab);
@@ -93,34 +117,132 @@ public class Projectile : Item
             go.transform.rotation = Quaternion.identity;
         }
 
-        m_Rigidbody.velocity = Vector3.zero;
-        m_Rigidbody.angularVelocity = Vector3.zero;
-        m_Rigidbody.isKinematic = true; // 필요시
+        // Kinematic이 아닐 때만 velocity 설정
+        if (m_Rigidbody.isKinematic == false)
+        {
+            m_Rigidbody.velocity = Vector3.zero;
+            m_Rigidbody.angularVelocity = Vector3.zero;
+        }
+
+        m_IsHit = true;
     }
 
     private void OnCollisionEnter(Collision col)
     {
-        // 일반 사물
-        if (((1 << col.gameObject.layer) & LayerManager.Instance.m_StructLayer) != 0)
-        {
-            HitEffect(col.contacts[0].point);
+        // 충돌 지점을 알 수 있습니다.
+        Vector3 hitPoint = col.contacts[0].point;
 
-            Destroy();
-        }
-        else if (((1 << col.gameObject.layer) & LayerManager.Instance.HitColLayerMask) != 0)
-        {
-            // 목표 타겟
+        // 충돌 순간의 속도 방향을 계산합니다. (화살이 박힐 방향)
+        // m_Rigidbody.velocity를 바로 사용하는 것이 가장 정확합니다.
+        Vector3 impactDirection = m_Rigidbody.velocity.normalized;
 
+        // 1. 목표 타겟 레이어 확인
+        if (((1 << col.gameObject.layer) & LayerManager.Instance.HitColLayerMask) != 0)
+        {
             // 적에게 부딪혔거나 지형 지물에 부딪혔을 경우에 한하여
-            ControllableObject target = col.gameObject.GetComponentInParent<ControllableObject>();
+            GameEntity target = col.gameObject.GetComponentInParent<GameEntity>();
+
+            // 🎯 타겟 유닛 충돌 처리
             if (target != null && m_Owner.IsEnemy(target))
             {
                 // 타격 처리
                 target.m_AttributeSystem.Hit(m_AttackPattern, m_Owner);
-                HitEffect(col.contacts[0].point);
+                HitEffect(hitPoint);
 
-                Destroy();
+                // -------------------- ★ 화살이 박히는 로직 추가/수정 ★ --------------------
+                // 1. 화살의 위치를 충돌 지점으로 이동 (화살이 타겟을 뚫는 문제 방지)
+                transform.position = hitPoint;
+
+                // 2. 화살의 회전을 충돌 방향으로 맞춥니다.
+                if(impactDirection  != Vector3.zero)
+                    transform.rotation = Quaternion.LookRotation(impactDirection);
+
+                // 3. 타겟에 자식으로 붙여서 (월드 위치 유지) 타겟이 움직일 때 같이 움직이게 함.
+                transform.SetParent(col.transform, true);
+
+                // 4. 물리 연산 중지 (필수)
+                m_Rigidbody.isKinematic = true;
+
+                Destroy(); // Destroy()는 Poolable을 통해 오브젝트를 끄는 역할로 가정
+
+                //Debug.Log($"오브젝트 충돌!! {target.name}");
+                // --------------------------------------------------------------------------
             }
         }
+
+        // 2. 일반 사물 레이어 확인
+        if (((1 << col.gameObject.layer) & LayerManager.Instance.m_StructLayer) != 0)
+        {
+            HitEffect(hitPoint);
+
+            // -------------------- ★ 화살이 박히는 로직 추가/수정 ★ --------------------
+            // 1. 화살의 위치를 충돌 지점으로 이동
+            transform.position = hitPoint;
+
+            // 2. 화살의 회전을 충돌 방향으로 맞춥니다.
+            transform.rotation = Quaternion.LookRotation(impactDirection);
+
+            // 3. 구조물에 자식으로 붙입니다. (대부분 구조물은 움직이지 않아도 안정성을 위해)
+            transform.SetParent(col.transform, true);
+
+            // 4. 물리 연산 중지 (필수)
+            m_Rigidbody.isKinematic = true;
+
+            Destroy();
+            Debug.Log($"구조물 오브젝트 충돌!! {col.gameObject.name}");
+            // --------------------------------------------------------------------------
+        }
     }
+
+    public void Launch()
+    {
+        m_Rigidbody.isKinematic = false; // 더 이상 물리 영향 안 받게
+    }
+
+    #region Data Save & Load
+
+    public override BaseData CaptureSaveData()
+    {
+        var iData = base.CaptureSaveData() as ItemData;
+
+        ProjectileData pdata = new ProjectileData
+        {
+            prefabName = name,
+            spawnPosition = spawnTransform.position,
+            spawnRotation = spawnTransform.rotation,
+            position = transform.position,
+            rotation = transform.rotation,
+            velocity = m_Rigidbody.velocity,
+            angularVelocity = m_Rigidbody.angularVelocity,
+            guid = _guid,
+            targetGuid = m_Target != null ? m_Target._guid : string.Empty,
+            onwerGuid = iData.onwerGuid,
+
+        };
+
+        return pdata;
+    }
+
+    public override void RestoreSaveData(BaseData baseData)
+    {
+        base.RestoreSaveData(baseData);
+
+        ProjectileData data = baseData as ProjectileData;
+
+        m_Rigidbody = GetComponent<Rigidbody>();    
+
+        if (m_Rigidbody != null)
+        {
+            m_Rigidbody.velocity = data.velocity;
+            m_Rigidbody.angularVelocity = data.angularVelocity;
+        }
+
+        if (!string.IsNullOrEmpty(data.targetGuid))
+        {
+            // 로드 후 Managers.Object에서 해당 guid를 가진 GameEntity를 찾아 연결
+            m_Target = Managers.Object.FindByGuidObject<GameEntity>(data.targetGuid);
+        }
+    }
+
+    #endregion
 }

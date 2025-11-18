@@ -1,14 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using static Define;
-using static UnityEditor.ShaderGraph.Internal.KeywordDependentCollection;
-using Random = System.Random;
 
 public class CombatAction : BaseAction
 {
@@ -37,6 +32,9 @@ public class CombatAction : BaseAction
     protected override void Start()
     {
         base.Start();
+
+        OnStartAttack += (s, e) =>  GridSystemVisual.Instance.UpdateGridVisual_Event(s, m_BaseObject);
+        OnEndAttack += (s, e) =>  GridSystemVisual.Instance.UpdateGridVisual_Event(s, m_BaseObject);
     }
 
     protected override void Update()
@@ -63,59 +61,106 @@ public class CombatAction : BaseAction
         // 1. 유닛이 특수 상태일 경우 페이즈 전환 (예: 2페이즈 보스)
         HandlePhaseTransition();
 
-        // 2. 타겟 거리 확인 및 공격 방식 결정
-        var target = m_BaseObject.m_Target;
-
-        // 2.1 Live or Dead?
-        if (target == null || target.m_AttributeSystem.m_IsDead)
+        if (m_BaseObject is PassiveObject pobj)
         {
-            target = null;
-            return;
-        }
-
-        // 3. Attack Pattern
-        AttackPattern todoAttack = null;
-        List<AttackPattern> todoAttackList = new();
-
-        // 직전 타임에 준비했던 공격 기술이 있다면
-        // 다음 스텝으로
-        if (m_ThisTimeAttack != null)
-            todoAttackList = m_BaseObject.GetAttacksBaseByIDs(m_ThisTimeAttack.m_iNextAttackPattern);
-        else
-            todoAttackList = m_BaseObject.m_AttributeSystem.m_AttackPatterns;
-
-        todoAttack = SelectAttackPattern(todoAttackList);
-
-        if (todoAttack == null)
-        {
-            bool isStand = todoAttackList.Any(attack =>
-                attack.CanExecute(m_BaseObject, m_BaseObject.m_Target) is
-                    E_AttackCondition.Fail_CoolTime or E_AttackCondition.Fail_ManaCost);
+            // 현재 공격 후보들 추리기
+            // cooltime, mana의 경우 대기 할지 말지 용도로 뽑기
+            var usablePatterns = Managers.Game.EvaluateAttackPatternsByCondition
+                                (pobj,
+                                 null,
+                                 E_AttackCondition.Success);
 
 
-            // 현재 모든 공격이 쿨타임이라면 대기
-            if (isStand)
+            if (usablePatterns == null || usablePatterns.Count == 0)
             {
+                Debug.Log($"{m_BaseObject}가 현재 공격할 수 있는 공격 패턴이 없습니다. 대기합니다.");
                 return;
             }
+
+            var toAttack = usablePatterns.RandomPick();
+            //Debug.Log($"{pobj}가 현재 선택한 공격 {toAttack.pattern}");
+            ChangeAttack(toAttack.pattern);
+
+            // Event (Animation, Sound) 실행
+            OnStartAttackEventInvoke();
+        }
+        else if (m_BaseObject is ControllableObject cobj)
+        {
+            // 2. 타겟 거리 확인 및 공격 방식 결정
+            var target = cobj.m_Target;
+
+            // 2.1 Live or Dead?
+            if (target == null || target.m_AttributeSystem.m_IsDead)
+            {
+                target = null;
+                return;
+            }
+
+
+            // 현재 공격 후보들 추리기
+            // cooltime, mana의 경우 대기 할지 말지 용도로 뽑기
+            var usablePatterns = Managers.Game.EvaluateAttackPatternsByCondition
+                                (cobj,
+                                 cobj.m_Target,
+                                 E_AttackCondition.Success,
+                                 E_AttackCondition.Fail_CoolTime,
+                                 E_AttackCondition.Fail_ManaCost);
+
+
+            if (usablePatterns == null || usablePatterns.Count == 0)
+            {
+                //Debug.Log($"{m_BaseObject}가 현재 공격할 수 있는 공격 패턴이 없습니다. 추격으로 돌아갑니다.");
+                m_TODOChangeAction = m_BaseObject.GetAction<ChaseAction>();
+                return;
+            }
+
+            var rightUseAttack = usablePatterns.Where(p => p.condition == E_AttackCondition.Success);
+
+            // 당장 공격할 수 있는게 있다면
+            if (rightUseAttack.Count() > 0)
+            {
+                var toAttack = rightUseAttack.RandomPick();
+                //Debug.Log($"{m_BaseObject}가 현재 선택한 공격 {toAttack.pattern}");
+                ChangeAttack(toAttack.pattern);
+            }
+            // 현재 마나랑 쿨타임으로 인해 공격하지 못하고 있다면 대기
             else
             {
-                // 현재 위치에서 공격할 수 있는 공격이 없음.
-                m_TODOChangeAction = m_BaseObject.GetAction<ChaseAction>();
-                //Debug.Log($"m_ThisAttackPattern is Nul!!!!");
+                //Debug.Log($"{m_BaseObject}의 가지고 있는 공격들이 쿨타임과 마나 때문에 대기하고 있음");
                 return;
             }
+
+            // Event (Animation, Sound) 실행
+            OnStartAttackEventInvoke();
+        }
+        else
+        {
+
         }
 
-        ChangeAttack(todoAttack);
 
-        // Event (Animation, Sound) 실행
-        OnStartAttackEventInvoke();
+
+
     }
 
     private bool RotateTowardTarget()
     {
-        var target = m_BaseObject.m_Target;
+        GameEntity target = null;
+
+        if (m_BaseObject is PassiveObject pobj)
+        {
+            return true;
+        }
+        else if (m_BaseObject is ControllableObject cobj)
+        {
+            target = cobj.m_Target;
+        }
+        else
+        {
+            return true;
+        }
+
+
         if (target == null)
             return false;
 
@@ -151,33 +196,31 @@ public class CombatAction : BaseAction
 
     public override BaseAction TakeAction(GridPosition gridPosition = default, Action onActionComplete = null)
     {
-       // if (m_BaseObject.m_TeamId == E_TeamId.Player)
+        if (m_BaseObject is PassiveObject pobj)
         {
-            if (m_BaseObject.m_Target == null || m_BaseObject.m_Target.m_AttributeSystem.m_IsDead)
+            return this;
+        }
+        else if (m_BaseObject is ControllableObject cobj)
+        {
+            if (cobj.m_Target == null || cobj.m_Target.m_AttributeSystem.m_IsDead)
             {
                 // 커맨드 어택 수행 도중 적이 죽어 있다면 초기화
-                m_BaseObject.m_isDetectionsurroundingsEnabled = true;
-                //m_BaseObject.SetTarget(null);
+                cobj.m_isDetectionsurroundingsEnabled = true;
 
-                return m_BaseObject.GetAction<IdleAction>();
+                return cobj.GetAction<IdleAction>();
             }
-        }
-        //else if (m_BaseObject.m_TeamId == E_TeamId.Monster)
-        {
 
-        }
+            if (m_bIsActive)
+                return this;
 
-        // TODO 
-        // 적과 싸우는 도중에 더 가까운 적이 나타나면 타겟 변경?
-
-        if (m_bIsActive)
-            return this;
-
-        if (m_TODOChangeAction != null)
-        {
-            BaseAction ac = m_TODOChangeAction;
-            m_TODOChangeAction = null;
-            return ac;
+            if (m_TODOChangeAction != null)
+            {
+                BaseAction ac = m_TODOChangeAction;
+                m_TODOChangeAction = null;
+                return ac;
+            }
+            else
+                return this;
         }
         else
             return this;
@@ -206,30 +249,24 @@ public class CombatAction : BaseAction
         }
     }
 
-    private AttackPattern SelectAttackPattern(List<AttackPattern> patterns)
-    {
-        E_Dir dir = LevelGrid.Instance.GetDirGridPosition(m_BaseObject.GetGridPosition(), m_BaseObject.m_Target.GetGridPosition());
-
-        var validPatterns = patterns
-            .Where(attack => attack.CanExecute(m_BaseObject, m_BaseObject.m_Target) == E_AttackCondition.Success)
-            .ToList();
-        validPatterns = validPatterns.Where(attack => attack.m_RangeOffset.Any(offset =>
-                LevelGrid.Instance.ToGridPosition(offset, m_BaseObject.GetGridPosition(), dir) == m_BaseObject.m_Target.GetGridPosition()
-                )).ToList();
-
-        if (validPatterns.Count == 0)
-            return null; // 공격 가능한 패턴이 없다면 null
-
-        Console.WriteLine("가능한 공격들 : " + string.Join(" ", validPatterns));
-
-        // 무작위로 하나 선택
-        int index = UnityEngine.Random.Range(0, validPatterns.Count);
-        return validPatterns[index];
-    }
-
     public void OnStartAttackEventInvoke()
     {
-        m_ThisTimeAttack.StartAttack(m_BaseObject, m_BaseObject.m_Target, m_PrevAttackPattern);
+        GameEntity target = null;
+
+        if (m_BaseObject is PassiveObject pobj)
+        {
+
+        }
+        else if (m_BaseObject is ControllableObject cobj)
+        {
+            target = cobj.m_Target;
+        }
+        else
+        {
+
+        }
+
+        m_ThisTimeAttack.StartAttack(m_BaseObject, target, m_PrevAttackPattern);
 
         OnStartAttack?.Invoke(this, new OnAttackBaseEventArgs()
         {
@@ -241,7 +278,22 @@ public class CombatAction : BaseAction
 
     public void OnEndAttackEventInvoke()
     {
-        m_ThisTimeAttack?.EndAttack(m_BaseObject, m_BaseObject.m_Target);
+        GameEntity target = null;
+
+        if (m_BaseObject is PassiveObject pobj)
+        {
+
+        }
+        else if (m_BaseObject is ControllableObject cobj)
+        {
+            target = cobj.m_Target;
+        }
+        else
+        {
+
+        }
+
+        m_ThisTimeAttack?.EndAttack(m_BaseObject, target);
 
         OnEndAttack?.Invoke(this, EventArgs.Empty);
 

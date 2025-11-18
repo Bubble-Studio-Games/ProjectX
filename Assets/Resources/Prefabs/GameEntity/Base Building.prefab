@@ -140,37 +140,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df54e0094228b714d9a799592bd3cc35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_StatSystem: {fileID: 5940122002470990004}
+  m_AttributeSystem: {fileID: 0}
   m_ModelTransforms:
   - {fileID: 80441506840520776}
   m_GridPositionOffsets: []
   m_CurrentEDir: 4
   m_TeamId: 0
-  m_fDelayDestroyTime: 3
-  m_IsDirectDesawnAtDeath: 1
   currentAction: {fileID: 0}
   m_NextAction: {fileID: 0}
   m_BeforeAction: {fileID: 0}
+  m_ActionsTransform: {fileID: 5598893705611479238}
+  m_fDelayDestroyTime: 3
+  m_IsDirectDesawnAtDeath: 1
   m_CommandAction: {fileID: 0}
   IsAttackStand: 0
   m_isDetectionsurroundingsEnabled: 1
+  m_isChaseCore: 1
+  m_originalGrade: 0
+  m_fEnhanceChance: 0
+  n_EnhanceTypeList: 
   m_EBuildingType: 0
 --- !u!4 &5598893705611479238 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1002395959666607009, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
   m_PrefabInstance: {fileID: 4637157275907361639}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &5940122002470990004 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1312219318084205523, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
-  m_PrefabInstance: {fileID: 4637157275907361639}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1922872826179673982}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c347f21394851804cbdfd5dd3f0642a2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &8418557420633121543 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3787180560955435104, guid: ed7ab00b0c15fde41a28b5ef4985778e, type: 3}
@@ -215,7 +209,8 @@ MonoBehaviour:
   m_ReviveAnimationClip: []
   m_DeathAnimationClip: []
   m_OrderAnimationClip: []
-  m_ActionsTransform: {fileID: 5598893705611479238}
+  m_orderAnimationStateName: []
+  m_AnimatorOriginalVale: 1
   m_IdleAnimationClip: []
   m_WalkAnimationClip: []
   m_RunAnimationClip: []

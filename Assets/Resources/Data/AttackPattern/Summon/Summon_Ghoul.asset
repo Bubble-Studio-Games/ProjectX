@@ -1,0 +1,76 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7442596ccadf5bd42af18b0bbe396f46, type: 3}
+  m_Name: Summon_Ghoul
+  m_EditorClassIdentifier: 
+  ID: 18
+  AttackName: "\uAD6C\uC6B8 \uC18C\uD658"
+  m_EAttackType: 7
+  m_IsEnableSelfAttack: 0
+  m_ERangeFillType: 0
+  m_ERangeShapeType: 0
+  m_RangeOffset:
+  - x: -1
+    z: -1
+    floor: 0
+  - x: 1
+    z: 1
+    floor: 0
+  m_ArcAngle: 90
+  m_IsAttackStartPositionAtAttacker: 1
+  m_StartOffset:
+    x: 0
+    z: 0
+    floor: 0
+  m_GridCheckTypes: 00000000
+  m_ApplyTargetE_Tendency: 0
+  m_iNextAttackPattern: []
+  m_iConditionPrevAttackPattern: {fileID: 0}
+  m_iCoolTime:
+    _value: 20
+  m_fLastCooltime:
+    _value: 0
+  m_iManaCost:
+    _value: 30
+  m_IsTwoHandAttack: 0
+  m_iPhysicalAttackDamage:
+    _value: 0
+  m_iMagicAttackDamage:
+    _value: 0
+  m_iPhysicalFixedDamage:
+    _value: 0
+  m_iMagicFixedDamage:
+    _value: 0
+  m_fPhysicalArmorPenetraion:
+    _value: 0
+  m_fMagicalArmorPenetraion:
+    _value: 0
+  m_iCriticalChance:
+    _value: 0
+  m_fCriticalDamageUp:
+    _value: 0
+  m_fAccuracy:
+    _value: 100
+  m_fAttackSpeed:
+    _value: 1
+  m_iKnockbackChance:
+    _value: 0
+  m_fLifeStealPercent:
+    _value: 0
+  AttackAudioClip: {fileID: 0}
+  m_Clips:
+  - AttackAnimationClip: {fileID: -203655887218126122, guid: 59d23756b5cd61f40bb39d293fa46ba4, type: 3}
+  _summonUnitPrefab: {fileID: 8808644112757098810, guid: fee72c1f207517a4b9a30398945bb764, type: 3}
+  m_IsRandomSpawnCount: 0
+  _minSummonCount: 3
+  _maxSummonCount: 3
+  m_IsInfiniteSpawn: 0

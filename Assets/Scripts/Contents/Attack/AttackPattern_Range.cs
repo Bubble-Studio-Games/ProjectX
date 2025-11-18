@@ -1,165 +1,339 @@
-using System.Collections;
-using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 using static Define;
+using System.Linq;
+using System.Collections.Generic;
+using System.Collections;
+using System;
+using UnityEditor.Experimental.GraphView;
+
+public readonly struct LaunchContext
+{
+    public readonly float ColliderLength;
+    public readonly float ObstacleHeight;
+
+    public LaunchContext(float colliderLength, float obstacleHeight)
+    {
+        ColliderLength = colliderLength;
+        ObstacleHeight = obstacleHeight;
+    }
+}
 
 [CreateAssetMenu(menuName = "Attack Pattern/Range")]
 public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
 {
     [Header("Spawn Object")]
     public GameObject m_ProjectilePrefab;
-    private Projectile m_SpawnProjectile;
+    private List<Projectile> m_SpawnProjectiles = new();
+
+    [Header("Launch Strategy")]
+    [SerializeField] private E_Projectile _selectType;
+    private IProjectileLauncher _launcher;
+    public IProjectileLauncher Launcher
+    {
+        get
+        {
+            if (_launcher == null)
+                _launcher = LauncherCreator.Create(this._selectType);
+            return _launcher;
+        }
+    }
+    public bool m_iIsLaunchProjectileUpParabola { get; private set; } // 직선 형으로 던질 것이냐, 위로 반원형을 그려서 던질 것이냐
+    public LaunchContext context { get; private set; }
+
 
     [Header("Projectile Property")]
-    [SerializeField] private float StraighSpeed = 10f;
-    [SerializeField] private float PalabolaSpeed = 5f;
-    [SerializeField] private float detectionHitRadius = 2f;
-    [SerializeField] private float CeilingHeight = 7f;
-    [SerializeField] private float MaxStraightShotHeight = 1f;
-    [SerializeField] private float boundHeight;
-    public bool m_iIsLaunchProjectileParabola { get; private set; }
+    [SerializeField] private int m_iSpawnProjectileCount = 1;
+    [SerializeField] private bool m_IsImmediateLaunch = false;
+    [SerializeField, Tooltip("무기에 붙어서 발사체를 생성할지 여부")]
+    private bool m_SpawnFromWeapon = true;
 
-    public override E_AttackCondition CanExecute(ControllableObject attacker, GameEntity target)
+    [Header("최적화용도")]
+    List<(Item obj, Transform spawnTransform)> keepList = new();
+    List<(Item obj, Transform spawnTransform)> removeList = new();
+
+
+    public override (E_AttackCondition condition, HashSet<GridPosition> CanAttackablePos) 
+        CanExecute(GameEntity attacker, GameEntity target)
     {
-        if (base.CanExecute(attacker, target) >= E_AttackCondition.Fail_None)
-            return base.CanExecute(attacker, target);
+        var baseAttackPattern = base.CanExecute(attacker, target);
 
-        // 프로젝타일 콜라이더 사이즈 (가장 긴 축)
-        float colliderLength;
-        
-        if (attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject != null)
-            colliderLength = Managers.Game.GetObjectLength(attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject.gameObject);
-        else
-            colliderLength = Managers.Game.GetObjectLength(m_ProjectilePrefab.gameObject);
+        if (baseAttackPattern.condition >= E_AttackCondition.Fail_None)
+            return baseAttackPattern;
 
-        float obstacleHeight = LevelGrid.Instance.GetObstacleMaxHeight(attacker.GetGridPosition(), target.GetGridPosition()); ;
-
-        float parabolaHeight = colliderLength + obstacleHeight;
-
-        // 구조물이 거의 천장에 닿았다면 실패.
-        if (parabolaHeight > CeilingHeight)
-            return E_AttackCondition.Fail_IndividualCondition;
-
-
-        // 구조물이 포물선을 그릴 수 있는 위치라면 장애물이라면
-        if (obstacleHeight >= MaxStraightShotHeight)
+        if (attacker is PassiveObject pobj)
         {
-            m_iIsLaunchProjectileParabola = true;
-            boundHeight = parabolaHeight;
+
         }
-        // 일직선으로
+        else if (attacker is ControllableObject cobj)
+        {
+            float colliderLength = Managers.Game.GetObjectColliderLongLength(m_ProjectilePrefab.gameObject);
+            float obstacleHeight = LevelGrid.Instance.GetObstacleMaxHeight(cobj.GetGridPosition(), target.GetGridPosition());
+
+            context = new LaunchContext(colliderLength, obstacleHeight);
+
+            // 장애물이 너무 높으면 실패
+            if (colliderLength + obstacleHeight >= LevelGrid.FLOOR_HEIGHT)
+                return (E_AttackCondition.Fail_IndividualCondition, default);
+        }
         else
         {
-            m_iIsLaunchProjectileParabola = false;
+
         }
 
-        return E_AttackCondition.Success;
+
+        return baseAttackPattern;
     }
 
-    public override void StartAttack(ControllableObject attacker, GameEntity target, AttackPattern prevAttackpatern)
+    public override void StartAttack(GameEntity attacker, GameEntity target, AttackPattern prevAttackpatern)
     {
         base.StartAttack(attacker, target, prevAttackpatern);
 
-        Transform spawnTransform = null;
-
-        if(attacker is Unit unit)
-        {
-            var slot = unit.m_UnitWeaponSlotManager;
-
-            // 무기를 든 손의 프로젝타일 소환 위치로
-            if(slot.m_RightHandSlot.currentWeaponModel != null)
-            {
-                spawnTransform = slot.m_RightHandSlot.currentWeapon.m_ProjectileSpawnTransform;
-            }
-
-            else if(slot.m_LeftHandSlot.currentWeaponModel != null)
-            {
-                spawnTransform = slot.m_LeftHandSlot.currentWeapon.m_ProjectileSpawnTransform;
-            }
-
-            // 무기가 없다면 공격 손의 빈 위로
-            else
-            {
-                spawnTransform = slot.m_RightHandSlot.transform;
-            }
-        }
-
-        else if (attacker is Building building)
+        if (attacker is PassiveObject pobj)
         {
 
         }
-
-        // 교체할 오브젝트가 있는가?
-        if (m_ProjectilePrefab != null)
+        else if (attacker is ControllableObject cobj)
         {
-            attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject.Destroy();
+            var combatManager = cobj.m_ControllableObjectCombatManager;
+            if (combatManager == null)
+            {
+                Debug.Log($"{attacker}에서 controllableObjectCombatManager가 발견되지 않았습니다.");
+                return;
+            }
 
-            // 새로운 발사 오브젝트를 생성
-            m_SpawnProjectile = Managers.Resource.Instantiate<Projectile>(m_ProjectilePrefab, spawnTransform);
-            m_SpawnProjectile.transform.localPosition = Vector3.zero;
-            m_SpawnProjectile.transform.localRotation = Quaternion.identity;
+            if(m_ProjectilePrefab == null)
+            {
+                Debug.Log($"{attacker}에서 m_ProjectilePrefab가 발견되지 않았습니다.");
+                return;
+            }
+
+            // 1️ 기존 오브젝트 정보 가져오기 (삭제 X)
+            var existingList = cobj.m_ControllableObjectCombatManager.m_AttackReadyItemObject;
+
+            // 2️ 비교용 리스트 초기화
+            keepList.Clear();
+            removeList.Clear();
+            m_SpawnProjectiles.Clear();
+
+            foreach (var (obj, spawnT) in existingList)
+            {
+                if (obj == null) continue;
+
+                // 프리팹 이름으로 비교 (Clone 제거 후 비교)
+                string objName = obj.name.Replace("(Clone)", "").Trim();
+                string prefabName = m_ProjectilePrefab.name.Replace("(Clone)", "").Trim();
+
+                // 동일 프리팹이라면 유지
+                if (objName == prefabName)
+                    keepList.Add((obj, spawnT));
+                else
+                    removeList.Add((obj, spawnT));
+            }
+
+            // 3️ 제거 대상 오브젝트만 삭제 (spawnTransform은 보존)
+            List<Transform> reusableTransforms = removeList
+                .Where(x => x.spawnTransform != null)
+                .Select(x => x.spawnTransform)
+                .ToList();
+
+            //  제거 대상 오브젝트만 삭제
+            foreach (var (obj, _) in removeList)
+            {
+                obj?.Destroy();
+            }
+
+            // 남은 개수
+            int remainingCount = keepList.Count;
+            int desiredCount = m_iSpawnProjectileCount;
+
+            // 4️ 필요한 만큼 새로 생성
+            List<Transform> initSpawnTransforms 
+                = cobj.m_ControllableObjectCombatManager.GetProjectileSpawnTransforms(m_SpawnFromWeapon, desiredCount);
+
+
+            // 6️ 새로 생성해야 할 개수만큼 생성
+            //     → 제거된 위치(reusableTransforms)를 우선 재사용
+            int reuseIndex = 0;
+
+            for (int i = remainingCount; i < desiredCount; i++)
+            {
+                Transform spawnT = null;
+
+                // 기존 제거된 위치부터 사용
+                if (reuseIndex < reusableTransforms.Count)
+                {
+                    spawnT = reusableTransforms[reuseIndex];
+                    reuseIndex++;
+                }
+                else
+                {
+                    // 부족하면 새 위치를 사용
+                    spawnT = initSpawnTransforms[i % initSpawnTransforms.Count];
+                }
+
+                //Debug.Log("Range에서 새로운 준비 오브젝트를 생성");
+
+                var newObj = Managers.Resource.Instantiate<Projectile>(m_ProjectilePrefab, spawnT);
+                newObj.transform.localPosition = Vector3.zero;
+                newObj.transform.localRotation = Quaternion.identity;
+                m_SpawnProjectiles.Add(newObj);
+            }
+
+            // 7️ Projectile 생성 및 타겟 할당
+            m_SpawnProjectiles.AddRange(
+                cobj.m_ControllableObjectCombatManager.m_AttackReadyItemObject
+                .Where(x => x.obj is Projectile)
+                .Select(x => x.obj as Projectile)
+                .ToList());
+
+            List<GameEntity> m_tempTargets = GetTargets(attacker, target);
+
+            if(m_tempTargets != null && m_tempTargets.Count > 0)
+            {
+                for (int i = 0; i < m_SpawnProjectiles.Count; i++)
+                    m_SpawnProjectiles[i].AttackReady(attacker, this, m_tempTargets[i]);
+
+                // 8️⃣ 즉시 발사
+                if (m_IsImmediateLaunch)
+                    CoroutineRunner.Instance.StartCoroutine(LaunchProjectileCoroutine(attacker));
+            }
+
+            //  리스트에서 제거한 오브젝트 항목 삭제
+            cobj.m_ControllableObjectCombatManager.m_AttackReadyItemObject.Clear();
         }
         else
         {
-            // 손에 생성된 준비 오브젝트를 제거
-            if (attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject != null)
+
+        }
+    }
+
+    public List<GameEntity> GetTargets(GameEntity attacker, GameEntity target)
+    {
+        var targets = GetAttackGridPositions(attacker, target)
+                           .Select(grid => LevelGrid.Instance.GetObjectAtGridPosition(grid))
+                           .ToList();
+
+        if (targets.Count == 0)
+            return default;
+
+        // 실제로 사용할 타겟 리스트
+        List<GameEntity> assignedTargets = new();
+
+        // ① 적 1명인 경우 -> 모든 발사체가 같은 타겟
+        if (targets.Count == 1)
+        {
+            for (int i = 0; i < m_iSpawnProjectileCount; i++)
+                assignedTargets.Add(targets[0]);
+        }
+        // ② 적의 수와 발사체 수가 같은 경우 -> 1:1 대응
+        else if (targets.Count == m_iSpawnProjectileCount)
+        {
+            assignedTargets.AddRange(targets);
+        }
+        // ③ 적이 발사체보다 많으면 -> 랜덤으로 뽑기
+        else if (targets.Count > m_iSpawnProjectileCount)
+        {
+            // 중복 없는 랜덤 샘플링
+            assignedTargets = targets.OrderBy(_ => UnityEngine.Random.value)
+                                     .Take(m_iSpawnProjectileCount)
+                                     .ToList();
+        }
+        // ④ 적이 더 적은 경우(예: 2명밖에 없는데 3발 쏴야 함)
+        else if (targets.Count < m_iSpawnProjectileCount)
+        {
+            // 적들을 순환하면서 배분
+            for (int i = 0; i < m_iSpawnProjectileCount; i++)
             {
-                m_SpawnProjectile = attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject as Projectile;
+                int index = i % targets.Count;
+                assignedTargets.Add(targets[index]);
             }
         }
 
-        // 준비 오브젝트 리셋
-        if (attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject != null)
-            attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject = null;
+        return assignedTargets;
     }
 
-    public override void Attack(ControllableObject attacker, GameEntity target)
+    public override void Attack(GameEntity attacker, GameEntity target)
     {
-        // 부모 분리 (손에서 떨어뜨림)
-        m_SpawnProjectile.transform.SetParent(null);
+        if (m_IsImmediateLaunch)
+            return;
 
-        Vector3 ProjectileStartPosition = m_SpawnProjectile.transform.position;
+        if (m_SpawnProjectiles == null || m_SpawnProjectiles.Count <= 0)
+            return;
 
-        // 콜라이더의 y축 기준 2/3 지점으로
-        Vector3 baseCenter = target.m_HitCollider.bounds.center;
-        float height = target.m_HitCollider.bounds.size.y;
-        Vector3 ProjectileEndPosition = baseCenter + Vector3.up * (height * (1f / 6f));
-
-
-        m_SpawnProjectile.AttackReady(attacker, this);
-
-        if (!m_iIsLaunchProjectileParabola)
-            attacker.StartCoroutine(LaunchStraight(attacker, ProjectileEndPosition));
-        else
-            attacker.StartCoroutine(LaunchParabola(attacker, ProjectileStartPosition, ProjectileEndPosition));
+        CoroutineRunner.Instance.StartCoroutine(LaunchProjectileCoroutine(attacker));
     }
 
-    private IEnumerator LaunchStraight(ControllableObject attacker, Vector3 targetPos)
+    // 애니메이션에서 event를 호출하기 때문에 분리 위치가 안 맞음. 반드시 한 프레임 늦춰야 됨
+    private IEnumerator LaunchProjectileCoroutine(GameEntity attacker)
     {
-        while (Vector3.Distance(m_SpawnProjectile.transform.position, targetPos) > 0.1f)
+        yield return new WaitForEndOfFrame();
+
+        // 모든 발사체 준비
+        for (int i = 0; i < m_SpawnProjectiles.Count; i++)
         {
-            Vector3 nextPos = Vector3.MoveTowards(
-                m_SpawnProjectile.transform.position, targetPos, StraighSpeed * Time.deltaTime);
-            m_SpawnProjectile.m_Rigidbody.MovePosition(nextPos);
-            yield return new WaitForFixedUpdate(); // 반드시 FixedUpdate 주기로
+            var projectile = m_SpawnProjectiles[i];
+            projectile.transform.SetParent(null, true); // true는 월드 위치 유지
+            projectile.Launch();
+            Launcher.Launch(projectile, attacker, projectile.m_Target, context);
         }
     }
 
-    private IEnumerator LaunchParabola(ControllableObject attacker, Vector3 start, Vector3 end)
+    public override List<GridPosition> GetAttackGridPositions(GameEntity attacker, GameEntity target)
     {
-        float t = 0;
-        float duration = Vector3.Distance(start, end) / PalabolaSpeed;
+        // 기본적으로 범위 내의 모든 적들을 공격함.
+        GridPosition selfPos = attacker.GetGridPosition();
 
-        while (t < 1f)
+        if (target == null || target.IsDead)
+            return default;
+
+        GridPosition targetPos = target.GetGridPosition();
+        E_Dir dir = LevelGrid.Instance.GetDirGridPosition(selfPos, targetPos);
+
+        HashSet<GridPosition> attackGridOffsets = Managers.Game.GetPatternOffsets(this);
+
+        // 실제 공격 범위 내 좌표 변환 및 필터링
+        HashSet<GridPosition> attackedGridPositions = attackGridOffsets
+            .Select(offset => LevelGrid.Instance.ToGridPosition(offset, selfPos, dir))
+            .Where(pos => LevelGrid.Instance.IsGridPositionCheckType(pos, m_GridCheckTypes))
+            .ToHashSet();
+
+        // 만약 그리드 체크 타입이 유닛이라면 적인지 아군인지 구분
+        if (m_GridCheckTypes.Contains(E_GridCheckType.GameEntity))
         {
-            t += Time.deltaTime / duration;
+            // 공격 대상이 플레이어 진영인지 / 적 진영인지에 따라 필터링
+            switch (m_ApplyTargetE_Tendency)
+            {
+                case E_TargetTendencyType.All:
+                    break;
+                case E_TargetTendencyType.Ally: // 플레이어 아군만 적용
+                    attackedGridPositions = attackedGridPositions
+                        .Where(pos =>
+                        {
+                            var obj = LevelGrid.Instance.GetObjectAtGridPosition(pos);
+                            return obj != null && !attacker.IsEnemy(obj);
+                        })
+                        .ToHashSet();
+                    break;
 
-            Vector3 currentPos = Vector3.Lerp(start, end, t);
-            currentPos.y += boundHeight * Mathf.Sin(t * Mathf.PI);
+                case E_TargetTendencyType.Enemy: // 적 유닛만 적용
+                    attackedGridPositions = attackedGridPositions
+                        .Where(pos =>
+                        {
+                            var obj = LevelGrid.Instance.GetObjectAtGridPosition(pos);
+                            return obj != null && attacker.IsEnemy(obj);
+                        })
+                        .ToHashSet();
+                    break;
 
-            m_SpawnProjectile.m_Rigidbody.MovePosition(currentPos);
-            yield return new WaitForFixedUpdate(); // FixedUpdate 주기
+                case E_TargetTendencyType.Neutral: // 중립 유닛은 양쪽 다 무시
+                    attackedGridPositions.Clear();
+                    break;
+            }
         }
+
+        //Debug.Log($"{attacker.name}가 {target}을 향해 공격함. 타겟 그리드 {string.Join(" ", attackedGridPositions)}");
+
+        return attackedGridPositions.ToList();
     }
+
 }

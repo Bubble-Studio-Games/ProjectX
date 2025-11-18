@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
+using System.Linq;
 using UnityEditor.TerrainTools;
 using UnityEngine;
 using static Define;
@@ -64,8 +66,7 @@ public class Pathfinding : MonoBehaviour
                     Vector3 worldPosition = LevelGrid.Instance.GetWorldPosition(gridPosition);
                     float raycastOffsetDistance = 1f;
 
-                    GetNode(x, z, floor).SetIsWalkable(false);
-                    LevelGrid.Instance.SetFloorCheckCache(gridPosition, E_GridCheckType.Walkable, false, null);
+                    LevelGrid.Instance.SetGridPositionCellInfo(gridPosition, E_GridCheckType.Void, null);
 
                     if (Physics.Raycast(
                         worldPosition + Vector3.up * raycastOffsetDistance,
@@ -73,8 +74,7 @@ public class Pathfinding : MonoBehaviour
                         raycastOffsetDistance * 2,
                         LayerManager.Instance.mousePlaneLayerMask))
                     {
-                        GetNode(x, z, floor).SetIsWalkable(true);
-                        LevelGrid.Instance.SetFloorCheckCache(gridPosition, E_GridCheckType.Walkable, true, null);
+                        LevelGrid.Instance.SetGridPositionCellInfo(gridPosition, E_GridCheckType.Walkable, null);
                     }
 
                     if (Physics.Raycast(
@@ -83,10 +83,7 @@ public class Pathfinding : MonoBehaviour
                         raycastOffsetDistance * 2,
                         LayerManager.Instance.ObstaclesLayerMask))
                     {
-                        GetNode(x, z, floor).SetIsWalkable(false);
-
-                        LevelGrid.Instance.SetFloorCheckCache(gridPosition, E_GridCheckType.Walkable, false, null);
-                        LevelGrid.Instance.SetFloorCheckCache(gridPosition, E_GridCheckType.Obstacle, true, null);
+                        LevelGrid.Instance.SetGridPositionCellInfo(gridPosition, E_GridCheckType.Obstacle, null);
                     }
                 }
             }
@@ -103,7 +100,13 @@ public class Pathfinding : MonoBehaviour
         }
     }
 
-    public List<GridPosition> FindPath(GridPosition startGridPosition, GridPosition endGridPosition, out int pathLength, bool CheckHasObject = true)
+    public List<GridPosition> FindPath
+        (GridPosition startGridPosition, 
+        GridPosition endGridPosition, 
+        out int pathLength, 
+
+        bool CheckHasObject = true, 
+        bool CheckReserve = true)
     {
         List<PathNode> openList = new List<PathNode>();
         List<PathNode> closedList = new List<PathNode>();
@@ -156,32 +159,41 @@ public class Pathfinding : MonoBehaviour
 
                 bool isStart = neighbourNode == startNode;
                 bool isEnd = neighbourNode == endNode;
-
-                // 1. Walkable이 아니고 시작/도착도 아니면 제외
-                if (!neighbourNode.IsWalkable() && !isStart && !isEnd)
+                var toCheckGridCellInfo = LevelGrid.Instance.GetGridPositionCellInfo(neighbourNode.GetGridPosition());
+                
+                // 1. Walkable이 아니면 기본적으로 제외
+                if (!isStart && !isEnd)
                 {
-                    closedList.Add(neighbourNode);
-                    continue;
-                }
+                    // 장애물, Void, Unit 등 막힌 칸
+                    if (toCheckGridCellInfo.gridType != E_GridCheckType.Walkable)
+                    {
+                        bool isPassableReserve = false;
 
-                // 2. 시작/도착의 오브젝트를 제외한 오브제가 있다면 제외한다.
-                if (LevelGrid.Instance.HasAnyUnitOnGridPosition(neighbourNode.GetGridPosition()) && !isStart && !isEnd && CheckHasObject)
-                {
-                    closedList.Add(neighbourNode);
-                    continue;
-                }
+                        // LevelGrid.Instance.GetObjectAtGridPosition(startGridPosition) 는 
+                        // 현재 길을 찾는 주체(Entity)를 가져오는 것으로 가정합니다.
+                        if (toCheckGridCellInfo.gridType  == E_GridCheckType.GameEntity && CheckHasObject)
+                        {
+                            // 통과 가능: 현재 객체가 예약한 Reserve 칸
+                            isPassableReserve = true;
+                        }
 
-                // 예약된 자리면 제외
-                // 단, 예약 객체가 탐사 객체이면 제외
-                bool isReserved = LevelGrid.Instance.IsDifferentGameEntityAtReservedGridPosition
-                    (neighbourNode.GetGridPosition(),
-                    LevelGrid.Instance.GetUnitListAtGridPosition(startGridPosition)[0]);
+                        // 예외 조건에 해당하지 않는다면, 길을 막습니다. (closedList에 추가하고 다음 노드로 넘어감)
+                        if (toCheckGridCellInfo.gridType == E_GridCheckType.Reserve && CheckReserve)
+                        {
+                            if(toCheckGridCellInfo.Entity == LevelGrid.Instance.GetObjectAtGridPosition(startGridPosition))
+                            {
+                                // 통과 가능: 현재 객체가 예약한 Reserve 칸
+                                isPassableReserve = true;
+                            }
+                        }
 
-                // 3. 예약된 칸인데 시작/도착이 아니면 제외
-                if (isReserved)
-                {
-                    closedList.Add(neighbourNode);
-                    continue;
+                        // 예외 조건에 해당하지 않는다면, 길을 막습니다. (closedList에 추가하고 다음 노드로 넘어감)
+                        if (!isPassableReserve)
+                        {
+                            closedList.Add(neighbourNode);
+                            continue;
+                        }
+                    }
                 }
 
                 int tentativeGCost = 
@@ -349,16 +361,6 @@ public class Pathfinding : MonoBehaviour
         return gridPositionList;
     }
 
-    public void SetIsWalkableGridPosition(GridPosition gridPosition, bool isWalkable)
-    {
-        GetGridSystem(gridPosition.floor).GetGridObject(gridPosition).SetIsWalkable(isWalkable);
-    }
-
-    public bool IsWalkableGridPosition(GridPosition gridPosition)
-    {
-        return GetGridSystem(gridPosition.floor).GetGridObject(gridPosition).IsWalkable();
-    }
-
     public bool HasPath(GridPosition startGridPosition, GridPosition endGridPosition)
     {
         return FindPath(startGridPosition, endGridPosition, out int pathLength) != null;
@@ -369,5 +371,97 @@ public class Pathfinding : MonoBehaviour
         FindPath(startGridPosition, endGridPosition, out int pathLength);
         return pathLength;
     }
-    
+
+    // 반환: 출발점 → 선택된 목적지까지의 경로(목적지 포함). 실패 시 빈 리스트 반환.
+    // allowApproachWhenUnreachable == true → 이동 불가능한 목표라도 근처까지 접근.
+    // false → 도달 불가능하면 빈 리스트 반환.
+    public List<GridPosition> FindNearestCandidatePath(
+        GameEntity entity,
+        GridPosition start,
+        IEnumerable<GridPosition> attackablePositions,
+        bool allowApproachWhenUnreachable = false)
+    {
+        // 1-1) 가장 빠르게 도달할 수 있는 후보 위치 찾기
+        if (attackablePositions.Count() > 0)
+        {
+            int bestLength = int.MaxValue;
+            List<GridPosition> bestPath = new();
+
+            foreach (var tgt in attackablePositions)
+            {
+                var path = FindPath(start, tgt, out int length);
+                if (path == null || path.Count == 0) continue;
+
+                if (length < bestLength)
+                {
+                    bestLength = length;
+                    bestPath = path;
+                }
+            }
+
+            if (bestPath.Count > 0)
+                return bestPath;
+        }
+
+        // 2) 직접 도달 불가능한 경우
+        // allowApproachWhenUnreachable이 false면 여기서 바로 중단
+        if (!allowApproachWhenUnreachable)
+            return new List<GridPosition>();
+
+        // 근처까지 접근 시도 (fallback)
+        var fallbackCandidates = new List<(List<GridPosition> pathToStop, int fullPathLength)>();
+
+        foreach (var tgt in attackablePositions)
+        {
+            var fullPath = FindPath(start, tgt, out int fullLength);
+            if (fullPath == null || fullPath.Count == 0)
+                continue;
+
+            // 목표 셀로부터 Remove_MOVE_GRID 만큼 앞에서 멈추기
+            int stopIndex = fullPath.Count - 1 - Remove_MOVE_GRID;
+            if (stopIndex < 0)
+                continue; // 경로가 너무 짧아 멈출 지점이 없음
+
+            // stopIndex 지점이 막혀 있으면 한 칸씩 앞으로(경로 시작 쪽) 물러나며 유효 지점 찾기
+            while (stopIndex >= 0)
+            {
+                var stopPos = fullPath[stopIndex];
+
+                bool valid =
+                    LevelGrid.Instance.IsValidGridPosition(stopPos) &&
+                    LevelGrid.Instance.IsGridPositionCheckType(stopPos, E_GridCheckType.Walkable);
+
+                if (valid)
+                {
+                    // stopIndex까지 포함한 경로를 후보로 추가
+                    var pathToStop = fullPath.Take(stopIndex + 1).ToList();
+                    fallbackCandidates.Add((pathToStop, fullLength));
+                    break;
+                }
+
+                stopIndex--; // 한 칸 앞(더 이전 지점)으로 물러남
+            }
+        }
+
+        // fallback 후보들 중에서 전체 경로 길이가 가장 짧은 것 선택
+        if (fallbackCandidates.Count > 0)
+        {
+            int minFullLen = int.MaxValue;
+            List<GridPosition> bestFallback = new();
+
+            foreach (var (pathToStop, fullLen) in fallbackCandidates)
+            {
+                if (fullLen < minFullLen)
+                {
+                    minFullLen = fullLen;
+                    bestFallback = pathToStop;
+                }
+            }
+
+            if (bestFallback.Count > 0)
+                return bestFallback;
+        }
+
+        return new List<GridPosition>();
+    }
 }

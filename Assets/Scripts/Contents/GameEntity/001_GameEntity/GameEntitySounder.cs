@@ -4,6 +4,7 @@ using UnityEngine;
 using static Define;
 using Random = UnityEngine.Random;
 
+[Serializable]
 public  class GameEntitySounder : MonoBehaviour
 {
     [SerializeField] private Transform m_AudiosTransform;
@@ -25,6 +26,7 @@ public  class GameEntitySounder : MonoBehaviour
     [Header("Battle")]
     public AudioClip[] DamagedClipList; // 피격
     public AudioClip[] CriticalDamagedClipList; // 피격
+    public AudioClip[] AttackMissClipList; // 나중에 attack pattern으로
 
     protected virtual void Awake()
     {
@@ -64,6 +66,32 @@ public  class GameEntitySounder : MonoBehaviour
                 SoundPlay(CriticalDamagedClipList, E_GameEntityClipType.Damaged.ToString());
                 break;
         }
+    }
+
+
+
+    public void AttackSoundPlay(AttackPattern attack)
+    {
+        SoundPlay(attack.AttackAudioClip, E_GameEntityClipType.Attack.ToString());
+    }
+
+    public void AttackMissPlay(object sender, EventArgs e)
+    {
+        SoundPlay(AttackMissClipList, E_GameEntityClipType.Attack.ToString());
+    }
+
+    public void AttackReadyFailPlay()
+    {
+        var attack = m_GameEntity.GetAction<CombatAction>().m_ThisTimeAttack;
+
+        if (attack == null)
+            return;
+
+        // AttackPattern_Ready로 캐스팅하고 Ready 타입인지 확인
+        if (attack is not AttackPattern_Ready readyPattern)
+            return;
+
+        SoundPlay(readyPattern.ReadyFailAudioClip, E_GameEntityClipType.Attack.ToString());
     }
 
     public void SoundPlay(AudioClip audioClip, string audioClipName, int loop = 0, float pitch = 1.0f)

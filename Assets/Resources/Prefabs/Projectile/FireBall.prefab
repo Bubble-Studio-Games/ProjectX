@@ -29183,6 +29183,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e576c410550537c4ead21874d0b00641, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_fStraightSpeed: 10
+  ParabolaSpeed: 5
+  m_DetectionHitRadius: 2
   m_hasDestoryAnimation: 0
   m_ProjectileFlyingAudioClip: {fileID: 8300000, guid: a652877b012108e41871f867ada9f176, type: 3}
   m_ProjectileHitAudioClip: {fileID: 8300000, guid: e553e6ed5969942438d7327a51b9e068, type: 3}

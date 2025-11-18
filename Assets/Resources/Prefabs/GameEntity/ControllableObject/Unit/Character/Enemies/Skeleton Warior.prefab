@@ -224,35 +224,35 @@ PrefabInstance:
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_IdleAnimationClip.Array.data[0]
       value: 
-      objectReference: {fileID: -4847777627775502037, guid: b1db32bf678632d4795b4299bce3da68, type: 3}
+      objectReference: {fileID: 3060610079319413300, guid: b1db32bf678632d4795b4299bce3da68, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_IdleAnimationClip.Array.data[1]
       value: 
-      objectReference: {fileID: -4847777627775502037, guid: 2634c0d39aeaa6744898d5b8b6dcfffa, type: 3}
+      objectReference: {fileID: 3060610079319413300, guid: 2634c0d39aeaa6744898d5b8b6dcfffa, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_IdleAnimationClip.Array.data[2]
       value: 
-      objectReference: {fileID: -4847777627775502037, guid: 83b0fbba86ac79a45a62e57f0efbe02c, type: 3}
+      objectReference: {fileID: 3060610079319413300, guid: 83b0fbba86ac79a45a62e57f0efbe02c, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_WalkAnimationClip.Array.data[0]
       value: 
-      objectReference: {fileID: -4847777627775502037, guid: 74640c8c77162bb40aab8b2fc995e156, type: 3}
+      objectReference: {fileID: 3060610079319413300, guid: 74640c8c77162bb40aab8b2fc995e156, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_DeathAnimationClip.Array.data[0]
       value: 
-      objectReference: {fileID: 5269612906122838222, guid: 254689aa2c1fc52488b6438382c952c8, type: 3}
+      objectReference: {fileID: -4847777627775502037, guid: 254689aa2c1fc52488b6438382c952c8, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_SpawnAnimationClip.Array.data[0]
       value: 
-      objectReference: {fileID: -203655887218126122, guid: 5ba9ec4e1f9479c469afee33f581ac81, type: 3}
+      objectReference: {fileID: 3060610079319413300, guid: 5ba9ec4e1f9479c469afee33f581ac81, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_SpawnAnimationClip.Array.data[1]
       value: 
-      objectReference: {fileID: -203655887218126122, guid: 6a5c4eaf4b884fe41a914d3737c94c6d, type: 3}
+      objectReference: {fileID: 3060610079319413300, guid: 6a5c4eaf4b884fe41a914d3737c94c6d, type: 3}
     - target: {fileID: 3879939701179222574, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_DamagedAnimationClip.Array.data[0]
       value: 
-      objectReference: {fileID: -4847777627775502037, guid: 6368e4bf7c7401d4ba9753b66d2c84fe, type: 3}
+      objectReference: {fileID: 3060610079319413300, guid: 6368e4bf7c7401d4ba9753b66d2c84fe, type: 3}
     - target: {fileID: 4760083259216788194, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_Avatar
       value: 
@@ -387,10 +387,18 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: eaf4052487a6c6a459415f94fae0aeb6, type: 2}
     - target: {fileID: 5932562773604003526, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_AttackPatterns.Array.size
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5932562773604003526, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
       propertyPath: m_AttackPatterns.Array.data[0]
+      value: 
+      objectReference: {fileID: 11400000, guid: 7e611849e714c744f98013102f95d5aa, type: 2}
+    - target: {fileID: 5932562773604003526, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      propertyPath: m_originalAttackPatterns.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5932562773604003526, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}
+      propertyPath: m_originalAttackPatterns.Array.data[0]
       value: 
       objectReference: {fileID: 11400000, guid: 7e611849e714c744f98013102f95d5aa, type: 2}
     - target: {fileID: 7261566542346041003, guid: 69b98c41becc4ae4099f1eba6797785b, type: 3}

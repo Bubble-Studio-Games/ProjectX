@@ -26,13 +26,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1652984994726063886}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -0, y: 0.0235, z: -0.0886}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0.7071068, w: 0}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4093807119276652062}
-  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 180, z: 0}
 --- !u!23 &5004029575780863958
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -114,7 +114,7 @@ Transform:
   m_GameObject: {fileID: 3399050517368323396}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0.141}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -146,13 +146,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e576c410550537c4ead21874d0b00641, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_fStraightSpeed: 5
+  ParabolaSpeed: 7
+  m_DetectionHitRadius: 2
   m_hasDestoryAnimation: 0
-  m_ControllerableLayer:
-    serializedVersion: 2
-    m_Bits: 0
-  m_StructLayer:
-    serializedVersion: 2
-    m_Bits: 0
   m_ProjectileFlyingAudioClip: {fileID: 8300000, guid: 4d7a118ce5cbd4e41aabfa5f8774fcae, type: 3}
   m_ProjectileHitAudioClip: {fileID: 0}
   m_AfterProjectileHitPrefab: {fileID: 0}
@@ -320,4 +317,4 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 0.01, y: 0.01, z: 0.3}
-  m_Center: {x: 0, y: 0.0235, z: -0.12}
+  m_Center: {x: 0, y: 0, z: 0.03}

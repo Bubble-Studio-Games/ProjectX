@@ -1,77 +1,50 @@
 #!/bin/sh
-# ===============================================================
-# pre-commit: 대용량 및 특정 확장자 파일을 자동으로 DVC로 이관
-# - 특정 확장자는 무조건 DVC로 관리
-# - 조건부 확장자는 100MB 초과 시 DVC로 관리
-# - 이미 DVC 추적 중이면 건너뜀
-# - Git에서 추적 중이면 자동으로 추적 해제 후 DVC 전환
-# ===============================================================
+set -e
 
-echo "[husky] pre-commit running" >&2
+# --- DVC 관리 임계값: 100MB (bytes) ---
+LIMIT=$((100 * 1024 * 1024))
 
-LIMIT=104857600  # 100MB
-found=false
+echo "🔍 Running pre-commit DVC check (Threshold: 100MB)..."
 
-# 1) 스테이징된 추가/수정 파일만 검사
-git diff --cached --name-only -z --diff-filter=AM | \
-while IFS= read -r -d '' file; do
-    if [ -f "$file" ]; then
-        ext="${file##*.}"
-        size=$(wc -c <"$file")
-        process=false
+# DVC 잠금 파일 정리 (오류 방지)
+rm -rf .dvc/tmp/lock .dvc/tmp/rwlock >/dev/null 2>&1 || true
 
-        # 확장자 규칙 적용
-        case "$ext" in
-            fbx|anim|wav|mp4|psd|exr|hdr|tga)  # 무조건 DVC
-                process=true ;;
-            png|jpg|obj|blend|prefab)          # 조건부: 100MB 초과
-                [ $size -gt $LIMIT ] && process=true ;;
-        esac
-
-        if [ "$process" = true ]; then
-            echo "⚠️  DVC 대상 파일 감지: $file (size: $size bytes)"
-
-            # 이미 DVC에서 추적 중인지 확인 (.dvc 메타 존재)
-            if [ -f "$file.dvc" ]; then
-                echo "ℹ️  Already tracked by DVC (.dvc exists): $file → skip"
-                continue
-            fi
-
-            # Git이 이미 추적 중이면 자동 untrack
+# --- 변경되고 스테이징된 파일만 검사 (요청 1)
+git diff --cached --name-only -z --diff-filter=AM | while IFS= read -r -d '' file; do
+      
+    # 파일 크기 확인
+    size=$(stat -c%s "$file" 2>/dev/null || echo 0)
+    
+    # 2. 100MB 초과 여부 체크
+    if [ $size -gt $LIMIT ]; then
+        
+        # 3. DVC로 아직 추적되지 않은 경우
+        if [ ! -f "$file.dvc" ]; then
+            
+            size_mb=$(echo "$size" | awk '{print int($1/1048576)}')
+            echo "📦 DVC add: $file (Size: ${size_mb}MB) -> OVER 100MB"
+            
+            # --- Git 추적 해제 후 DVC 등록 (요청 3) ---
+            # 이미 Git에 스테이징된 파일을 DVC로 전환하기 위해 Git 추적을 해제합니다.
             if git ls-files --error-unmatch "$file" >/dev/null 2>&1; then
-                echo "⚠️  Git에서 이미 추적 중: $file → 추적 해제 후 DVC로 전환"
+                echo "ℹ️  File tracked by Git → Untracking: $file"
                 git rm --cached "$file"
             fi
 
-            # dvc add 실행
-            if dvc add "$file"; then
-                echo "✅  dvc add succeeded for $file"
-
-                # 혹시 남아 있는 Git 추적이 있으면 한 번 더 해제
-                if git ls-files --cached --error-unmatch "$file" >/dev/null 2>&1; then
-                    git rm --cached "$file"
-                fi
-
-                # .dvc 파일 자동 add
-                [ -f "$file.dvc" ] && git add "$file.dvc"
-
-                # 해당 디렉토리의 .gitignore 자동 add
-                dir=$(dirname "$file")
-                [ -f "$dir/.gitignore" ] && git add "$dir/.gitignore"
-
-                found=true
-            else
-                echo "❌  dvc add failed for $file, skipping..."
+            # DVC에 추가 및 .dvc 파일 Git 스테이징
+            # dvc add는 자동으로 해당 파일을 .gitignore에 추가합니다.
+            dvc add "$file" >/dev/null 2>&1 && git add "$file.dvc"
+            
+            # 4. 매칭되는 .meta 파일이 있다면 Git에 추가 (Git으로만 관리)
+            metafile="${file}.meta"
+            if [ -f "$metafile" ]; then
+                echo "🧩 Matching META found → Git add: $metafile"
+                git add "$metafile"
             fi
+        else
+            echo "⏭️ Already tracked by DVC: $file"
         fi
     fi
 done
 
-# 커밋 중단 처리 (DVC 전환된 파일이 있으면 재커밋 유도)
-if [ "$found" = true ]; then
-    echo "❌  Commit aborted. Some files were moved to DVC."
-    echo "   Please commit again (.dvc + .gitignore now included)."
-    exit 1
-fi
-
-exit 0
+echo "✅ DVC pre-commit complete."

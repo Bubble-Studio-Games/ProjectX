@@ -12,7 +12,7 @@ public class CameraController : MonoBehaviour
     public static CameraController Instance { get; private set; }
 
     private CinemachineCamera m_CM;
-    [SerializeField] private Transform m_Follow;
+    public Transform m_Follow;
     private Vector3 targetFollowOffset;
 
     public int m_CurrentLookFloor { get; private set; } = 0;

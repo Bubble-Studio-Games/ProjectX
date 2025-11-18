@@ -77,7 +77,7 @@ public class BuildingGhost : MonoBehaviour
         Managers.Game.GameEntityModelsSetLayer(visual, LayerMask.NameToLayer("Default"));
 
         //Level grid Set Reserve
-        LevelGrid.Instance.SetReserveGridPosition(visual.GetGridPositionListAtSelectPosition(e.PivotGridPosition) , true, visual);
+        LevelGrid.Instance.SetGridPositionCellInfo(visual.GetGridPositionListAtSelectPosition(e.PivotGridPosition), Define.E_GridCheckType.Reserve, visual);
 
         StartCoroutine(visual.m_SetupAnimation.PlacedSpawnAnimation());
 

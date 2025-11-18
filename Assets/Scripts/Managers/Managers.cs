@@ -28,6 +28,8 @@ public class Managers : MonoBehaviour
     UIManager _ui = new UIManager();
     TableManager _table = new TableManager();
     DataManager _data = new DataManager();
+    SaveManager _save = new SaveManager();
+    LoadManager _load = new LoadManager();
 
     public static PoolManager Pool { get { return Instance._pool; } }
     public static ResourceManager Resource { get { return Instance._resource; } }
@@ -36,9 +38,9 @@ public class Managers : MonoBehaviour
     public static UIManager UI { get { return Instance._ui; } }
     public static TableManager Table { get { return Instance._table; } }
     public static DataManager Data { get { return Instance._data; } }
+    public static SaveManager Save { get { return Instance._save; } }
+    public static LoadManager Load { get { return Instance._load; } }
     #endregion
-
-    static public string m_strHttp = "http://58.78.211.147:3000/";
 
     void Start()
     {
@@ -59,10 +61,11 @@ public class Managers : MonoBehaviour
             DontDestroyOnLoad(go);
             s_instance = go.GetComponent<Managers>();
 
+            s_instance._data.InitAsync();
+            s_instance._object.Init();
             s_instance._pool.Init();
             s_instance._sound.Init();
             s_instance._game.Init();
-            s_instance._data.Init();
             //s_instance._table.Init();
 
             Application.targetFrameRate = 60;

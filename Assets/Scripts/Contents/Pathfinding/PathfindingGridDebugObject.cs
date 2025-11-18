@@ -19,13 +19,12 @@ public class PathfindingGridDebugObject : GridDebugObject
         pathNode = (PathNode)gridObject;
     }
 
-    protected override void Update()
+    protected void Update()
     {
-        base.Update();
         gCostText.text = pathNode.GetGCost().ToString();
         hCostText.text = pathNode.GetHCost().ToString();
         fCostText.text = pathNode.GetFCost().ToString();
-        isWalkableSpriteRenderer.color = pathNode.IsWalkable() ? Color.green : Color.red;
+        isWalkableSpriteRenderer.color = LevelGrid.Instance.IsGridPositionCheckType(pathNode.GetGridPosition(), Define.E_GridCheckType.Walkable) ? Color.green : Color.red;
     }
     
 }

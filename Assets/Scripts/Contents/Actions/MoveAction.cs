@@ -36,7 +36,7 @@ public class MoveAction : BaseAction
 
         if (m_BaseObject.m_TeamId == E_TeamId.Player)
         {
-            OnUpdateGrid += GridSystemVisual.Instance.UpdateGridVisual_Event;
+            OnUpdateGrid += (s, e) => GridSystemVisual.Instance.UpdateGridVisual_Event(s, m_BaseObject);
         }
     }
 
@@ -57,52 +57,64 @@ public class MoveAction : BaseAction
         if (m_BaseObject.m_AttributeSystem.m_IsDead)
             return;
 
-        Vector3 targetPosition = forwardPosition;
-
-        if (isChangingFloors)
+        if (m_BaseObject is PassiveObject pobj)
         {
-            // Stop and Teleport Logic
-            Vector3 targetSameFloorPosition = targetPosition;
-            targetSameFloorPosition.y = m_BaseObject.transform.position.y;
 
-            Vector3 rotateDirection = (targetSameFloorPosition - m_BaseObject.transform.position).normalized;
+        }
+        else if (m_BaseObject is ControllableObject cobj)
+        {
+            Vector3 targetPosition = forwardPosition;
 
-            float rotateSpeed = 10f;
-            m_BaseObject.transform.forward = Vector3.Slerp(m_BaseObject.transform.forward, rotateDirection, Time.deltaTime * rotateSpeed);
-
-            differentFloorsTeleportTimer -= Time.deltaTime;
-            if (differentFloorsTeleportTimer < 0f)
+            if (isChangingFloors)
             {
-                isChangingFloors = false;
-                m_BaseObject.transform.position = targetPosition;
+                // Stop and Teleport Logic
+                Vector3 targetSameFloorPosition = targetPosition;
+                targetSameFloorPosition.y = m_BaseObject.transform.position.y;
+
+                Vector3 rotateDirection = (targetSameFloorPosition - m_BaseObject.transform.position).normalized;
+
+                float rotateSpeed = 10f;
+                m_BaseObject.transform.forward = Vector3.Slerp(m_BaseObject.transform.forward, rotateDirection, Time.deltaTime * rotateSpeed);
+
+                differentFloorsTeleportTimer -= Time.deltaTime;
+                if (differentFloorsTeleportTimer < 0f)
+                {
+                    isChangingFloors = false;
+                    m_BaseObject.transform.position = targetPosition;
+                }
+            }
+            else
+            {
+                // Regular move logic
+                Vector3 moveDirection = (targetPosition - m_BaseObject.transform.position).normalized;
+
+                float rotateSpeed = 10f;
+                m_BaseObject.transform.forward = Vector3.Slerp(m_BaseObject.transform.forward, moveDirection, Time.deltaTime * rotateSpeed);
+
+                m_BaseObject.transform.position += moveDirection * cobj.GetMoveSpeed() * Time.deltaTime;
+            }
+
+            // 다음 그리드 도착
+            float stoppingDistance = .1f;
+            if (Vector3.Distance(m_BaseObject.transform.position, targetPosition) < stoppingDistance)
+            {
+                LevelGrid.Instance.SetGridPositionCellInfo(
+                    LevelGrid.Instance.GetGridPosition(forwardPosition), E_GridCheckType.GameEntity, m_BaseObject);
+                forwardPosition = default;
+                OnUpdateGrid?.Invoke(this, EventArgs.Empty);
+
+                // 최종 목적지에 도착했는지 여부 따지기
+                if (DestGirdPosition == m_BaseObject.GetGridPosition())
+                {
+                    //DestGirdPosition = default;
+                    //OnStopMoving?.Invoke(this, EventArgs.Empty);
+                    ActionComplete();
+                }
             }
         }
         else
         {
-            // Regular move logic
-            Vector3 moveDirection = (targetPosition - m_BaseObject.transform.position).normalized;
 
-            float rotateSpeed = 10f;
-            m_BaseObject.transform.forward = Vector3.Slerp(m_BaseObject.transform.forward, moveDirection, Time.deltaTime * rotateSpeed);
-
-            m_BaseObject.transform.position += moveDirection * m_BaseObject.GetMoveSpeed() * Time.deltaTime;
-        }
-
-        // 다음 그리드 도착
-        float stoppingDistance = .1f;
-        if (Vector3.Distance(m_BaseObject.transform.position, targetPosition) < stoppingDistance)
-        {
-            LevelGrid.Instance.SetReserveGridPosition(LevelGrid.Instance.GetGridPosition(forwardPosition), false, m_BaseObject);
-            forwardPosition = default;
-            OnUpdateGrid?.Invoke(this, EventArgs.Empty);
-
-            // 최종 목적지에 도착했는지 여부 따지기
-            if (DestGirdPosition == m_BaseObject.GetGridPosition())
-            {
-                //DestGirdPosition = default;
-                //OnStopMoving?.Invoke(this, EventArgs.Empty);
-                ActionComplete();
-            }
         }
     }
 
@@ -123,63 +135,7 @@ public class MoveAction : BaseAction
 
     public override List<GridPosition> GetValidActionGridPositionList()
     {
-        List<GridPosition> validGridPositionList = new List<GridPosition>();
-
-        GridPosition unitGridPosition = m_BaseObject.GetGridPosition();
-
-        for (int x = -m_iMaxMoveDistance; x <= m_iMaxMoveDistance; x++)
-        {
-            for (int z = -m_iMaxMoveDistance; z <= m_iMaxMoveDistance; z++)
-            {
-                for (int floor = -m_iMaxMoveDistance; floor <= m_iMaxMoveDistance; floor++)
-                {
-                    GridPosition offsetGridPosition = new GridPosition(x, z, floor);
-                    GridPosition testGridPosition = unitGridPosition + offsetGridPosition;
-
-                    if (!LevelGrid.Instance.IsValidGridPosition(testGridPosition))
-                    {
-                        continue;
-                    }
-
-                    if (unitGridPosition == testGridPosition)
-                    {
-                        // Same Grid Position where the unit is already at
-                        continue;
-                    }
-
-                    // Detect Object
-                    if (!LevelGrid.Instance.HasEnemyAtGridPosition(m_BaseObject.GetGridPosition(), testGridPosition))
-                            continue;
-
-                    if (!Pathfinding.Instance.IsWalkableGridPosition(testGridPosition))
-                    {
-                        continue;
-                    }
-
-                    if (!Pathfinding.Instance.HasPath(unitGridPosition, testGridPosition))
-                    {
-                        continue;
-                    }
-
-                    // 이미 등록한 타겟의 위치 제외
-                    if(m_BaseObject.m_Target != null && m_BaseObject.m_Target.GetGridPosition() == testGridPosition)
-                    {
-                        continue;
-                    }
-
-                    int pathfindingDistanceMultiplier = 10;
-                    if (Pathfinding.Instance.GetPathLength(unitGridPosition, testGridPosition) > m_iMaxMoveDistance * pathfindingDistanceMultiplier)
-                    {
-                        // Path length is too long
-                        continue;
-                    }
-
-                    validGridPositionList.Add(testGridPosition);
-                }
-            }
-        }
-
-        return validGridPositionList;
+        return default;
     }
 
     private List<GridPosition> GetValidEmptyGridPositionList()
@@ -202,22 +158,13 @@ public class MoveAction : BaseAction
                         continue;
                     }
 
-                    if (LevelGrid.Instance.HasAnyUnitOnGridPosition(testGridPosition))
+                    if (!LevelGrid.Instance.IsGridPositionCheckType(testGridPosition, E_GridCheckType.Walkable))
                         continue;
-
-                    if (LevelGrid.Instance.IsReservedGridPosition(testGridPosition))
-                        continue;
-
-                    if (!Pathfinding.Instance.IsWalkableGridPosition(testGridPosition))
-                    {
-                        continue;
-                    }
 
                     if (!Pathfinding.Instance.HasPath(unitGridPosition, testGridPosition))
                     {
                         continue;
                     }
-
 
                     int pathfindingDistanceMultiplier = 10;
                     if (Pathfinding.Instance.GetPathLength(unitGridPosition, testGridPosition) > m_iMaxMoveDistance * pathfindingDistanceMultiplier)
@@ -248,14 +195,13 @@ public class MoveAction : BaseAction
         m_iPathCurrentCount = 0;
     }
 
-
     public override void ClearAction()
     {
         base.ClearAction();
 
         if (forwardPosition != default)
         {
-            LevelGrid.Instance.SetReserveGridPosition(LevelGrid.Instance.GetGridPosition(forwardPosition), false, m_BaseObject);
+            LevelGrid.Instance.SetGridPositionCellInfo(LevelGrid.Instance.GetGridPosition(forwardPosition), E_GridCheckType.Walkable);
             forwardPosition = default;
             m_iPathCurrentCount = 0;
         }
@@ -267,36 +213,49 @@ public class MoveAction : BaseAction
         if (!m_bIsActive)
             return this;
 
-        // 타겟 Null
-        m_BaseObject.SetTarget(null);
-
-        // 현재 이동에도 가장 빈 곳 찾아서 이동후 IdleAction
-        GridPosition pos = LevelGrid.Instance.GetClosestGridPositionSpecificCondition(m_BaseObject.GetGridPosition(), GetValidEmptyGridPositionList());
-
-        // 움직일 곳이 없다면 그 자리에서 대기
-        if (pos == default)
+        if (m_BaseObject is PassiveObject pobj)
         {
-            OnStopMoving?.Invoke(this, EventArgs.Empty);
-            ActionComplete();
 
-            return m_BaseObject.GetAction<IdleAction>();
+        }
+        else if (m_BaseObject is ControllableObject cobj)
+        {
+
+            // 타겟 Null
+            cobj.SetTarget(null);
+
+            // 현재 이동에도 가장 빈 곳 찾아서 이동후 IdleAction
+            GridPosition pos = LevelGrid.Instance.GetClosestGridPositionSpecificCondition(m_BaseObject.GetGridPosition(), GetValidEmptyGridPositionList());
+
+            // 움직일 곳이 없다면 그 자리에서 대기
+            if (pos == default)
+            {
+                OnStopMoving?.Invoke(this, EventArgs.Empty);
+                ActionComplete();
+
+                return m_BaseObject.GetAction<IdleAction>();
+            }
+
+            DestGirdPosition = pos;
+
+            // 빈곳 길찾기
+            var list = Pathfinding.Instance.FindPath(m_BaseObject.GetGridPosition(), pos, out int len);
+            if (list.Count >= Remove_MOVE_GRID)
+            {
+                list.RemoveAt(0);
+
+                // 기존 꺼 제거
+                LevelGrid.Instance.SetGridPositionCellInfo(LevelGrid.Instance.GetGridPosition(forwardPosition), E_GridCheckType.Walkable);
+
+                // Reset
+                forwardPosition = LevelGrid.Instance.GetWorldPosition(list[0]);
+                LevelGrid.Instance.SetGridPositionCellInfo(LevelGrid.Instance.GetGridPosition(forwardPosition), E_GridCheckType.Reserve, m_BaseObject);
+            }
+        }
+        else
+        {
+
         }
 
-        DestGirdPosition = pos;
-
-        // 빈곳 길찾기
-        var list = Pathfinding.Instance.FindPath(m_BaseObject.GetGridPosition(), pos, out int len);
-        if(list.Count >= Remove_MOVE_GRID)
-        {
-            list.RemoveAt(0);
-
-            // 기존 꺼 제거
-            LevelGrid.Instance.SetReserveGridPosition(LevelGrid.Instance.GetGridPosition(forwardPosition), false, m_BaseObject);
-
-            // Reset
-            forwardPosition = LevelGrid.Instance.GetWorldPosition(list[0]);
-            LevelGrid.Instance.SetReserveGridPosition(LevelGrid.Instance.GetGridPosition(forwardPosition), true, m_BaseObject);
-        }
 
         return this;
     }

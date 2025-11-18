@@ -4,6 +4,14 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
+// 1. AttributeSystem의 "상태"만 담는 순수 데이터 클래스 (MonoBehaviour 상속 금지)
+[Serializable]
+public class BaseActionData
+{
+    public bool isActive;
+
+}
+
 public abstract class BaseAction : MonoBehaviour
 {
     public static event EventHandler OnAnyActionStarted;
@@ -14,7 +22,7 @@ public abstract class BaseAction : MonoBehaviour
         public ControllableObject obj;
     }
 
-    public ControllableObject m_BaseObject { get; protected set; }
+    public GameEntity m_BaseObject { get; protected set; }
     protected AttributeSystem m_StatSystem;
     protected bool m_bIsActive;
     protected Action onActionComplete;
@@ -22,10 +30,9 @@ public abstract class BaseAction : MonoBehaviour
     [Header("Grid Position")]
     public GridPosition DestGirdPosition;
 
-
     protected virtual void Awake()
     {
-        m_BaseObject = GetComponentInParent<ControllableObject>();
+        m_BaseObject = GetComponentInParent<GameEntity>();
         m_StatSystem = GetComponentInParent<AttributeSystem>();
     }
 
@@ -77,7 +84,7 @@ public abstract class BaseAction : MonoBehaviour
 
     }
 
-    public ControllableObject GetObject()
+    public GameEntity GetObject()
     {
         return m_BaseObject;
     }

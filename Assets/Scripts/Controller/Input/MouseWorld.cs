@@ -14,10 +14,12 @@ public class MouseWorld : MonoBehaviour
 
     public event EventHandler OnMouseDownChanged;
     public event EventHandler OnMouseUpChanged;
+    public event EventHandler<(GridPosition oldgp, GridPosition newgp)> OnMousePositionChanged;
 
     [Header("Selection")]
     [SerializeField] private RectTransform SelectionBox;
     private Vector2 startPosition;
+    private GridPosition m_GridPosition;
     [SerializeField]
     private float DragDelay = 0.1f;
 
@@ -51,11 +53,17 @@ public class MouseWorld : MonoBehaviour
             UnitActionSystem.Instance.OnCommandAction += InstantiateMouseEffect;
     }
 
-    public static Vector3 GetPosition()
+    public Vector3 GetPosition()
     {
         Ray ray =  Camera.main.ScreenPointToRay(InputManager.Instance.GetMouseScreenPosition());
         Physics.Raycast(ray, out RaycastHit raycastHit, float.MaxValue, LayerManager.Instance.mousePlaneLayerMask);
         return raycastHit.point;
+    }
+
+    public GridPosition GetGridPosition()
+    {
+        Vector3 mousePlanePos = UtilsClass.GetMouseWorldPositionByRaycast(LayerManager.Instance.mousePlaneLayerMask);
+        return LevelGrid.Instance.GetGridPosition(mousePlanePos);
     }
 
     public Vector3 GetPositionOnlyHitVisible()
@@ -98,6 +106,24 @@ public class MouseWorld : MonoBehaviour
         // TODO 키보드 조작
         CancleSelectAll();
 
+        UpdateGridPosition();
+    }
+
+    protected void UpdateGridPosition()
+    {
+        GridPosition newGridPosition = GetGridPosition();
+
+        if (!LevelGrid.Instance.IsValidGridPosition(newGridPosition))
+            return;
+
+        if (newGridPosition != m_GridPosition)
+        {
+            // Unit changed Grid Position
+            var oldGridPosition = m_GridPosition;
+            m_GridPosition = newGridPosition;
+
+            OnMousePositionChanged?.Invoke(this, (oldGridPosition, newGridPosition));
+        }
     }
 
     private void UpdateCursor()
@@ -212,7 +238,7 @@ public class MouseWorld : MonoBehaviour
         if (BuildingTypeSelectUI.Instance.m_IsDrawing)
             return;
 
-        if (Managers.Scene.CurrentScene.SceneType != Define.Scene.Game)
+        if (Managers.Scene.CurrentScene.SceneType != Define.Scene.Dungeon)
             return;
 
         if (Input.GetMouseButtonDown(0))

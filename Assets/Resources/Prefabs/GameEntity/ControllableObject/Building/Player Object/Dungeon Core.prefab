@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 3558290331114947712}
   - component: {fileID: 2770252723233560099}
   - component: {fileID: 2858555437427417159}
-  m_Layer: 7
+  - component: {fileID: 5432565650440225475}
+  m_Layer: 0
   m_Name: Dungeon Core
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -53,8 +54,13 @@ MonoBehaviour:
   m_AttributeSystem: {fileID: 3558290331114947712}
   m_ModelTransforms: []
   m_GridPositionOffsets: []
+  m_ObjectType: 7
   m_CurrentEDir: 4
   m_TeamId: 0
+  currentAction: {fileID: 0}
+  m_NextAction: {fileID: 0}
+  m_BeforeAction: {fileID: 0}
+  m_ActionsTransform: {fileID: 0}
   m_fDelayDestroyTime: 3
   m_IsDirectDesawnAtDeath: 1
   crateDestroyedPrefab: {fileID: 0}
@@ -79,6 +85,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_originalStat: {fileID: 11400000, guid: dbf842e7b90eee54c8d00ab3314efc68, type: 2}
+  m_Stat: {fileID: 0}
+  m_originalAttackPatterns: []
+  m_AttackPatterns: []
   m_RewardData: {fileID: 0}
 --- !u!82 &2770252723233560099
 AudioSource:
@@ -229,6 +238,27 @@ MonoBehaviour:
     DissipationDistance: 100
     PropagationSpeed: 343
   DefaultVelocity: {x: 0, y: 0.3, z: 0}
+--- !u!65 &5432565650440225475
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2909674000855236893}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &8358896152380971100
 GameObject:
   m_ObjectHideFlags: 0

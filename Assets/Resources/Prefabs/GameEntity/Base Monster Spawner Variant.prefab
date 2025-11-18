@@ -5998,6 +5998,8 @@ MonoBehaviour:
   m_DeSpawnAnimationClip: []
   m_ReviveAnimationClip: []
   m_DeathAnimationClip: []
+  m_OrderAnimationClip: []
+  m_orderAnimationStateName: []
   m_AnimatorOriginalVale: 1
 --- !u!1001 &992346395199705157
 PrefabInstance:
@@ -6763,7 +6765,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3054417578649600529, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 16
+      value: 1.78
       objectReference: {fileID: 0}
     - target: {fileID: 3054417578649600529, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
       propertyPath: m_LocalPosition.y
@@ -6771,7 +6773,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3054417578649600529, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 34
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3054417578649600529, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
       propertyPath: m_LocalRotation.w
@@ -6779,15 +6781,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3054417578649600529, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3054417578649600529, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3054417578649600529, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: 3054417578649600529, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -6842,7 +6844,7 @@ PrefabInstance:
     - {fileID: 695816634177784194, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 3054417578649600529, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
-      insertIndex: 1
+      insertIndex: 0
       addedObject: {fileID: 1955979025205390378}
     - targetCorrespondingSourceObject: {fileID: 3054417578649600529, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
       insertIndex: -1
@@ -6858,6 +6860,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 8247009927670952986}
   m_SourcePrefab: {fileID: 100100000, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
+--- !u!4 &2648423078855219420 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8128800433647312053, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
+  m_PrefabInstance: {fileID: 6056877706896360553}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &3375912946075305635 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8851821627881308874, guid: efa8351cb8c6d3946b94033d66d56565, type: 3}
@@ -6879,13 +6886,16 @@ MonoBehaviour:
   m_ModelTransforms:
   - {fileID: 1955979025205390378}
   m_GridPositionOffsets: []
+  m_ObjectType: 0
   m_CurrentEDir: 4
   m_TeamId: 1
+  currentAction: {fileID: 0}
+  m_NextAction: {fileID: 0}
+  m_BeforeAction: {fileID: 0}
+  m_ActionsTransform: {fileID: 2648423078855219420}
   m_fDelayDestroyTime: 3
   m_IsDirectDesawnAtDeath: 1
   crateDestroyedPrefab: {fileID: 0}
-  m_SpawnObjectAnimationClip:
-  - {fileID: 7400000, guid: a0c4034a045ad5641845ce4c0e60dfd8, type: 2}
 --- !u!114 &8247009927670952986
 MonoBehaviour:
   m_ObjectHideFlags: 0

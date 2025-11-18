@@ -10,6 +10,7 @@ using static Define;
 // 발사체 발사 전 소환
 // 무기에 버프를 둘러서 강화하기
 [CreateAssetMenu(menuName = "Attack Pattern/Ready")]
+[Serializable]
 public class AttackPattern_Ready : AttackPattern<AttackPatternInfoClipWithReady>
 {
     [Header("Clip")]
@@ -18,11 +19,20 @@ public class AttackPattern_Ready : AttackPattern<AttackPatternInfoClipWithReady>
     [Header("Spawn Object")]
     public Item m_ReadyGameObjectPrefab;
     public GameObject m_FailPrefab;
+    [SerializeField] private int m_iSpawnReadyCount = 1;
+    [SerializeField, Tooltip("무기에 붙어서 생성할지 여부")]
+    private bool m_SpawnFromWeapon = true;
+
 
     [Header("Ready")]
     public float m_AttackReadyTime = 2f;
     protected float lastAttackReadytime;
     public bool m_ISAttackReadyFinished => Time.time - lastAttackReadytime >= m_AttackReadyTime;
+
+    [Header("Ready Object 최적화용도")]
+    List<(Item obj, Transform spawnTransform)> keepList = new();
+    List<(Item obj, Transform spawnTransform)> removeList = new();
+
 
     public override void Init()
     {
@@ -30,39 +40,124 @@ public class AttackPattern_Ready : AttackPattern<AttackPatternInfoClipWithReady>
         lastAttackReadytime = -m_AttackReadyTime; // 준비시간 완료된 상태로 시작
     }
 
-    public override void StartAttack(ControllableObject attacker, GameEntity target, AttackPattern prevAttackpatern)
+    public override void StartAttack(GameEntity attacker, GameEntity target, AttackPattern prevAttackpatern)
     {
         base.StartAttack(attacker, target, prevAttackpatern);
 
-        // 손 위치에 발사체 준비
-        if(attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject != null)
+        if (attacker is PassiveObject pobj)
         {
-            // 2번째 준비 패턴이라면 패스 및 갱신
 
+        }
+        else if (attacker is ControllableObject cobj)
+        {
+            if (m_ReadyGameObjectPrefab != null)
+            {
+                // 1️ 기존 오브젝트 정보 가져오기 (삭제 X)
+                var existingList = cobj.m_ControllableObjectCombatManager.m_AttackReadyItemObject;
+
+                // 2️ 비교용 리스트 초기화
+                keepList.Clear();
+                removeList.Clear();
+
+                foreach (var (obj, spawnT) in existingList)
+                {
+                    if (obj == null) continue;
+
+                    // 프리팹 이름으로 비교 (Clone 제거 후 비교)
+                    string objName = obj.name.Replace("(Clone)", "").Trim();
+                    string prefabName = m_ReadyGameObjectPrefab.name.Replace("(Clone)", "").Trim();
+
+                    // 동일 프리팹이라면 유지
+                    if (objName == prefabName)
+                        keepList.Add((obj, spawnT));
+                    else
+                        removeList.Add((obj, spawnT));
+                }
+
+                // 3️제거 대상 오브젝트만 삭제
+                List<Transform> reusableTransforms = removeList
+                    .Where(x => x.spawnTransform != null)
+                    .Select(x => x.spawnTransform)
+                    .ToList();
+
+                //  제거 대상 오브젝트만 삭제
+                foreach (var (obj, _) in removeList)
+                    obj?.Destroy();
+
+                //  리스트에서 제거한 오브젝트 항목 삭제
+                cobj.m_ControllableObjectCombatManager.
+                    m_AttackReadyItemObject.RemoveAll(x => removeList.Any(r => r.obj == x.obj));
+
+
+                // 남은 개수
+                int remainingCount = keepList.Count;
+                int desiredCount = m_iSpawnReadyCount;
+
+                // 4️ 필요한 만큼 새로 생성
+                List<Transform> initSpawnTransforms
+                    = cobj.m_ControllableObjectCombatManager.GetProjectileSpawnTransforms(m_SpawnFromWeapon, desiredCount);
+
+                // 6️⃣ 새로 생성해야 할 개수만큼 생성
+                //     → removeList에서 제거된 위치를 먼저 재활용
+                int reuseIndex = 0;
+
+
+                for (int i = remainingCount; i < desiredCount; i++)
+                {
+                    Transform spawnT = null;
+
+                    if (reuseIndex < reusableTransforms.Count)
+                        spawnT = reusableTransforms[reuseIndex++];
+                    else
+                        spawnT = initSpawnTransforms[i % initSpawnTransforms.Count];
+
+                    //Debug.Log("Ready에서 새로운 준비 오브젝트를 생성");
+
+                    var newObj = Managers.Resource.Instantiate<Item>(m_ReadyGameObjectPrefab.gameObject, spawnT);
+                    newObj.transform.localPosition = Vector3.zero;
+                    newObj.transform.localRotation = Quaternion.identity;
+
+                    // CombatManager에 등록
+                    cobj.m_ControllableObjectCombatManager.m_AttackReadyItemObject.Add((newObj, spawnT));
+                }
+
+
+                // 5️ 위치 및 개수 동기화
+                if (keepList.Count > 0)
+                {
+                    // 기존 위치 유지
+                    foreach (var (obj, t) in keepList)
+                        obj.transform.SetPositionAndRotation(t.position, t.rotation);
+                }
+            }
         }
         else
         {
-            Transform weaponHandTransform = null;
 
-            // TODO Building
-            if(attacker is Unit unit)
-                weaponHandTransform = GetProjectileSpawnTransformAtUnit(unit);
-
-            var readyItem = Managers.Resource.Instantiate<Item>(m_ReadyGameObjectPrefab.gameObject, weaponHandTransform);
-            readyItem.transform.localPosition = Vector3.zero;
-            readyItem.transform.localRotation = Quaternion.identity;
-
-            attacker.m_ControllableObjectCombatManager.m_AttackReadyItemObject = readyItem;
         }
+
     }
 
-    public override void EndAttack(ControllableObject attacker, GameEntity target) // 종료
+    public override void EndAttack(GameEntity attacker, GameEntity target) // 종료
     {
         lastAttackReadytime = Time.time;
-        attacker.m_ControllableObjectCombatManager.m_ReadyAttackPattern.Add(this);
+
+        if (attacker is PassiveObject pobj)
+        {
+
+        }
+        else if (attacker is ControllableObject cobj)
+        {
+            cobj.m_ControllableObjectCombatManager.m_ReadyAttackPattern.Add(this);
+        }
+        else
+        {
+
+        }
+
     }
 
-    public override void StartAttackFail(ControllableObject attacker, GameEntity target)
+    public override void StartAttackFail(GameEntity attacker, GameEntity target)
     {
         base.StartAttackFail(attacker, target);
 
@@ -71,64 +166,5 @@ public class AttackPattern_Ready : AttackPattern<AttackPatternInfoClipWithReady>
             var go = Managers.Resource.Instantiate(m_FailPrefab);
             attacker.StartCoroutine(ObjectDestroy(go, 3f));
         }
-    }
-
-    private Transform GetProjectileSpawnTransformAtUnit(Unit unit)
-    {
-        Transform weaponHandTransform = null;
-
-        var equipManager = unit.m_UnitEquipEquipmentManager;
-        var slot = unit.m_UnitWeaponSlotManager;
-        var currentRightWeapon = slot.m_RightHandSlot.currentWeapon;
-        var currentLeftWeapon = slot.m_LeftHandSlot.currentWeapon;
-        var animator = unit.GetAnimationsManager()[0];
-
-        // 1. 두 손 무기 착용 중이라면 → 반드시 오른손 기준
-        if (unit.isTwoHandingWeapon && currentRightWeapon != null)
-        {
-            if (currentRightWeapon.m_EWeaponItemType == E_WeaponItemType.Bow)
-            {
-                // 두 손 활 → 왼손에 화살 소환
-                weaponHandTransform = slot.m_LeftHandSlot.transform;
-            }
-            else if (currentRightWeapon.m_ProjectileSpawnTransform != null)
-            {
-                // 일반 두 손 무기 → 발사 위치
-                weaponHandTransform = currentRightWeapon.m_ProjectileSpawnTransform;
-            }
-        }
-        // 2. 두 손 무기가 아닌 경우 → 우선 오른손 무기 체크
-        else if (currentRightWeapon != null)
-        {
-            // 활은 반대 손에서 생성
-            if (currentRightWeapon.m_EWeaponItemType == E_WeaponItemType.Bow)
-            {
-                weaponHandTransform = slot.m_LeftHandSlot.transform;
-            }
-            else if (currentRightWeapon.m_ProjectileSpawnTransform != null)
-            {
-                weaponHandTransform = currentRightWeapon.m_ProjectileSpawnTransform;
-            }
-        }
-        // 3. 오른손 무기 없고, 왼손 무기가 있는 경우
-        else if (currentLeftWeapon != null)
-        {
-            // 활은 반대 손에서 생성
-            if (currentLeftWeapon.m_EWeaponItemType == E_WeaponItemType.Bow)
-            {
-                weaponHandTransform = slot.m_RightHandSlot.transform;
-            }
-            else if (currentLeftWeapon.m_ProjectileSpawnTransform != null)
-            {
-                weaponHandTransform = currentLeftWeapon.transform;
-            }
-        }
-        // 4. 무기 모두 없음 → 공격 손의 위치로
-        else
-        {
-            weaponHandTransform = slot.m_RightHandSlot.transform;
-        }
-
-        return weaponHandTransform;
     }
 }

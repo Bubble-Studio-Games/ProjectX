@@ -17,6 +17,7 @@ using static Table_Camera_Shake;
  */
 
 [RequireComponent(typeof(Animator))]
+[Serializable]
 public class GameEntityAnimator : MonoBehaviour
 {
     [SerializeField] protected float m_fCrossTime = 0f;
@@ -44,6 +45,7 @@ public class GameEntityAnimator : MonoBehaviour
     [Header("Value")]
     public  float m_AnimatorOriginalVale = 1f;
 
+
     protected virtual void Awake()
     {
         // 애니메이션을 fps 설정에 따라 스텝 애니메이션으로 전부 변경
@@ -64,6 +66,14 @@ public class GameEntityAnimator : MonoBehaviour
         m_StatSystem.OnRevived += (s, e) => ChangeAnimationAtStart(E_GameEntityClipType.Revive.ToString(), m_ReviveAnimationClip);
         m_StatSystem.OnDamaged += Animation_Damaged;
 
+
+        // Event 등록
+        if (m_GameEntity.m_ActionsTransform.TryGetComponent<CombatAction>(out CombatAction combatAction))
+        {
+            combatAction.OnStartAttack += CombatAction_OnAttack;
+        }
+
+        m_Animator.SetBool("IsControllableObject", m_GameEntity is ControllableObject);
     }
 
     protected virtual void Start()
@@ -188,4 +198,65 @@ public class GameEntityAnimator : MonoBehaviour
 
     }
 
+    protected virtual void CombatAction_OnAttack(object sender, CombatAction.OnAttackBaseEventArgs e)
+    {
+        if (e.attackPattern.Validate(true) == false)
+        {
+            Debug.LogError($"{m_GameEntity.name} 공격 애니메이션 검증 오류");
+            return;
+        }
+
+        AttackPatternInfoClip m_TempInfo = null;
+
+        if (e.attackPattern is AttackPattern_Range range)
+        {
+            if (range.context.ObstacleHeight >= 1)
+                m_TempInfo = e.attackPattern.GetBaseClip().FirstOrDefault(clip => clip.AttackAnimationClip.name.Contains("Parabola"));
+            
+            // 위로 던지는 애니메이션이 없다면 그냥 일반 공격으로 대체
+            if (m_TempInfo == null)
+                m_TempInfo = e.attackPattern.GetBaseClip().Where(clip => !clip.AttackAnimationClip.name.Contains("Parabola")).RandomPick(); ;
+        }
+        else 
+        {
+            m_TempInfo = e.attackPattern.GetBaseClip().RandomPick();
+        }
+
+        if (m_TempInfo == null)
+        {
+            Debug.LogError($"{m_GameEntity.name} 공격 애니메이션 클립이 존재하지 않습니다.");
+            return;
+        }
+
+        ChangeAnimationAtStart(E_GameEntityClipType.Attack.ToString(), m_TempInfo.AttackAnimationClip);
+
+        // 선택한 공격 패턴의 공격 스피드를 애니메이터 스테이트의 스피드를 조정함.
+        // 공격 스피드 조정
+        // 런타임 중에 state의 speed 값 변경은 불가함.
+        m_Animator.speed = e.attackPattern.m_fAttackSpeed;
+    }
+
+    protected bool _attackValid = true;
+    public virtual void AttackPoint()
+    {
+        // 어택
+        var combatAction = m_GameEntity.GetAction<CombatAction>();
+
+        // Fail
+        if (combatAction.m_ThisTimeAttack == null)
+        {
+            Debug.Log("attack null " + m_GameEntity.name);
+            //combatAction.OnEndAttackEventInvoke();
+            _attackValid = false;
+            return;
+        }
+        else
+        {
+            // 사운드
+            m_GameEntity.GetSounderManager().AttackSoundPlay(combatAction.m_ThisTimeAttack);
+
+            _attackValid = true;
+        }
+
+    }
 }
