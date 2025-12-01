@@ -74,7 +74,7 @@ public class CameraController : MonoBehaviour
     {
         if(InputManager.Instance == null) return;
 
-        if(InputManager.Instance.MouseRightClickHold())
+        if(InputManager.Instance.mouse_R_Hold)
         {
             m_CMInputAxisController.Controllers[0].Enabled = true; // X
             m_CMInputAxisController.Controllers[1].Enabled = true; // Y

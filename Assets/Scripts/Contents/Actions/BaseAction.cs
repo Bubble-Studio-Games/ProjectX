@@ -9,7 +9,6 @@ using UnityEngine;
 public class BaseActionData
 {
     public bool isActive;
-
 }
 
 public abstract class BaseAction : MonoBehaviour
@@ -119,5 +118,4 @@ public abstract class BaseAction : MonoBehaviour
     {
 
     }
-
 }

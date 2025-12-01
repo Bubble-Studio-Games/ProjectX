@@ -50,7 +50,7 @@ public class BuildingGhost : MonoBehaviour
 
         GameEntity placedObject = GridBuildingSystem.Instance.GetPlacedObject();
 
-        Vector3 mousePosition = UtilsClass.GetMouseWorldPositionByRaycast(LayerManager.Instance.mousePlaneLayerMask);
+        Vector3 mousePosition = UtilsClass.GetMouseWorldPositionByRaycast(Managers.Layer.mousePlaneLayerMask);
         if (LevelGrid.Instance.IsValidGridPosition(mousePosition) == false)
             return;
         

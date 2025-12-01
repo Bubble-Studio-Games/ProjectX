@@ -163,7 +163,6 @@ GameObject:
   - component: {fileID: 2979282134937664417}
   - component: {fileID: 8083268431157876978}
   - component: {fileID: 5084248404849671711}
-  - component: {fileID: 6006622213907677752}
   - component: {fileID: 4179058046757288476}
   m_Layer: 8
   m_Name: Box
@@ -267,8 +266,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_originalStat: {fileID: 0}
   m_Stat: {fileID: 11400000, guid: 500781ea931d2aa4cb5a936d03ace1e0, type: 2}
+  m_originalAttackPatterns: []
   m_AttackPatterns: []
-  m_RewardData: {fileID: 0}
+  m_Reward: {fileID: 0}
 --- !u!114 &5084248404849671711
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -287,31 +287,6 @@ MonoBehaviour:
   angleResolution: 30
   AlignPixelGrid: 0
   PixelGridReference: {fileID: 0}
---- !u!114 &6006622213907677752
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5732773684867799351}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c0c35cffcaf48745830c6eaa074d7c1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_AttributeSystem: {fileID: 0}
-  m_ModelTransforms: []
-  m_GridPositionOffsets: []
-  m_ObjectType: 3
-  m_CurrentEDir: 4
-  m_TeamId: 3
-  currentAction: {fileID: 0}
-  m_NextAction: {fileID: 0}
-  m_BeforeAction: {fileID: 0}
-  m_ActionsTransform: {fileID: 0}
-  m_fDelayDestroyTime: 3
-  m_IsDirectDesawnAtDeath: 1
-  crateDestroyedPrefab: {fileID: 0}
 --- !u!114 &4179058046757288476
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -23,9 +23,9 @@ public class PlayerSoundManager : MonoBehaviour
 
     public void Awake()
     {
-        UnitActionSystem.Instance.OnSelectedUnitChanged += PlaySound_SelectUnit;
-        UnitActionSystem.Instance.OnCommandAction += PlaySound_CommandAction;
-        UnitActionSystem.Instance.OnSelectedActionChanged += PlaySound_SelectAction;
+        Managers.Selection.OnSelectionChanged += PlaySound_SelectUnit;
+        Managers.Command.OnCommandAction += PlaySound_CommandAction;
+        Managers.Command.OnSelectedActionChanged += PlaySound_SelectAction;
     }
 
     public void PlaySound_SelectUnit(object sender, EventArgs e)
@@ -33,7 +33,7 @@ public class PlayerSoundManager : MonoBehaviour
         Managers.Sound.Play(m_SelectUnitAudioClip);
     }
 
-    public void PlaySound_SelectAction(object sender, UnitActionSystem.OnCommandActionEventArgs e)
+    public void PlaySound_SelectAction(object sender, CommandManager.OnCommandActionEventArgs e)
     {
         // CommandMove, CommandAttack은 별도 선택이 없다.
         if(e.action == typeof(CommandMoveAction))
@@ -47,7 +47,7 @@ public class PlayerSoundManager : MonoBehaviour
         }
     }
 
-    public void PlaySound_CommandAction(object sender, UnitActionSystem.OnCommandActionEventArgs e)
+    public void PlaySound_CommandAction(object sender, CommandManager.OnCommandActionEventArgs e)
     {
         if(e.action == typeof(CommandMoveAction))
         {

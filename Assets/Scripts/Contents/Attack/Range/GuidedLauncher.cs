@@ -120,8 +120,8 @@ public class GuidedLauncher : IProjectileLauncher
             if (target == null || target.IsDead)
             {
                 Vector3 dir = projectile.m_Rigidbody.velocity.normalized;
-                if (dir == Vector3.zero)
-                    dir = (target.transform.position - projectile.transform.position).normalized;
+                //if (dir == Vector3.zero)
+                //    dir = (target.transform.position - projectile.transform.position).normalized;
 
                 yield return LaunchStraight(projectile, dir);
                 yield break;

@@ -25,12 +25,19 @@ public interface IAccessories<TAnimator, TSounder>
 }
 
 [RequireComponent(typeof(AttributeSystem))]
-public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameEntitySounder>, ISaveable, IGuidObject
+public class GameEntity : 
+    MonoBehaviour, 
+    IAccessories<GameEntityAnimator,  GameEntitySounder>, 
+    ISaveable, 
+    IGuidObject,
+    IInteractable
 {
     // Event
     public event EventHandler OnSpawnObjectSelected; // 오브젝트를 배치하려고 할 때
     public event EventHandler OnObjectSpawned; // 씬에 생성되거나 활성화될 때
     public event EventHandler OnObjectDespawned; // 파괴되거나 비활성화될 때
+    public event EventHandler OnSelectedEvent;
+    public event EventHandler OnDeselectedEvent;
 
     public string _guid { get; private set; } = string.Empty; // private field로 변경하고 프로퍼티로 접근
     public string guid => _guid;
@@ -105,6 +112,8 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
         foreach (var action in GetComponentsInChildren<BaseAction>())
             baseActionDict[action.GetType()] = action;
+
+        m_AttributeSystem.OnDead += ClearAction;
     }
 
     protected virtual void Start()
@@ -156,8 +165,6 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         return m_ModelMaterials;
     }
 
-
-
     public List<Collider> GetChildColliders()
     {
         List<Collider> colliders = new List<Collider>();
@@ -165,7 +172,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         // root 포함 모든 자식 탐색
         foreach (Transform child in GetComponentsInChildren<Transform>(true))
         {
-            if (((1 << child.gameObject.layer) & LayerManager.Instance.HitColLayerMask) != 0)
+            if (((1 << child.gameObject.layer) & Managers.Layer.HitColLayerMask) != 0)
             {
                 Collider col = child.GetComponent<Collider>();
                 if (col != null)
@@ -193,14 +200,16 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         }
     }
 
-    public virtual void OnDeselected()
+    public void OnDeselected()
     {
-        //Debug.Log($"{name} DeSelectMe");
+        //Debug.Log($"{name} DeSelect");
+        OnDeselectedEvent?.Invoke(this, EventArgs.Empty);
     }
 
-    public virtual void OnSelected()
+    public void OnSelected()
     {
-        //Debug.Log($"{name} SelectMe");
+        //Debug.Log($"{name} Select");
+        OnSelectedEvent?.Invoke(this, EventArgs.Empty);
     }
 
     public GridPosition GetGridPosition()
@@ -324,6 +333,8 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         Managers.Object.Remove(gameObject);
 
         Managers.Resource.Destroy(gameObject);
+
+        Managers.Selection.Deselect(this);
     }
 
     // 플레이어가 카드에서 오브젝트를 드래그 해서 선택 중일 때
@@ -389,7 +400,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
     #region Action
 
-    protected virtual void ExecuteAction(object sender, GridPosition args) { }
+    protected virtual void ExecuteAction(object sender, EventArgs args) { }
 
 
     public virtual void SwitchToNextStateAction(BaseAction nextAction)
@@ -587,6 +598,12 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         }
     }
 
+    public void Interact(Action onInteractionComplete)
+    {
+        throw new NotImplementedException();
+    }
+
 
     #endregion
+
 }

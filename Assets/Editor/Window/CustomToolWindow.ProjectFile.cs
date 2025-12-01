@@ -11,11 +11,25 @@ public partial class CustomToolWindow
 
     private bool renameClipsToFileName = true;
 
-    private bool FBXapplyRootOptions = true;
-    private bool lockRootRotation = true;
-    private bool lockRootHeightY = true;
-    private bool lockRootPositionXZ = false;
+    // Root Transform Rotation
+    private bool applyRootRotation = true;
+    private bool rootRotBake = true;
+    private bool rootRotBasedOriginal = true;
+    private float rootRotOffset = 0f;
 
+    // Root Transform Position Y
+    private bool applyRootPosY = true;
+    private bool rootPosYBake = true;
+    private bool rootPosYBasedOriginal = true;
+    private float rootPosYOffset = 0f;
+
+    // Root Transform Position XZ
+    private bool applyRootPosXZ = true;
+    private bool rootPosXZBake = true;
+    private bool rootPosXZBasedOriginal = true;
+    private float rootPosXZOffset = 0f;
+
+    // Loop
     private bool FBXapplyLoopOptions = true;
     private bool loop = false;
 
@@ -27,8 +41,6 @@ public partial class CustomToolWindow
     // ✅ 추가: 특정 이름 Loop 설정
     private bool applyLoopByName = true;
     private string loopKeywords = "idle,walk,run,hover,fly"; // 쉼표 구분 입력
-
-    private bool applyRootBakeOptions = true;
 
     private void Handle_FBXAnimationBatchTool()
     {
@@ -45,12 +57,27 @@ public partial class CustomToolWindow
         avatarOverride = (Avatar)EditorGUILayout.ObjectField("Avatar Override (Humanoid)", avatarOverride, typeof(Avatar), false);
         EditorGUILayout.EndToggleGroup();
 
-        // Root Setting
-        FBXapplyRootOptions = EditorGUILayout.BeginToggleGroup("⚙ Root Transform 설정 적용", FBXapplyRootOptions);
-        lockRootRotation = EditorGUILayout.Toggle("Lock Root Rotation", lockRootRotation);
-        lockRootHeightY = EditorGUILayout.Toggle("Lock Root Height Y", lockRootHeightY);
-        lockRootPositionXZ = EditorGUILayout.Toggle("Lock Root Position XZ", lockRootPositionXZ);
+        GUILayout.Space(10);
+        GUILayout.Label("⚙ Root Transform 설정 (세부 옵션)", EditorStyles.boldLabel);
+
+        applyRootRotation = EditorGUILayout.BeginToggleGroup("Root Transform Rotation", applyRootRotation);
+        rootRotBake = EditorGUILayout.Toggle("Bake Into Pose", rootRotBake);
+        rootRotBasedOriginal = EditorGUILayout.Toggle("Based Upon Original", rootRotBasedOriginal);
+        rootRotOffset = EditorGUILayout.FloatField("Offset", rootRotOffset);
         EditorGUILayout.EndToggleGroup();
+
+        applyRootPosY = EditorGUILayout.BeginToggleGroup("Root Transform Position (Y)", applyRootPosY);
+        rootPosYBake = EditorGUILayout.Toggle("Bake Into Pose", rootPosYBake);
+        rootPosYBasedOriginal = EditorGUILayout.Toggle("Based Upon Original", rootPosYBasedOriginal);
+        rootPosYOffset = EditorGUILayout.FloatField("Offset", rootPosYOffset);
+        EditorGUILayout.EndToggleGroup();
+
+        applyRootPosXZ = EditorGUILayout.BeginToggleGroup("Root Transform Position (XZ)", applyRootPosXZ);
+        rootPosXZBake = EditorGUILayout.Toggle("Bake Into Pose", rootPosXZBake);
+        rootPosXZBasedOriginal = EditorGUILayout.Toggle("Based Upon Original", rootPosXZBasedOriginal);
+        rootPosXZOffset = EditorGUILayout.FloatField("Offset", rootPosXZOffset);
+        EditorGUILayout.EndToggleGroup();
+
 
         // Loop Setting
         FBXapplyLoopOptions = EditorGUILayout.BeginToggleGroup("🔁 Loop 설정 일괄 적용", FBXapplyLoopOptions);
@@ -62,15 +89,11 @@ public partial class CustomToolWindow
         loopKeywords = EditorGUILayout.TextField("Loop 키워드 (쉼표 구분)", loopKeywords);
         EditorGUILayout.EndToggleGroup();
 
-        // ✅ Root Bake 옵션 토글 표시
-        applyRootBakeOptions = EditorGUILayout.ToggleLeft("Root Transform Bake Into Pose Original 일괄 적용", applyRootBakeOptions);
-
         GUILayout.Space(15);
 
         if (GUILayout.Button("🚀 변경 적용", GUILayout.Height(35)))
             ApplyChangesToSelectedFBXs();
     }
-
 
     private void ApplyChangesToSelectedFBXs()
     {
@@ -115,7 +138,7 @@ public partial class CustomToolWindow
         }
 
         // 기존 Clip 불러오기
-        var clips = importer.clipAnimations.Length > 0 ? importer.clipAnimations : importer.defaultClipAnimations;
+        var clips = importer.defaultClipAnimations;   // ← ★ 커브 보존되는 원본
         var newClips = new ModelImporterClipAnimation[clips.Length];
 
         string[] keywords = loopKeywords.ToLower().Split(',').Select(k => k.Trim()).ToArray();
@@ -123,38 +146,55 @@ public partial class CustomToolWindow
         for (int i = 0; i < clips.Length; i++)
         {
             var src = clips[i];
-            var clip = new ModelImporterClipAnimation()
+
+            // 🔥 기존 src clip의 모든 설정 + 이벤트 + 마스크 + 커브 그대로 복사
+            var clip = JsonUtility.FromJson<ModelImporterClipAnimation>(
+                           JsonUtility.ToJson(src));
+
+            clip.firstFrame = src.firstFrame;
+            clip.lastFrame = src.lastFrame;
+
+            // 필요 부분만 덮어쓰기
+            clip.name = renameClipsToFileName ? Path.GetFileNameWithoutExtension(assetPath) : src.name;
+
+            if (applyRootRotation)
             {
-                name = renameClipsToFileName ? Path.GetFileNameWithoutExtension(assetPath) : src.name,
-                firstFrame = src.firstFrame,
-                lastFrame = src.lastFrame,
-
-                lockRootRotation = FBXapplyRootOptions ? lockRootRotation : src.lockRootRotation,
-                lockRootHeightY = FBXapplyRootOptions ? lockRootHeightY : src.lockRootHeightY,
-                lockRootPositionXZ = FBXapplyRootOptions ? lockRootPositionXZ : src.lockRootPositionXZ,
-
-                loopTime = FBXapplyLoopOptions ? loop : src.loopTime,
-            };
+                clip.lockRootRotation = rootRotBake;
+                clip.keepOriginalOrientation = rootRotBasedOriginal;
+            }
 
             // ✅ 특정 키워드 포함 시 Loop 자동 활성화
             if (applyLoopByName)
                 if (keywords.Any(k => clip.name.ToLower().Contains(k)))
                     clip.loopTime = true;
 
-            // 1. Root Transform Rotation 설정
-            if(applyRootBakeOptions)
+            // Root Transform Rotation
+            if (applyRootRotation)
             {
-                clip.lockRootRotation = true; // Bake Into Pose: True
-                clip.keepOriginalOrientation = true; // Based Upon: Original
+                clip.lockRootRotation = rootRotBake;
 
-                // 2. Root Transform Position (Y) 설정
-                clip.lockRootHeightY = true; // Bake Into Pose: True
-                clip.keepOriginalPositionY = true; // Based Upon: Original
-
-                // 3. Root Transform Position (XZ) 설정
-                clip.lockRootPositionXZ = true; // Bake Into Pose: True
-                clip.keepOriginalPositionXZ = true; // Based Upon: Original
+                // Based Upon Original
+                clip.keepOriginalOrientation = rootRotBasedOriginal;
             }
+
+            // Root Transform Position (Y)
+            if (applyRootPosY)
+            {
+                clip.lockRootHeightY = rootPosYBake;
+
+                // Based Upon Original
+                clip.keepOriginalPositionY = rootPosYBasedOriginal;
+            }
+
+            // Root Transform Position (XZ)
+            if (applyRootPosXZ)
+            {
+                clip.lockRootPositionXZ = rootPosXZBake;
+
+                // Based Upon Original
+                clip.keepOriginalPositionXZ = rootPosXZBasedOriginal;
+            }
+
 
             newClips[i] = clip;
         }
