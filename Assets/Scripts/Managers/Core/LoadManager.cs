@@ -30,7 +30,6 @@ public class LoadManager
         return null;
     }
 
-
     public void ObjectInfoLoad(List<BaseData> objs)
     {
         foreach (var obj in objs)

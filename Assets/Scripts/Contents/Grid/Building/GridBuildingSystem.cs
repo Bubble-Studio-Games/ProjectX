@@ -139,7 +139,7 @@ public class GridBuildingSystem : MonoBehaviour
 
     public Vector3 GetMouseWorldSnappedPosition()
     {
-        Vector3 mousePlanePos = UtilsClass.GetMouseWorldPositionByRaycast(LayerManager.Instance.mousePlaneLayerMask);
+        Vector3 mousePlanePos = UtilsClass.GetMouseWorldPositionByRaycast(Managers.Layer.mousePlaneLayerMask);
         if (LevelGrid.Instance.IsValidGridPosition(mousePlanePos) == false)
             return mousePlanePos;
 

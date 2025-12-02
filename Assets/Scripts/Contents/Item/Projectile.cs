@@ -137,7 +137,7 @@ public class Projectile : Item
         Vector3 impactDirection = m_Rigidbody.velocity.normalized;
 
         // 1. 목표 타겟 레이어 확인
-        if (((1 << col.gameObject.layer) & LayerManager.Instance.HitColLayerMask) != 0)
+        if (((1 << col.gameObject.layer) & Managers.Layer.HitColLayerMask) != 0)
         {
             // 적에게 부딪혔거나 지형 지물에 부딪혔을 경우에 한하여
             GameEntity target = col.gameObject.GetComponentInParent<GameEntity>();
@@ -171,7 +171,7 @@ public class Projectile : Item
         }
 
         // 2. 일반 사물 레이어 확인
-        if (((1 << col.gameObject.layer) & LayerManager.Instance.m_StructLayer) != 0)
+        if (((1 << col.gameObject.layer) & Managers.Layer.m_StructLayer) != 0)
         {
             HitEffect(hitPoint);
 

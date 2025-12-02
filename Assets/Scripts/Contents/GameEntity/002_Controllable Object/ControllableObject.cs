@@ -10,7 +10,9 @@ using static Util;
 
 
 [RequireComponent(typeof(ControllableObjectCombatManager), typeof(SetupAnimation), typeof(Poolable))]
-public class ControllableObject : GameEntity, IAccessories<ControllableObjectAnimator, ControllableObjectSounder>
+public class ControllableObject : 
+    GameEntity, 
+    IAccessories<ControllableObjectAnimator, ControllableObjectSounder>
 {
     public event EventHandler<OnChangeGradeEventArgs> OnChangeGrade;
     public class OnChangeGradeEventArgs: EventArgs
@@ -45,7 +47,8 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
     public OnChangeGradeEventArgs m_OnChangeGradeEventArgs; // 조정 수치
     [SerializeField] [Range(0, 100)] private float m_fEnhanceChance;
     [SerializeField] private List<E_ObjectEnhanceType> n_EnhanceTypeList;
-    
+
+    private GridPosition commandGrid;
 
     protected override void Awake()
     {
@@ -53,8 +56,7 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
 
         m_ControllableObjectCombatManager = GetComponent<ControllableObjectCombatManager>();
 
-        m_AttributeSystem.OnDead += ClearAction;
-        m_AttributeSystem.OnDead += (s, e) => Death();
+
 
         m_ControllableObjectAnimator = GetComponentsInChildren<ControllableObjectAnimator>().ToList();
         m_ControllableObjectSounder = GetComponent<ControllableObjectSounder>();
@@ -87,7 +89,6 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
         UnitActionSystem.Instance.OnUpdateActionTick += ExecuteAction;
     }
 
-
     public override void OnDestroy()
     {
         base.OnDestroy();
@@ -109,7 +110,7 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
     #region Action
 
     // UnitActionSystem에서 관리
-    protected override void ExecuteAction(object sender, GridPosition args)
+    protected override void ExecuteAction(object sender, EventArgs args)
     {
         if (m_AttributeSystem.m_IsDead)
             return;
@@ -121,7 +122,8 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
             SwitchToNextStateAction(m_CommandAction);
             m_CommandAction = null;
 
-            m_CurrentAction?.TakeAction(args);
+            m_CurrentAction?.TakeAction(commandGrid);
+            commandGrid = default;
         }
         else
         {
@@ -175,15 +177,23 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
         }
     }
 
-    public void DirectCommand<TAction>(BaseAction action, Action<ControllableObject, TAction> onActionComplete) where TAction : BaseAction
+    public void DirectCommand<TAction>
+        (TAction toChangeAction,
+        GridPosition destGridPosition = default,
+        Action<ControllableObject, TAction> onActionComplete = null) 
+        where TAction : BaseAction
     {
         m_BeforeAction = m_CurrentAction;
-        m_CommandAction = action;
+        m_CommandAction = toChangeAction;
 
-        if (action is TAction typedAction)
+        // ★ Action에게 gridPosition 전달
+        commandGrid = destGridPosition;
+
+        // ★ 액션 완료 이벤트 처리
+        toChangeAction.SetActionComlete(() =>
         {
-            action.SetActionComlete(() => onActionComplete?.Invoke(this, typedAction));
-        }
+            onActionComplete?.Invoke(this, toChangeAction);
+        });
     }
 
     #endregion
@@ -230,14 +240,6 @@ public class ControllableObject : GameEntity, IAccessories<ControllableObjectAni
     }
 
     #endregion
-
-    public void Death()
-    {
-        if(UnitActionSystem.Instance.m_SelectedObjects.Contains(this))
-        {
-            UnitActionSystem.Instance.m_SelectedObjects.Remove(this);
-        }
-    }
 
     #region Grade
 

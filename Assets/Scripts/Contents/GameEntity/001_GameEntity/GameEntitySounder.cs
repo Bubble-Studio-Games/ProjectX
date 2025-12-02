@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static Define;
+using static Unity.Cinemachine.CinemachineInputAxisController;
 using Random = UnityEngine.Random;
 
 [Serializable]
@@ -26,7 +27,6 @@ public  class GameEntitySounder : MonoBehaviour
     [Header("Battle")]
     public AudioClip[] DamagedClipList; // 피격
     public AudioClip[] CriticalDamagedClipList; // 피격
-    public AudioClip[] AttackMissClipList; // 나중에 attack pattern으로
 
     protected virtual void Awake()
     {
@@ -75,9 +75,9 @@ public  class GameEntitySounder : MonoBehaviour
         SoundPlay(attack.AttackAudioClip, E_GameEntityClipType.Attack.ToString());
     }
 
-    public void AttackMissPlay(object sender, EventArgs e)
+    public void AttackMissPlay(object sender, AttackPattern attack)
     {
-        SoundPlay(AttackMissClipList, E_GameEntityClipType.Attack.ToString());
+        SoundPlay(attack.AttackMissClipList, E_GameEntityClipType.Attack.ToString());
     }
 
     public void AttackReadyFailPlay()
@@ -129,8 +129,6 @@ public  class GameEntitySounder : MonoBehaviour
             return;
         }
 
-        AudioClip clip = audioClip[Random.Range(0, audioClip.Length)];
-
-        SoundPlay(clip, audioClipName, loop, pitch);
+        SoundPlay(audioClip.RandomPick(), audioClipName, loop, pitch);
     }
 }

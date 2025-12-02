@@ -27,10 +27,6 @@ MonoBehaviour:
     floor: 0
   m_ArcAngle: 90
   m_IsAttackStartPositionAtAttacker: 1
-  m_StartOffset:
-    x: 0
-    z: 0
-    floor: 0
   m_GridCheckTypes: 00000000
   m_ApplyTargetE_Tendency: 0
   m_iNextAttackPattern: []
@@ -38,10 +34,11 @@ MonoBehaviour:
   m_iCoolTime:
     _value: 20
   m_fLastCooltime:
-    _value: 0
+    _value: -20
   m_iManaCost:
     _value: 30
   m_IsTwoHandAttack: 0
+  m_IsIncludeCasterInAttack: 0
   m_iPhysicalAttackDamage:
     _value: 0
   m_iMagicAttackDamage:
@@ -67,6 +64,7 @@ MonoBehaviour:
   m_fLifeStealPercent:
     _value: 0
   AttackAudioClip: {fileID: 0}
+  AttackMissClipList: []
   m_Clips:
   - AttackAnimationClip: {fileID: -203655887218126122, guid: 59d23756b5cd61f40bb39d293fa46ba4, type: 3}
   _summonUnitPrefab: {fileID: 8808644112757098810, guid: fee72c1f207517a4b9a30398945bb764, type: 3}

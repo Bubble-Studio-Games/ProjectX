@@ -50,13 +50,16 @@ public class AttributeSystem : MonoBehaviour
 
     #region Stat 약칭
 
-    [SerializeField] private StatValue health { get => m_Stat.m_iCurrentHp;  set { m_Stat.m_iCurrentHp = value; } }
+    public StatValue health { get => m_Stat.m_iCurrentHp;  set { m_Stat.m_iCurrentHp = value; } }
     public StatValue healthMax { get => m_Stat.m_iMaxHP; set { m_Stat.m_iMaxHP = value; } }
 
-    [SerializeField] private StatValue mp { get => m_Stat.m_iCurrentMP;  set { m_Stat.m_iCurrentMP = value; } }
+    public bool FullHealth => health == healthMax;
+
+    public StatValue mp { get => m_Stat.m_iCurrentMP;  set { m_Stat.m_iCurrentMP = value; } }
     public StatValue mpMax { get => m_Stat.m_iMaxMP; set { m_Stat.m_iMaxMP = value; } }
 
     public bool m_IsDead => health == 0;
+    public bool m_CanMoveableGameEntity => m_Stat.m_fChaseSpeed != 0 || m_Stat.m_fWalkSpeed != 0;
 
     #endregion
 
@@ -260,7 +263,7 @@ public class AttributeSystem : MonoBehaviour
         OnDamaged?.Invoke(this, new OnAttackInfoEventArgs { AttackPattern = pattern, EHitDeCisionType = type, Attacker=attacker}); 
     }
 
-    public void AddHP(int addHp)
+    public void AddHP(StatValue addHp)
     {
         health = Math.Clamp(health + addHp, 0, healthMax);
 
@@ -268,7 +271,7 @@ public class AttributeSystem : MonoBehaviour
     }
 
 
-    public void Heal(int healAmount, E_HealType healType, GameEntity healer = null)
+    public void Heal(StatValue healAmount, E_HealType healType, GameEntity healer = null)
     {
         if (healAmount <= 0 || m_IsDead)
             return;
@@ -334,7 +337,7 @@ public class AttributeSystem : MonoBehaviour
     }
 
     // Tick 당 이뤄지는 함수
-    private void UpdateTickStat(object sender, GridPosition args)
+    private void UpdateTickStat(object sender, EventArgs args)
     {
         if(m_IsDead) 
             return;

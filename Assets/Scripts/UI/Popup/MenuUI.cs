@@ -177,7 +177,7 @@ public class MenuUI : UI_Popup
 
         // UI 공통 사운드
         PressButtonSetAction(GetComponentsInChildren<Button>(),
-            () => Managers.Sound.Play(GameSoundManager.Instance.m_UIButtonClickAudioClip));
+            () => Managers.Sound.Play(SettingManager.Instance.m_UIButtonClickAudioClip));
     }
 
     private void InitSliders()

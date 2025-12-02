@@ -79,8 +79,3 @@ crashlytics-build.properties
 Assets/Resources/Data/Animation/SteppedClips/
 Assets/Resources/Data/Animation/SteppedClips.meta
 
-# DVC internal meta
-*.dvc.meta
-*.dvc.lock
-.dvc/tmp/
-

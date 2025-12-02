@@ -28,7 +28,10 @@ public class CommandMoveAction : MoveAction
         }
 
         // Find Path
-        List<GridPosition> pathGridPositionList = Pathfinding.Instance.FindPath(m_BaseObject.GetGridPosition(), DestGirdPosition, out int pathLength);
+        List<GridPosition> pathGridPositionList = 
+            Pathfinding.Instance.FindPath(m_BaseObject.GetGridPosition(), 
+            DestGirdPosition, 
+            out int pathLength);
 
         if (pathGridPositionList != null && pathGridPositionList.Count >= Remove_MOVE_GRID)
         {

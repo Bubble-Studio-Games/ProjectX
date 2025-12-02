@@ -22,7 +22,7 @@ public class DeveloperToolUI : MonoBehaviour
     {
         // Unit Drop Down
         m_UnitDropDown.ClearOptions();
-        UnitActionSystem.Instance.OnSelectedUnitChanged += UpdateUnitDropdown;
+        Managers.Selection.OnSelectionChanged += UpdateUnitDropdown;
         Managers.Object.OnAdd +=  AddDropdownOption;
         Managers.Object.OnRemove +=  AddDropdownOption;
 
@@ -76,12 +76,12 @@ public class DeveloperToolUI : MonoBehaviour
 
     public void UpdateUnitDropdown(object sender, EventArgs e)
     {
-        var list = UnitActionSystem.Instance.m_SelectedObjects;
+        //var list = UnitActionSystem.Instance.m_SelectedObjects;
 
-        m_UnitDropDown.captionText.text = string.Join(", ", list.Select(unit => unit.gameObject.name));
+        //m_UnitDropDown.captionText.text = string.Join(", ", list.Select(unit => unit.gameObject.name));
 
-        if (list.Count > 0)
-            OnDropdownValueChanged();
+        //if (list.Count > 0)
+        //    OnDropdownValueChanged();
     }
 
     private void UpdateSelectUnit()

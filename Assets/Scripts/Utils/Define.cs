@@ -100,6 +100,7 @@ public partial class Define
     public enum E_HealType
     {
         LifeSteal,      // 흡혈
+        None,
     }
 
     public enum E_WeaponItemType

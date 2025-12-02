@@ -1,16 +1,19 @@
 #define USE_NEW_INPUT_SYSTEM
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static Define;
 
+// 입력만 관리함
 public class InputManager : MonoBehaviour
 {
-
     public static InputManager Instance { get; private set; }
 
-    private PlayerInputActions playerInputActions;
+    public PlayerInputActions playerInputActions;
+
+    public bool mouse_R_Hold;
 
     private void Awake()
     {
@@ -23,36 +26,27 @@ public class InputManager : MonoBehaviour
         Instance = this;
 
         playerInputActions = new PlayerInputActions();
-        playerInputActions.Player.Enable();
+        playerInputActions.Camera.Enable();
         playerInputActions.Mouse.Enable();
         playerInputActions.KeyBoard.Enable();
 
-        // Keyboard
-        playerInputActions.KeyBoard.ESC.performed += i => ESC();
-    }
 
-    public Vector2 GetMouseScreenPosition()
-    {
-#if USE_NEW_INPUT_SYSTEM
-        return Mouse.current.position.ReadValue();
-#else
-        return Input.mousePosition;
-#endif
-    }
+        playerInputActions.KeyBoard.ESC.performed += i => Handle_ESC_Input();
+        playerInputActions.KeyBoard.R.performed += i => Handle_R_Input();
 
-    public bool IsMouseButtonDownThisFrame()
-    {
-#if USE_NEW_INPUT_SYSTEM
-        return playerInputActions.Mouse.LeftClick.WasPressedThisFrame();
-#else
-        return Input.GetMouseButtonDown(0);
-#endif
+        // Mouse
+        playerInputActions.Mouse.RightClickHold.performed += i => Handle_Mouse_Right_Input();
+        playerInputActions.Mouse.RightClickHold.canceled += i => mouse_R_Hold = false;
+
+        playerInputActions.Mouse.LeftClick.performed += i => Handle_Mouse_Left_Input();
+        playerInputActions.Mouse.LeftClick.canceled += i => MouseWorld.Instance.MouseUp();
+
     }
 
     public Vector2 GetCameraMoveVector()
     {
 #if USE_NEW_INPUT_SYSTEM
-        return playerInputActions.Player.CameraMovement.ReadValue<Vector2>();
+        return playerInputActions.Camera.CameraMovement.ReadValue<Vector2>();
 #else
         Vector2 inputMoveDir = new Vector2(0, 0);
 
@@ -77,96 +71,58 @@ public class InputManager : MonoBehaviour
 #endif
     }
 
-    public float GetCameraRotateAmount()
-    {
-#if USE_NEW_INPUT_SYSTEM
-        return playerInputActions.Player.CameraRotate.ReadValue<float>();
-#else
-        float rotateAmount = 0f;
+    #region Keyboard
 
-        if (Input.GetKey(KeyCode.Q))
+    private void Handle_ESC_Input()
+    {
+        if(Managers.Scene.CurrentScene.SceneType == Scene.Start)
         {
-            rotateAmount = +1f;
-        }
-        if (Input.GetKey(KeyCode.E))
-        {
-            rotateAmount = -1f;
+            (Managers.Scene.CurrentScene as StartScene).SkipIntro();
+           
+
         }
 
-        return rotateAmount;
-#endif
-    }
-
-    public float GetCameraZoomAmount()
-    {
-#if USE_NEW_INPUT_SYSTEM
-        return playerInputActions.Player.CameraZoom.ReadValue<float>();
-#else
-        float zoomAmount = 0f;
-
-        if (Input.mouseScrollDelta.y > 0)
+        else if (Managers.Scene.CurrentScene.SceneType == Scene.Dungeon)
         {
-            zoomAmount = -1f;
-        }
-        if (Input.mouseScrollDelta.y < 0)
-        {
-            zoomAmount = +1f;
+            Managers.GameUI.ShowAndCloseMenuUI();
         }
 
-        return zoomAmount;
-#endif
-    }
-
-    public bool GetShiftDown()
-    {
-#if USE_NEW_INPUT_SYSTEM
-        return playerInputActions.KeyBoard.Shift.IsPressed();
-#else
-#endif
-    }
-
-    public bool MouseRightClickHold()
-    {
-#if USE_NEW_INPUT_SYSTEM
-        return playerInputActions.Mouse.RightClickHold.IsPressed();
-#else
-#endif
-
-    }
-
-    public Vector2 GetMouseDelta()
-    {
-        return playerInputActions.Mouse.Delta.ReadValue<Vector2>();
-    }
-
-    public void ESC()
-    {
-        if(Managers.Scene.CurrentScene.SceneType == Scene.Dungeon)
+        // 메인 메뉴 창 말고 한 개 더 있는가?
+        if (Managers.UI._popupStack.Count > 1)
         {
-            // 유닛의 액션 창이 떠 있다면 액션 창 닫기 
-            // 상점 창, 미션 창 등의 팝업이 떠 있다면 닫기
-            if (!Managers.Game.m_IsGamePauseing)
-            {
-                Managers.UI.ShowPopupUI<MenuUI>();
-                Managers.Game.PauseGame();
-            }
-            else
-            {
-                // 메인 메뉴 창 말고 한 개 더 있는가?
-                if (Managers.UI._popupStack.Count > 1)
-                {
-                    Managers.UI.ClosePopupUI();
-                    return;
-                }
-
-                Managers.UI.ClosePopupUI<MenuUI>();
-                Managers.Game.ResumeGame();
-            }
-        }
-        else if(Managers.Scene.CurrentScene.SceneType == Scene.Start)
-        {
-            if(Managers.UI._popupStack.Count >= 2)
-                Managers.UI.ClosePopupUI();
+            Managers.UI.ClosePopupUI();
+            return;
         }
     }
+    
+    private void Handle_R_Input()
+    {
+        Managers.Selection.DeselectAll();
+    }
+
+    #endregion
+
+    #region Mouse
+
+    private void Handle_Mouse_Left_Input()
+    {
+        if (Managers.Scene.CurrentScene.SceneType == Scene.Dungeon)
+        {
+            MouseWorld.Instance.MouseDown();
+        }
+
+        // Scene
+        if (Managers.Scene.CurrentScene.SceneType == Scene.Start)
+        {
+            (Managers.Scene.CurrentScene as StartScene).SkipIntro();
+        }
+    }
+
+    private void Handle_Mouse_Right_Input()
+    {
+        mouse_R_Hold = true;
+        Managers.Command.ClickSelectCommand();
+    }
+
+    #endregion
 }

@@ -1,49 +1,9 @@
 fileFormatVersion: 2
-guid: 7b910bf3ed8e6f54f89f0d2e2207228d
+guid: 0b52f1478e95aa441934d71922b2177c
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch10_1001_Diffuse
-    second: {fileID: 2800000, guid: 1e0e53a158fb53a4bae0da74b810534c, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch10_1001_Glossiness
-    second: {fileID: 2800000, guid: 2dc4541badb6af04bba93a4c378ce6b5, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch10_1001_Normal
-    second: {fileID: 2800000, guid: edb7e8487c141de46b782a31aed2558e, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch10_1001_Specular
-    second: {fileID: 2800000, guid: ce090afa953b22046b1ee70a9d56d927, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch10_1002_Diffuse
-    second: {fileID: 2800000, guid: 1060ff5862371d542af9c4d1116b5acd, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch10_1002_Glossiness
-    second: {fileID: 2800000, guid: 08d20f886164d6740a9ebd94f5f2cd83, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch10_1002_Normal
-    second: {fileID: 2800000, guid: 34ff7bed5ab6823489ee6370bd31ab40, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: Ch10_1002_Specular
-    second: {fileID: 2800000, guid: 5e7b8cb68a16ecb418aa6961e6638a4c, type: 3}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -56,6 +16,8 @@ ModelImporter:
     optimizeGameObjects: 0
     removeConstantScaleCurves: 0
     motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 

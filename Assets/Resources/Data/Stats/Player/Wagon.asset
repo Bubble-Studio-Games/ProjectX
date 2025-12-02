@@ -12,14 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ddb7676e9a011464d870464f1478ef0a, type: 3}
   m_Name: Wagon
   m_EditorClassIdentifier: 
-  ID: 2004
+  ID: 9
   Name: Wagon
   sprite: {fileID: 21300000, guid: e624393424ce26a429b0c1777e28dfc3, type: 3}
   m_sDescription: 
   m_iMaxHP:
     _value: 150
   m_iCurrentHp:
-    _value: 0
+    _value: 150
   m_iIsStepReduceHP: 0
   m_fHPRegenrate:
     _value: 0
@@ -36,6 +36,10 @@ MonoBehaviour:
   m_iCommandMoveDistance: 0
   m_iDetectRange: 0
   m_iChaseRange: 0
+  m_iPhysicalBaseDamamge:
+    _value: 0
+  m_iMagicalBaseDamamge:
+    _value: 0
   m_iPhysicalDefence:
     _value: 0
   m_iMagicalDefence:
@@ -46,7 +50,6 @@ MonoBehaviour:
     _value: 0
   m_fKnockbackRegist:
     _value: 0
-  m_AttackPatterns: []
   m_iSpawnCost: 8
   m_iReconstructionCost: 0
   m_iDestructionCost: 0

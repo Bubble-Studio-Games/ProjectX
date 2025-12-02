@@ -137,7 +137,7 @@ public class BuildingCard : UI_Base,
     // 마우스 진입/이탈
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (InputManager.Instance.MouseRightClickHold())
+        if(InputManager.Instance.mouse_R_Hold)
             return;
 
         if (m_RectTransform.position.x == m_OriginalPosition.x && m_RectTransform.position.y == m_OriginalPosition.y)
@@ -149,7 +149,7 @@ public class BuildingCard : UI_Base,
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (InputManager.Instance.MouseRightClickHold())
+        if (InputManager.Instance.mouse_R_Hold)
             return;
 
         //if (m_RectTransform.position.x == m_OriginalPosition.x && m_RectTransform.position.y == m_OriginalPosition.y)

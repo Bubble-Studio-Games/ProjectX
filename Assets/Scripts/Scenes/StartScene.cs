@@ -32,21 +32,19 @@ public class StartScene : BaseScene
         base.Start();
 
         StartCoroutine(IProcessUI());
+
     }
 
-    public void Update()
+    public void SkipIntro()
     {
         // 마우스 클릭 체크
-        if(InputManager.Instance.IsMouseButtonDownThisFrame())
+        if(m_IsSkip == false)
         {
-            if(m_IsSkip == false)
-            {
-                m_IsSkip = true;
+            m_IsSkip = true;
 
-                StopAllCoroutines();
+            StopAllCoroutines();
 
-                CompleteUI();
-            }
+            CompleteUI();
         }
     }
 

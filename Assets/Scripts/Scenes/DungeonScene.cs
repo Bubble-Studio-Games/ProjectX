@@ -9,11 +9,6 @@ using static Define;
 public class DungeonScene : BaseScene
 {
     [SerializeField] private GameObject m_InitObject; // 초기 데이터
-    public Transform PlayerUnits     ;
-    public Transform EnemyUnits      ;
-    public Transform PlayerBuildings ;
-    public Transform EnemyBuildings;
-    public Transform Order;
 
     protected override void Init()
     {
@@ -43,7 +38,7 @@ public class DungeonScene : BaseScene
         // Sound
         Managers.Sound.Play(m_SceneMainTemaAudioclip, 1, Sound.Bgm);
 
-
+        // Data
         var data = Managers.Load.GetContinueSaveData();
 
         // 기존 플레이 했던 데이터가 있는 경우
@@ -80,10 +75,17 @@ public class DungeonScene : BaseScene
                     DungeonCore.instance.transform.position, DungeonCore.instance.transform.rotation);
             }
         }
+
+        // Input Binding
+        InputManager.Instance.playerInputActions.KeyBoard.ESC.performed += i =>
+        {
+
+        };
     }
 
     public override void Clear()
     {
         
     }
+
 }

@@ -10,6 +10,7 @@ using Unity.VisualScripting;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using static Define;
 using static Unity.VisualScripting.Member;
@@ -54,7 +55,7 @@ public class GameManager
     }
 
     // 보상품 리스트의 뽑힐 확률의 총합을 1.0으로 맞춤.
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void InitAllRewards()
     {
         if (CheckRunMethodThisScene() == false)
@@ -72,7 +73,7 @@ public class GameManager
     /// AttackPattern 내부의 모든 AnimationClip을 스텝 애니메이션으로 변환
     /// 중복 변환 방지 및 캐시 기반 로드
     /// </summary>
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void InitAttackAnimationStepAnimation()
     {
         if (!CheckRunMethodThisScene()) return;
@@ -894,70 +895,10 @@ public class GameManager
         return unique;
     }
 
-
-    // ② 공격할 위치 가져오기
-    public HashSet<GridPosition> GetCanAttackPosition
-        (GameEntity owner, 
-        GameEntity target, 
-        AttackPattern pattern,
-        bool canAccess = true )
-    {
-        HashSet<GridPosition> result = new();
-        if (owner == null || pattern == null)
-            return result;
-
-        // 로컬 오프셋 → 월드 좌표
-        var offsets = GetPatternOffsets(pattern);
-        var attackerGridPosition = owner.GetGridPosition();
-        var targetGridPosition = target.GetGridPosition();
-
-
-        // 시작 위치(origin) 및 방향 계산
-        // 8방향 모두 조사해야함.
-        foreach (var dir in Enum.GetValues(typeof(E_Dir)).Cast<E_Dir>())
-        {
-            foreach (var offset in offsets)
-            {
-                GridPosition canAttackPos = LevelGrid.Instance.ToGridPosition(offset, targetGridPosition, dir);
-
-                if(attackerGridPosition == canAttackPos)
-                {
-                    return new HashSet<GridPosition> { canAttackPos };
-                }
-
-                // 유효한 범위만 가져오기
-                if (!LevelGrid.Instance.IsValidGridPosition(canAttackPos)) // 유효한 위치만 추가
-                    continue;
-
-                if(canAccess)
-                {
-                    var cellInfo = LevelGrid.Instance.GetGridPositionCellInfo(canAttackPos);
-                    if (cellInfo == null)
-                        continue;
-
-                    if (cellInfo.Entity != owner && cellInfo.gridType != E_GridCheckType.Walkable)
-                        continue;
-
-                    // 갈 수 있는 없는 길이지 체크
-                    if (!Pathfinding.Instance.HasPath(owner.GetGridPosition(), canAttackPos))
-                    continue;
-
-                    // TODO 너무 멀리 돌아가는가?
-                }
-
-
-                result.Add(canAttackPos);
-            }
-        }
-
-        return result;
-    }
-
     public void ClearPatternOffsetCache()
     {
         _patternOffsetCache.Clear();
     }
-
 
     /// <summary>
     /// 🔍 AttackPattern의 실행 조건을 검사하고,
@@ -1006,10 +947,10 @@ public class GameManager
                 case E_ObjectType.None:
                     break;
                 case E_ObjectType.Unit:
-                    if(entity.m_TeamId == E_TeamId.Player)
-                        entity.transform.SetParent(dungeonScene.PlayerUnits);
-                    else if (entity.m_TeamId == E_TeamId.Monster)
-                        entity.transform.SetParent(dungeonScene.EnemyUnits);
+                    //if(entity.m_TeamId == E_TeamId.Player)
+                    //    entity.transform.SetParent(dungeonScene.PlayerUnits);
+                    //else if (entity.m_TeamId == E_TeamId.Monster)
+                    //    entity.transform.SetParent(dungeonScene.EnemyUnits);
                     break;
                 case E_ObjectType.Building:
                     break;
@@ -1030,4 +971,5 @@ public class GameManager
     }
 
     #endregion
+
 }

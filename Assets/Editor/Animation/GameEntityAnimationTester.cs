@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System;
 using static Define;
+using static UnityEngine.Rendering.DebugUI;
 
 /// <summary>
 /// 🎬 GameEntity 애니메이션 및 사운드 테스트 전용 에디터 윈도우
@@ -217,13 +218,25 @@ public partial class CustomToolWindow : EditorWindow
 
             // AnimationClip 필드 탐색
             var fields = clipData.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            var attackClipField = fields.FirstOrDefault(f => f.Name.Contains("AttackAnimationClip"));
-            var failClipField = fields.FirstOrDefault(f => f.Name.Contains("ReadyFailAnimationClip"));
+            var attackAnimationClipField = fields.FirstOrDefault(f => f.Name.Contains("AttackAnimationClip"));
+            var failAnimationClipField = fields.FirstOrDefault(f => f.Name.Contains("ReadyFailAnimationClip"));
+
+            // 1) clipData 내부에 AudioClip 타입 필드가 있는지 찾아본다 (예: per-clip audio)
+            var clipLevelAudioField = fields.FirstOrDefault(f => f.FieldType == typeof(AudioClip)
+                || (f.FieldType.IsArray && f.FieldType.GetElementType() == typeof(AudioClip)));
+
+            // 2) 패턴(attack) 자체에 선언된 대표 사운드 필드 찾아보기 (fallback)
+            var patternAttackAudioField = attack.GetType().GetField("AttackAudioClip", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var patternMissAudioField = attack.GetType().GetField("AttackMissClipList", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            var patternFailAudioField = attack.GetType().GetField("m_AttackFailAudioClip", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            // (디버그) 어떤 필드를 찾았는지 로그: 필요하면 활성화
+            //Debug.Log($"clipLevelAudioField={clipLevelAudioField?.Name}, patternAttackAudioField={patternAttackAudioField?.Name}");
 
             // ─ 공격 애니메이션
-            if (attackClipField != null)
+            if (attackAnimationClipField != null)
             {
-                var clip = attackClipField.GetValue(clipData) as AnimationClip;
+                var clip = attackAnimationClipField.GetValue(clipData) as AnimationClip;
                 string clipName = clip ? clip.name : "(null)";
 
                 EditorGUILayout.BeginHorizontal();
@@ -241,18 +254,18 @@ public partial class CustomToolWindow : EditorWindow
                 }
 
                 // 사운드 라벨 및 ▶ 단독 재생
-                if (attack.AttackAudioClip != null && animators.Count > 0 && animators[0] != null)
-                {
-                    DrawSoundLine(animators[0], attack.AttackAudioClip, E_GameEntityClipType.Attack);
-                }
+                //if (attack.AttackAudioClip != null && animators.Count > 0 && animators[0] != null)
+                //{
+                //    DrawSoundLine(animators[0], attack.AttackAudioClip, E_GameEntityClipType.Attack);
+                //}
 
                 EditorGUILayout.EndHorizontal();
             }
 
             // ─ 공격 실패 애니메이션
-            if (failClipField != null)
+            if (failAnimationClipField != null)
             {
-                var failClip = failClipField.GetValue(clipData) as AnimationClip;
+                var failClip = failAnimationClipField.GetValue(clipData) as AnimationClip;
                 string failName = failClip ? failClip.name : "(null)";
 
                 EditorGUILayout.BeginHorizontal();
@@ -269,15 +282,106 @@ public partial class CustomToolWindow : EditorWindow
                     }
                 }
 
-                var failSoundField = attack.GetType().GetField("m_AttackFailAudioClip", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-                var failSound = failSoundField?.GetValue(attack) as AudioClip;
-
-                if (failSound != null && animators.Count > 0 && animators[0] != null)
                 {
-                    DrawSoundLine(animators[0], failSound, E_GameEntityClipType.AttackReadyFail);
+                    var failSoundField = attack.GetType().GetField("m_AttackFailAudioClip", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    var failSound = failSoundField?.GetValue(attack) as AudioClip;
+
+                    if (failSound != null && animators.Count > 0 && animators[0] != null)
+                    {
+                        DrawSoundLine(animators[0], failSound, E_GameEntityClipType.AttackReadyFail);
+                    }
+
+                    EditorGUILayout.EndHorizontal();
+
+                    //────────────────────────────────────────────
+                    // 🎧 공격 사운드 설정 ObjectField
+                    //────────────────────────────────────────────
+                    EditorGUILayout.Space(3);
+                    EditorGUILayout.LabelField("🎵 공격 패턴 사운드", EditorStyles.boldLabel);
+                }
+            }
+
+            // ===== per-clip AudioClip 필드 UI 처리 (clipData 내부에 AudioClip 필드가 있을 때) =====
+            if (clipLevelAudioField != null)
+            {
+                // 단일 AudioClip 또는 AudioClip[]인 경우 분기
+                if (clipLevelAudioField.FieldType == typeof(AudioClip))
+                {
+                    var currentClip = clipLevelAudioField.GetValue(clipData) as AudioClip;
+                    var newClip = (AudioClip)EditorGUILayout.ObjectField("어택별 사운드(clip)", currentClip, typeof(AudioClip), false);
+                    if (newClip != currentClip)
+                    {
+                        // Undo/Dirty는 최상위 ScriptableObject(attack)에 적용
+                        Undo.RecordObject(attack, "Change ClipData Audio");
+                        clipLevelAudioField.SetValue(clipData, newClip);
+                        EditorUtility.SetDirty(attack);
+                    }
+                }
+                else if (clipLevelAudioField.FieldType.IsArray && clipLevelAudioField.FieldType.GetElementType() == typeof(AudioClip))
+                {
+                    var arr = clipLevelAudioField.GetValue(clipData) as AudioClip[];
+                    var list = arr?.ToList() ?? new List<AudioClip>() { null };
+                    // 간단하게 첫 슬롯만 노출 (원하면 전체 리스트 UI로 확장)
+                    var current = list.FirstOrDefault();
+                    var newClip = (AudioClip)EditorGUILayout.ObjectField("어택별 사운드(clip[])", current, typeof(AudioClip), false);
+                    if (newClip != current)
+                    {
+                        Undo.RecordObject(attack, "Change ClipData AudioArray");
+                        if (list.Count == 0) list.Add(newClip); else list[0] = newClip;
+                        clipLevelAudioField.SetValue(clipData, list.ToArray());
+                        EditorUtility.SetDirty(attack);
+                    }
+                }
+            }
+            else
+            {
+                // ===== fallback: AttackPattern(attack) 필드 사용 =====
+                // 공격 사운드 (단일)
+                if (patternAttackAudioField != null)
+                {
+                    var currentClip = patternAttackAudioField.GetValue(attack) as AudioClip;
+                    var newClip = (AudioClip)EditorGUILayout.ObjectField("공격 사운드 (패턴)", currentClip, typeof(AudioClip), false);
+                    if (newClip != currentClip)
+                    {
+                        Undo.RecordObject(attack, "Change Pattern AttackAudioClip");
+                        patternAttackAudioField.SetValue(attack, newClip);
+                        EditorUtility.SetDirty(attack);
+                    }
+
+                    // 그리고 플레이 버튼/라벨도 같이 보여주고 싶다면
+                    if (currentClip != null && animators.Count > 0 && animators[0] != null)
+                        DrawSoundLine(animators[0], currentClip, E_GameEntityClipType.Attack);
                 }
 
-                EditorGUILayout.EndHorizontal();
+                // 공격 미스 리스트 (배열)
+                if (patternMissAudioField != null)
+                {
+                    var arr = patternMissAudioField.GetValue(attack) as AudioClip[];
+                    var first = arr?.FirstOrDefault();
+                    var newClip = (AudioClip)EditorGUILayout.ObjectField("공격 미스 사운드(첫 슬롯)", first, typeof(AudioClip), false);
+                    if (newClip != first)
+                    {
+                        Undo.RecordObject(attack, "Change Pattern AttackMissClipList[0]");
+                        // 안전하게 복사해서 교체
+                        var list = (arr?.ToList()) ?? new List<AudioClip>() { null };
+                        if (list.Count == 0) list.Add(newClip); else list[0] = newClip;
+                        patternMissAudioField.SetValue(attack, list.ToArray());
+                        EditorUtility.SetDirty(attack);
+                    }
+                }
+
+                // 준비 실패(ReadyFail) 같은 필드가 패턴에 있다면 처리
+                if (patternFailAudioField != null)
+                {
+                    var currentFail = patternFailAudioField.GetValue(attack) as AudioClip;
+                    var newFail = (AudioClip)EditorGUILayout.ObjectField("공격 준비 실패 사운드 (패턴)", currentFail, typeof(AudioClip), false);
+                    if (newFail != currentFail)
+                    {
+                        Undo.RecordObject(attack, "Change Pattern FailAudio");
+                        patternFailAudioField.SetValue(attack, newFail);
+                        EditorUtility.SetDirty(attack);
+                    }
+                }
             }
 
             attackIndex++;

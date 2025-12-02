@@ -31,7 +31,7 @@ public class LevelGrid : MonoBehaviour
     [SerializeField] private int height;
     [SerializeField] private float cellSize;
     [SerializeField] private int floorAmount;
-    
+
     public List<GridSystem<GridObject>> GridSystemList {  get; private set; }
 
     [Header("DeBug")]
@@ -111,11 +111,6 @@ public class LevelGrid : MonoBehaviour
         }
 
         OnChangeGrid += GridDebugObjectUpdate;
-    }
-
-    private void Start()
-    {
-        Pathfinding.Instance.Setup(width, height, cellSize, floorAmount);
     }
 
     #region Grid Object Add/Remove/Move
