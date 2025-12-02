@@ -55,7 +55,7 @@ public class GameManager
     }
 
     // 보상품 리스트의 뽑힐 확률의 총합을 1.0으로 맞춤.
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void InitAllRewards()
     {
         if (CheckRunMethodThisScene() == false)
@@ -73,7 +73,7 @@ public class GameManager
     /// AttackPattern 내부의 모든 AnimationClip을 스텝 애니메이션으로 변환
     /// 중복 변환 방지 및 캐시 기반 로드
     /// </summary>
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void InitAttackAnimationStepAnimation()
     {
         if (!CheckRunMethodThisScene()) return;

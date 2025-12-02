@@ -63,4 +63,4 @@ MonoBehaviour:
   AttackAudioClip: {fileID: 8300000, guid: ac6034ade498bb94b87620cdf6eac48b, type: 3}
   AttackMissClipList: []
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: a1d1f4b786367ba4089c28ea21ace252, type: 2}
+  - AttackAnimationClip: {fileID: -203655887218126122, guid: 7bb7fa510bb7e304d9b7901d6cda8807, type: 3}
