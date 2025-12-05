@@ -7,8 +7,11 @@ using UnityEngine;
 using static Define;
 using static AttributeSystem;
 using Random = UnityEngine.Random;
+using Data;
 
-[DefaultExecutionOrder(-1000)]
+
+
+
 public class AttributeSystem : MonoBehaviour
 {
     public event EventHandler OnRevived; // 	HP 회복 등으로 다시 살아날 때
@@ -37,22 +40,26 @@ public class AttributeSystem : MonoBehaviour
     [HideInInspector] public BaseStat m_Stat;
 
     [Header("Attack Pattern")]
-    public List<AttackPattern> m_AttackPatterns = new List<AttackPattern>();
+    public List<AttackPattern> m_originalAttackPatterns = new List<AttackPattern>();
+    [HideInInspector] public List<AttackPattern> m_AttackPatterns = new List<AttackPattern>();
 
     private GameEntity m_GameEntity;
 
     [Header("Reward")]
-    public RewardData m_RewardData;
+    public Reward m_Reward;
 
     #region Stat 약칭
 
-    [SerializeField] private StatValue health { get => m_Stat.m_iCurrentHp;  set { m_Stat.m_iCurrentHp = value; } }
+    public StatValue health { get => m_Stat.m_iCurrentHp;  set { m_Stat.m_iCurrentHp = value; } }
     public StatValue healthMax { get => m_Stat.m_iMaxHP; set { m_Stat.m_iMaxHP = value; } }
 
-    [SerializeField] private StatValue mp { get => m_Stat.m_iCurrentMP;  set { m_Stat.m_iCurrentMP = value; } }
+    public bool FullHealth => health == healthMax;
+
+    public StatValue mp { get => m_Stat.m_iCurrentMP;  set { m_Stat.m_iCurrentMP = value; } }
     public StatValue mpMax { get => m_Stat.m_iMaxMP; set { m_Stat.m_iMaxMP = value; } }
 
     public bool m_IsDead => health == 0;
+    public bool m_CanMoveableGameEntity => m_Stat.m_fChaseSpeed != 0 || m_Stat.m_fWalkSpeed != 0;
 
     #endregion
 
@@ -60,13 +67,13 @@ public class AttributeSystem : MonoBehaviour
     {
         if (m_originalStat == null)
         {
-            Debug.LogError($"{this.gameObject.name}: 스텟이 존재하지 않습니다.- AttributeSystem - Stat");
+            Debug.LogWarning($"{this.gameObject.name}: 스텟이 존재하지 않습니다.- AttributeSystem - Stat");
             //return false;
         }
 
-        if (m_AttackPatterns == null || m_AttackPatterns.Count <= 0)
+        if (m_originalAttackPatterns == null || m_originalAttackPatterns.Count <= 0)
         {
-            Debug.LogError($"{this.gameObject.name}: 공격 패턴이 존재하지 않습니다.- AttributeSystem - AttackPatterns");
+            Debug.LogWarning($"{this.gameObject.name}: 공격 패턴이 존재하지 않습니다.- AttributeSystem - AttackPatterns");
             //return false;
         }
 
@@ -75,6 +82,8 @@ public class AttributeSystem : MonoBehaviour
 
     private void Awake()
     {
+        Validate();
+        
         m_GameEntity = GetComponent<GameEntity>();
 
         // Event
@@ -87,10 +96,10 @@ public class AttributeSystem : MonoBehaviour
         if(m_originalStat != null)
         {
             m_originalStat = Instantiate(m_originalStat);
-            m_Stat = m_originalStat;
-        }
 
-        Validate();
+            if(m_Stat == default || m_Stat == null)
+                m_Stat = m_originalStat;
+        }
 
         // Stat을 Instantiate 한 후에 해야함.
         if (m_GameEntity is ControllableObject cobj)
@@ -102,13 +111,13 @@ public class AttributeSystem : MonoBehaviour
     private void Start()
     {
         // 공격
-        if(m_AttackPatterns != null)
+        // 로드된 데이터가 없는 경우
+        if(m_originalAttackPatterns.Count > 0 && m_AttackPatterns.Count == 0)
         {
-            m_AttackPatterns = m_AttackPatterns
+            m_AttackPatterns = m_originalAttackPatterns
             .Select(pattern => {
                 var instance = Instantiate(pattern);
-                return instance;
-            })
+                return instance;})
             .ToList();
         }
 
@@ -254,7 +263,7 @@ public class AttributeSystem : MonoBehaviour
         OnDamaged?.Invoke(this, new OnAttackInfoEventArgs { AttackPattern = pattern, EHitDeCisionType = type, Attacker=attacker}); 
     }
 
-    public void AddHP(int addHp)
+    public void AddHP(StatValue addHp)
     {
         health = Math.Clamp(health + addHp, 0, healthMax);
 
@@ -262,7 +271,7 @@ public class AttributeSystem : MonoBehaviour
     }
 
 
-    public void Heal(int healAmount, E_HealType healType, GameEntity healer = null)
+    public void Heal(StatValue healAmount, E_HealType healType, GameEntity healer = null)
     {
         if (healAmount <= 0 || m_IsDead)
             return;
@@ -328,7 +337,7 @@ public class AttributeSystem : MonoBehaviour
     }
 
     // Tick 당 이뤄지는 함수
-    private void UpdateTickStat(object sender, GridPosition args)
+    private void UpdateTickStat(object sender, EventArgs args)
     {
         if(m_IsDead) 
             return;
@@ -449,15 +458,15 @@ public class AttributeSystem : MonoBehaviour
     // 보물 상자, 몬스터 처치 등으로 보상 수령 가능
     public void Reward()
     {
-        if (m_RewardData == null)
+        if (m_Reward == null)
             return;
 
         // --- 카드 보상 ---
-        if (Random.value <= m_RewardData.CardProb) // 0~1 범위 확률 체크
+        if (Random.value <= m_Reward.CardProb) // 0~1 범위 확률 체크
         {
-            if (m_RewardData.rewardCards.Count > 0)
+            if (m_Reward.rewardCards.Count > 0)
             {
-                RewardCard selected = WeightedRandomSelect(m_RewardData.rewardCards);
+                RewardCard selected = WeightedRandomSelect(m_Reward.rewardCards);
                 //Debug.Log($"카드 획득: {selected.m_GameEntity.m_StatSystem.m_Stat.Name}");
 
                 BuildingTypeSelectUI.Instance.AddCard(selected.m_GameEntity, transform.position);
@@ -466,30 +475,30 @@ public class AttributeSystem : MonoBehaviour
         }
 
         // --- 잼 보상 ---
-        if (Random.value <= m_RewardData.downJamProb)
+        if (Random.value <= m_Reward.downJamProb)
         {
-            int jam = Random.Range(m_RewardData.downJamMin, m_RewardData.downJamMax + 1);
+            int jam = Random.Range(m_Reward.downJamMin, m_Reward.downJamMax + 1);
             Inventory.Instance.AddDownJam(jam);
             //Debug.Log($"다운잼 획득: {jam}");
         }
 
         // --- 버프 보상 ---
-        if (Random.value <= m_RewardData.BuffProb)
+        if (Random.value <= m_Reward.BuffProb)
         {
-            if (m_RewardData.rewardBuffs.Count > 0)
+            if (m_Reward.rewardBuffs.Count > 0)
             {
-                RewardBuff selected = WeightedRandomSelect(m_RewardData.rewardBuffs);
+                RewardBuff selected = WeightedRandomSelect(m_Reward.rewardBuffs);
                 Debug.Log($"버프 획득: {selected.buffId}");
                 // TODO: 대상 오브젝트에 버프 적용
             }
         }
 
         //// --- 이펙트 보상 ---
-        if (Random.value <= m_RewardData.EffectProb)
+        if (Random.value <= m_Reward.EffectProb)
         {
-            if (m_RewardData.rewardEffects.Count > 0)
+            if (m_Reward.rewardEffects.Count > 0)
             {
-                RewardEffect selected = WeightedRandomSelect(m_RewardData.rewardEffects);
+                RewardEffect selected = WeightedRandomSelect(m_Reward.rewardEffects);
                 Debug.Log($"이펙트 발동: {selected.effectId}");
                 // TODO: 이펙트 실행
             }
@@ -521,5 +530,46 @@ public class AttributeSystem : MonoBehaviour
         return list[list.Count - 1]; // 안전장치
     }
 
+
+    #endregion
+
+    #region Data
+
+    public AttributeSystemData CaptureSaveData()
+    {
+        return new AttributeSystemData
+        {
+            stat = m_Stat,
+            attackPatterns = m_AttackPatterns.Select(attack => attack.CaptureSaveData() as AttackPatternData).ToList(),
+            rewardData = m_Reward?.CaptureSaveData(),
+        };
+    }
+
+    public void RestoreSaveData(AttributeSystemData data)
+    {
+        if (m_Stat != null && data.stat != null)
+            m_Stat = data.stat;
+
+        // original attack pattern -> 복사 후 수치 집어 넣기
+        if(m_originalAttackPatterns.Count > 0 && m_AttackPatterns.Count == 0)
+            {
+            m_AttackPatterns = m_originalAttackPatterns
+            .Select(pattern => {
+                var instance = Instantiate(pattern);
+                return instance;
+            })
+            .ToList();
+
+            foreach (var attackData in data.attackPatterns)
+                m_AttackPatterns.Find(attack => attack.ID == attackData.id).RestoreSaveData(attackData);
+        }
+
+        m_Reward.RestoreSaveData(data.rewardData);
+
+        // 3. 복원 후 이벤트 발생 (UI 갱신 등)
+        OnUpdateStat?.Invoke(this, EventArgs.Empty);
+
+        Debug.Log("스탯 복원");
+    }
     #endregion
 }

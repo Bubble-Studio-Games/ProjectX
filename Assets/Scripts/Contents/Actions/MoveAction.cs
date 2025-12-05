@@ -106,8 +106,6 @@ public class MoveAction : BaseAction
                 // 최종 목적지에 도착했는지 여부 따지기
                 if (DestGirdPosition == m_BaseObject.GetGridPosition())
                 {
-                    //DestGirdPosition = default;
-                    //OnStopMoving?.Invoke(this, EventArgs.Empty);
                     ActionComplete();
                 }
             }

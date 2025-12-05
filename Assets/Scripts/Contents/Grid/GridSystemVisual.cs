@@ -6,6 +6,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using static Define;
+using static UnityEngine.UI.CanvasScaler;
 
 public class GridSystemVisual : MonoBehaviour
 {
@@ -80,9 +81,8 @@ public class GridSystemVisual : MonoBehaviour
             _floorVisuals[floor] = gridArray;
         }
 
-
-        UnitActionSystem.Instance.OnSelectedActionChanged += (s, e) => UpdateGridVisual();
-        UnitActionSystem.Instance.OnSelectedUnitChanged += (s, e) => UpdateGridVisual();
+        Managers.Command.OnSelectedActionChanged += (s, e) => UpdateGridVisual();
+        Managers.Selection.OnSelectionChanged += (s, e) => UpdateGridVisual();
 
         // Building Place
         GridBuildingSystem.Instance.OnObjectPlacedCancel += (s, e) => HideAllGridPosition();
@@ -92,16 +92,13 @@ public class GridSystemVisual : MonoBehaviour
         GridBuildingSystem.Instance.OnSelectedChanged += (s, e) => UpdateGridPositionPlace();
         GridBuildingSystem.Instance.OnRotateObject += (s, e) => UpdateGridPositionPlace();
         CameraController.Instance.OnChangeLookFloor += (s, e) => UpdateGridPositionPlace();
-        MouseWorld.Instance.OnMousePositionChanged += (s, e) => UpdateGridPositionPlace();
 
-        // Level Grid
-        //LevelGrid.Instance.OnChangeGrid += OnLevelGridChanged;
+        MouseWorld.Instance.OnMousePositionChanged += (s, e) => UpdateGridPositionPlace();
 
         UpdateGridVisual();
     }
 
-
-    #region Color
+    #region Grid Color
 
     /// <summary>
     /// 컬러별, 강도별 머티리얼을 캐싱합니다.
@@ -153,10 +150,32 @@ public class GridSystemVisual : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// 예약된 Grid를 별도 색상(파란색)으로 표시하고,
+    /// 예약되지 않은 Grid만 반환.
+    /// </summary>
+    /// <param name="list">입력 Grid 리스트</param>
+    /// <returns>예약되지 않은 Grid 리스트</returns>
+    private IEnumerable<GridPosition> FilterGridReservation(IEnumerable<GridPosition> list)
+    {
+        if (!m_isShowReservationGrid)
+            return list;
+
+        // 예약된 그리드를 flatten 해서 하나의 List<GridPosition>으로
+        var reservedGrids = list
+            .Where(grid => LevelGrid.Instance.IsGridPositionCheckType(grid, E_GridCheckType.Reserve));
+
+        // 예약된 위치는 파란색으로 표시
+        ShowGridPositionList(reservedGrids, E_GridVisualType_Color.Blue, E_GridVisualType_Intensity.Medium);
+
+        // 예약되지 않은 위치만 반환
+        return list.Except(reservedGrids).ToList();
+    }
+
+
     #endregion
 
-
-
+    #region Hide And Show Grid
     /// <summary>
     /// 모든 층의 Grid Visual을 숨긴다.
     /// </summary>
@@ -203,11 +222,11 @@ public class GridSystemVisual : MonoBehaviour
     /// <param name="gridPositionList">표시할 그리드 목록</param>
     /// <param name="gridVisualType">적용할 시각 타입 (색상/머티리얼)</param>
     public void ShowGridPositionList
-        (ICollection<GridPosition> gridPositionList, 
+        (IEnumerable<GridPosition> gridPositionList, 
         E_GridVisualType_Color gridVisualType,
         E_GridVisualType_Intensity intensity)
     {
-        if (gridPositionList == null || gridPositionList.Count == 0)
+        if (gridPositionList == null || gridPositionList.Count() == 0)
             return;
 
         var material = GetGridVisualTypeMaterial(gridVisualType, intensity);
@@ -221,18 +240,18 @@ public class GridSystemVisual : MonoBehaviour
         }
     }
 
+    #endregion
+
     /// <summary>
     /// 이벤트 발생 시 Grid Visual을 갱신한다.
     /// </summary>
     public void UpdateGridVisual_Event(object sender, GameEntity e)
     {
-        if (!UnitActionSystem.Instance.IsSelectedObject(e))
-            return;
+        //if (!UnitActionSystem.Instance.IsSelectedObject(e))
+        //    return;
 
         UpdateGridVisual();
     }
-
-
 
     /// <summary>
     /// 전체 Grid Visual을 갱신.
@@ -246,12 +265,12 @@ public class GridSystemVisual : MonoBehaviour
 
         // 전체 초기화
         HideAllGridPosition();
-        
-        BaseAction selectedAction = UnitActionSystem.Instance.GetSelectedAction();
-        HashSet<GridPosition> commonGrid = new();
-        HashSet<GridPosition> ActionGrid = new();
 
-        // 현재 선택된 커맨드 그리드가 업을 때
+        BaseAction selectedAction = Managers.Command.m_SelectAction;
+        IEnumerable<GridPosition> commonGrid = null;
+        IEnumerable<GridPosition> ActionGrid = null;
+
+        // 현재 선택된 커맨드 그리드가 없을 때
         if (selectedAction == null)
         {
             // 선택한 유닛 중 일부가 전투 중이라면 공격 그리드 그리기 이는 이동 그리드 위에 덧 씌운다.
@@ -259,22 +278,25 @@ public class GridSystemVisual : MonoBehaviour
                 (obj => obj.GetAction<CommandMoveAction>().GetValidActionGridPositionList());
 
             ActionGrid = UnitCommonGetValidactionGridPositionList<CombatAction>( 
-                obj => obj.GetAction<CombatAction>().m_ThisTimeAttack.GetAttackGridPositions(obj, obj.m_Target),
+                obj => obj.GetAction<CombatAction>().m_ThisTimeAttack
+                    .GetAttackGridPositions(obj, obj.m_Target),
                 unit => unit.GetAction<CombatAction>().m_ThisTimeAttack != null);
 
         }
 
-        if (commonGrid == null || commonGrid.Count == 0)
-        {
-            //Debug.Log("유효 그리드가 없습니다.");
+        // 값이 없으면 패스
+        if (commonGrid == null || !commonGrid.Any())
             return;
-        }
 
+        // 예약된 그리드 제거
         commonGrid = Enumerable.ToHashSet(FilterGridReservation(commonGrid));
 
+        // 시각화
         ShowGridPositionList(commonGrid, E_GridVisualType_Color.White, E_GridVisualType_Intensity.Medium);
         ShowGridPositionList(ActionGrid, E_GridVisualType_Color.Red, E_GridVisualType_Intensity.Light);
     }
+
+    #region Place GameEntity (그리드 배치)
 
     // 건물 배치할 때 보여주는 용도
     public void UpdateGridPositionPlace()
@@ -348,6 +370,8 @@ public class GridSystemVisual : MonoBehaviour
         ShowGridPositionList(placeableGrids, E_GridVisualType_Color.White, E_GridVisualType_Intensity.Medium);
     }
 
+    #endregion
+
     /// <summary>
     /// 특정 액션(TAction)을 가진 유닛들의 공통된 유효 Grid 리스트를 추출.
     /// gridSelector로 가져올 Grid 계산 함수를, conditionUnit으로 유닛 필터 조건을 지정 가능.
@@ -356,61 +380,57 @@ public class GridSystemVisual : MonoBehaviour
     /// <param name="gridSelector">각 유닛에서 GridPosition을 가져오는 함수</param>
     /// <param name="conditionUnit">선택적 유닛 필터 조건</param>
     /// <returns>공통 유효 GridPosition 집합</returns>
-    private HashSet<GridPosition> UnitCommonGetValidactionGridPositionList<TAction>(
+    private IEnumerable<GridPosition> UnitCommonGetValidactionGridPositionList<TAction>(
         Func<ControllableObject, IEnumerable<GridPosition>> gridSelector, 
         Func<ControllableObject, bool> conditionUnit = null) 
         where TAction : BaseAction
     {
-        // 제네렉 액션을 가진 유닛만 필터 거치기
-        var filterList = UnitActionSystem.Instance
-            .FilterUnitsWithAction<TAction>(UnitActionSystem.Instance.m_SelectedObjects.ToList());
+        // ✔ 액션 가능 유닛만 가져오기
+        var filtered = Managers.Command.FilterUnitsWithAction<TAction>();
 
+        // 유닛이 0명이면 패스
+        if (filtered == null || filtered.Count == 0)
+            return default;
+
+        // 특정 조건 필터링
         if (conditionUnit != null)
         {
-            filterList = filterList
+            filtered = filtered
                 .Where(pair => conditionUnit(pair.unit))
                 .ToList();
         }
 
-        // 유닛이 0명이면 공통 그리드 없음
-        if (filterList.Count == 0)
-            return default;
 
-        HashSet<GridPosition> gridPositions = new();
-        foreach (var obj in filterList)
+        HashSet<GridPosition> commonSet = null;
+
+        foreach (var (unit, action) in filtered)
         {
-            var grids = gridSelector(obj.unit);
-            if(grids != null)
-                gridPositions.AddRange(grids);
+            // ✔ ToHashSet 충돌 방지
+            var grids = Enumerable.ToHashSet(gridSelector(unit));
+
+            if (grids == null || grids.Count == 0)
+                continue;
+
+            if (commonSet == null)
+            {
+                // ✔ 첫 번째 유닛의 grid를 기준으로 삼음
+                commonSet = new HashSet<GridPosition>(grids);
+            }
+            else
+            {
+                // ✔ 교집합 수행
+                commonSet.IntersectWith(grids);
+            }
+
+            // ✔ 최적화: 공통 grid가 비면 더 볼 필요 없음
+            if (commonSet.Count == 0)
+                break;
         }
 
-        return gridPositions;
+        return commonSet;
     }
 
-    /// <summary>
-    /// 예약된 Grid를 별도 색상(파란색)으로 표시하고,
-    /// 예약되지 않은 Grid만 반환.
-    /// </summary>
-    /// <param name="list">입력 Grid 리스트</param>
-    /// <returns>예약되지 않은 Grid 리스트</returns>
-    private IEnumerable<GridPosition> FilterGridReservation(IEnumerable<GridPosition> list)
-    {
-        if (!m_isShowReservationGrid)
-            return list;
-
-        // 예약된 그리드를 flatten 해서 하나의 List<GridPosition>으로
-        var reservedGrids = list
-            .GroupBy(x => x.floor)
-            .SelectMany(g => LevelGrid.Instance.GetFloorAndTypeGridPositions(g.Key, E_GridCheckType.Reserve))
-            .ToList();
-
-        // 예약된 위치는 파란색으로 표시
-        ShowGridPositionList(reservedGrids, E_GridVisualType_Color.Blue, E_GridVisualType_Intensity.Medium);
-
-        // 예약되지 않은 위치만 반환
-        return list.Except(reservedGrids).ToList();
-    }
-
+    #region Get
 
     /// <summary>
     /// 특정 좌표(x, z, floor)의 Grid Visual 객체 반환.
@@ -441,4 +461,6 @@ public class GridSystemVisual : MonoBehaviour
 
         return list;
     }
+
+    #endregion
 }

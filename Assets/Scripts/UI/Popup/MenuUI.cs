@@ -11,7 +11,8 @@ using static Define;
 public class MenuUI : UI_Popup
 {
     [Header("Main")]
-    public Button PlayBtn;
+    public Button ContinueBtn;
+    public Button NewGameBtn;
     public Button SaveBtn;
     public Button SaveSlotBtn;
 
@@ -46,6 +47,9 @@ public class MenuUI : UI_Popup
     [Header("UI")]
     public SaveSlotItem[] slots;
 
+    [Header("Animator")]
+    public Animator m_Animator;
+
     public override bool Init()
     {
         if (base.Init() == false)
@@ -55,18 +59,75 @@ public class MenuUI : UI_Popup
         InitSliders();
         InitPopups();
         InitSaveSlots();
+        m_Animator = GetComponent<Animator>();
 
         return true;
     }
 
+    public void Start()
+    {
+        if(Managers.Scene.CurrentScene.SceneType == Scene.Start)
+        {
+            // Play 계속하기
+            // 데이터를 긁어와서 현재 마지막 플레이의 슬롯에 데이터가 있으면 이어하기, 없으면 새로하기
+            if (Managers.Load.IsContinueGame())
+            {
+                ContinueBtn.gameObject.SetActive(true);
+                NewGameBtn.gameObject.SetActive(false);
+            }
+            else
+            {
+                ContinueBtn.gameObject.SetActive(false);
+                NewGameBtn.gameObject.SetActive(true);
+            }
+
+            SaveBtn.interactable = false;
+        }
+        else if(Managers.Scene.CurrentScene.SceneType == Scene.Dungeon)
+        {
+
+            SaveBtn.interactable = true;
+        }
+    }
+
     private void InitButtons()
     {
-        // Play 계속하기
-        PressButtonSetAction(PlayBtn, () =>
+        if (Managers.Scene.CurrentScene.SceneType == Scene.Start)
         {
-            Managers.Game.ResumeGame();
-            Managers.UI.ClosePopupUI<MenuUI>(); 
-        });
+
+            // 마지막 플레이 시점으로
+            // 마지막 플레이 데이터 로드
+            PressButtonSetAction(ContinueBtn, () =>
+            {
+                Managers.Game.ResumeGame();
+                Managers.UI.ClosePopupUI<MenuUI>();
+
+                var data = Managers.Load.GetContinueSaveData();
+                
+                Managers.Scene.LoadScene(data.LastScene);
+            });
+
+            // 새로운 게임으로
+            PressButtonSetAction(NewGameBtn, async () =>
+            {
+                await Managers.Save.SaveAllData();
+                Managers.Game.ResumeGame();
+                Managers.UI.ClosePopupUI<MenuUI>();
+                Managers.Scene.LoadScene(Scene.Camp);
+            });
+        }
+        else if (Managers.Scene.CurrentScene.SceneType == Scene.Dungeon)
+        {
+            PressButtonSetAction(ContinueBtn, () =>
+            {
+                Managers.Game.ResumeGame();
+                Managers.UI.ClosePopupUI<MenuUI>();
+
+                // 마지막 플레이 시점으로
+                // 마지막 플레이 데이터 로드
+            });
+        }
+
 
         // Save 수동 세이브
         PressButtonSetAction(SaveBtn, () =>
@@ -75,7 +136,7 @@ public class MenuUI : UI_Popup
                 // OK 버튼을 눌렀을 떄
                 async () =>
                 {
-                    await Managers.Game.GameSave();
+                    await Managers.Save.AutoSaveSlotAsync();
                     RefreshUI();
                     Managers.UI.ClosePopupUI<CheckUI>();
                 },
@@ -107,9 +168,16 @@ public class MenuUI : UI_Popup
                 "Did you Save And Quit?");
         });
 
+        PressButtonSetAction(SaveSlotPlayBtn, 
+            async () => 
+            { 
+                await Managers.Save.SavePlayStatistics();
+                m_SaveSlotPopup.SetActive(false);
+            });
+
         // UI 공통 사운드
         PressButtonSetAction(GetComponentsInChildren<Button>(),
-            () => Managers.Sound.Play(GameSoundManager.Instance.m_UIButtonClickAudioClip));
+            () => Managers.Sound.Play(SettingManager.Instance.m_UIButtonClickAudioClip));
     }
 
     private void InitSliders()
@@ -147,8 +215,8 @@ public class MenuUI : UI_Popup
             Managers.UI.ShowPopupUI<CheckUI>().SetDataCheck(
                 async () =>
                 {
-                    await Managers.Data.DeleteAsync(m_iselectSlotID);
-                    slots[m_iselectSlotID].ClearData();
+                    await Managers.Save.DeleteSlotAsync(m_iselectSlotID);
+                    slots[m_iselectSlotID].RefreshUI();
                     RefreshUI();
                     Managers.UI.ClosePopupUI<CheckUI>();
 
@@ -200,13 +268,8 @@ public class MenuUI : UI_Popup
 
     public override void RefreshUI()
     {
-        Debug.Log("Save Slot Refresh");
-
         for (int i = 0; i < 3; i++)
-        {
-            var data = Managers.Data.GetSlot(i);
-            slots[i].SetData(Managers.Game.LoadScreenShot(i), data.createTime, data.totalPlaySeconds);
-        }
+            slots[i].RefreshUI();
 
         // 세이브 슬롯을 켜놓고 세이브 버튼을 눌렀을 경우
         if(m_IsSelectingSlot)

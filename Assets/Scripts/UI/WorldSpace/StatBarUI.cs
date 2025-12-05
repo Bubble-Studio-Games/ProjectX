@@ -37,7 +37,7 @@ public class StatBarUI : MonoBehaviour
         {
 
             ObjectNameText.text = StatSystem.m_Stat.Name;
-            switch (cobj.m_originalGrade)
+            switch (cobj.m_originalEObjectGrade)
             {
                 case E_ObjectGrade.Normal:
                     ObjectNameText.gameObject.SetActive(true);

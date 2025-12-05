@@ -20,7 +20,7 @@ public struct GridPosition : IEquatable<GridPosition>
     }
 
     // ✅ 혹은 프로퍼티로도 가능 (이 버전이 더 Unity 스타일)
-    public static GridPosition Zero => new GridPosition(0, 0, 0);
+    public static GridPosition zero => new GridPosition(0, 0, 0);
 
     public override bool Equals(object obj)
     {

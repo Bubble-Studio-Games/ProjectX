@@ -9,6 +9,12 @@ public abstract class BaseScene : MonoBehaviour
 {
     public Define.Scene SceneType { get; protected set; } = Define.Scene.Unknown;
 
+    [Tooltip("세이브 파일을 로드할 것인가?")]
+    public bool useLoadSaveFile = true;
+
+    [Tooltip("데이터를 저장할 것인가?")]
+    public bool isSaveFile = true;
+
     [Header("Scene")]
     public AudioClip m_SceneMainTemaAudioclip;
 
@@ -28,9 +34,6 @@ public abstract class BaseScene : MonoBehaviour
     protected virtual void Start()
     {
         Managers.Game.ResumeGame();
-
-        // Sound
-        Managers.Sound.Play(m_SceneMainTemaAudioclip, 1, Sound.Bgm);
     }
 
     public abstract void Clear();

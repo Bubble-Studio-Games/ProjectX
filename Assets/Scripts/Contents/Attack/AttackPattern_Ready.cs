@@ -10,6 +10,7 @@ using static Define;
 // 발사체 발사 전 소환
 // 무기에 버프를 둘러서 강화하기
 [CreateAssetMenu(menuName = "Attack Pattern/Ready")]
+[Serializable]
 public class AttackPattern_Ready : AttackPattern<AttackPatternInfoClipWithReady>
 {
     [Header("Clip")]

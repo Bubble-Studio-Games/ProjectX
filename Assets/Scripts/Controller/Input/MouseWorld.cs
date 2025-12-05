@@ -6,25 +6,26 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 using static Define;
 
 public class MouseWorld : MonoBehaviour
 {
     public static MouseWorld Instance { get; private set; }
-
-    public event EventHandler OnMouseDownChanged;
-    public event EventHandler OnMouseUpChanged;
     public event EventHandler<(GridPosition oldgp, GridPosition newgp)> OnMousePositionChanged;
+
+    public event Action<IInteractable> OnInteractableClicked;
+    public event Action<List<IInteractable>> OnDragSelection;
+    public event Action OnGroundClicked;
+
+    private GridPosition m_GridPosition;
 
     [Header("Selection")]
     [SerializeField] private RectTransform SelectionBox;
     private Vector2 startPosition;
-    private GridPosition m_GridPosition;
-    [SerializeField]
-    private float DragDelay = 0.1f;
-
+    [SerializeField]  private float DragDelay = 0.1f;
+    private bool m_isDragwing;
     private float MouseDownTime;
-    public bool m_IsDraging;
 
     [Header("Cursor")]
     [SerializeField] Texture2D DefaultCursor;
@@ -39,7 +40,6 @@ public class MouseWorld : MonoBehaviour
     GameObject m_goPoolableEffect;
     [SerializeField] float m_Defaultheight = 2f;
 
-
     private void Awake()
     {
         Instance = this;
@@ -49,67 +49,22 @@ public class MouseWorld : MonoBehaviour
         Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
 
         // effect
-        if(UnitActionSystem.Instance != null)
-            UnitActionSystem.Instance.OnCommandAction += InstantiateMouseEffect;
+        Managers.Command.OnCommandAction += InstantiateMouseEffect;
+
+        OnInteractableClicked += HandleUnitClicked;
+        OnDragSelection += HandleDragSelection;
+        OnGroundClicked += HandleGroundClicked;
     }
-
-    public Vector3 GetPosition()
-    {
-        Ray ray =  Camera.main.ScreenPointToRay(InputManager.Instance.GetMouseScreenPosition());
-        Physics.Raycast(ray, out RaycastHit raycastHit, float.MaxValue, LayerManager.Instance.mousePlaneLayerMask);
-        return raycastHit.point;
-    }
-
-    public GridPosition GetGridPosition()
-    {
-        Vector3 mousePlanePos = UtilsClass.GetMouseWorldPositionByRaycast(LayerManager.Instance.mousePlaneLayerMask);
-        return LevelGrid.Instance.GetGridPosition(mousePlanePos);
-    }
-
-    public Vector3 GetPositionOnlyHitVisible()
-    {
-        // 1. 마우스 위치 → 카메라에서 쏘는 Ray 생성
-        Ray ray = Camera.main.ScreenPointToRay(InputManager.Instance.GetMouseScreenPosition());
-
-        // 2. RaycastAll: 모든 충돌체(콜라이더)를 다 맞춤
-        RaycastHit[] raycastHitArray = Physics.RaycastAll(ray, float.MaxValue, LayerManager.Instance.mousePlaneLayerMask);
-
-        // 3. 거리 기준으로 정렬 (가까운 게 먼저)
-        System.Array.Sort(raycastHitArray, (a, b) =>
-        {
-            return Mathf.RoundToInt(a.distance - b.distance);
-        });
-
-        // 4. 맞은 것들 중에서 **Renderer.enabled == true** 인 애만 선택
-        foreach (RaycastHit raycastHit in raycastHitArray)
-        {
-            if (raycastHit.transform.TryGetComponent(out Renderer renderer))
-            {
-                if (renderer.enabled)
-                {
-                    // → 카메라에 실제 보이는 오브젝트라면 그 좌표 리턴
-                    return raycastHit.point;
-                }
-            }
-        }
-
-        // 5. 아무것도 없으면 (혹은 전부 invisible이면) (0,0,0) 리턴
-        return Vector3.zero;
-    }
-
 
     private void Update()
     {
-        HandleSelectionInputs();
+        MouseDrag();
         UpdateCursor();
-
-        // TODO 키보드 조작
-        CancleSelectAll();
 
         UpdateGridPosition();
     }
 
-    protected void UpdateGridPosition()
+    void UpdateGridPosition()
     {
         GridPosition newGridPosition = GetGridPosition();
 
@@ -126,134 +81,83 @@ public class MouseWorld : MonoBehaviour
         }
     }
 
-    private void UpdateCursor()
+    public GridPosition GetGridPosition()
     {
-        if (!Application.isFocused) return;
-
-        Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
-        lastHoveredObject = null;
-
-        // Select Object
-        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, LayerManager.Instance.ControllableObjectLayerMask)
-            && hit.collider.TryGetComponent<GameEntity>(out GameEntity result))
-        {
-            if (lastHoveredObject != result)
-            {
-                if (result.m_TeamId == E_TeamId.Monster)
-                {
-                    if (UnitActionSystem.Instance.m_SelectedObjects.Count == 0)
-                        return;
-
-                    Cursor.SetCursor(AttackCursor, hotspot, CursorMode.Auto);
-                }
-                else if (result.m_ObjectType == E_ObjectType.Interact)
-                {
-                    Cursor.SetCursor(InteractCursor, hotspot, CursorMode.Auto);
-
-                }
-
-                lastHoveredObject = result.gameObject;
-            }
-        }
+        Vector3 mousePlanePos = UtilsClass.GetMouseWorldPositionByRaycast(Managers.Layer.mousePlaneLayerMask);
+        return LevelGrid.Instance.GetGridPosition(mousePlanePos);
     }
 
-    private void HandleSelectionInputs()
+
+
+    public void MouseUp()
     {
-        MouseUp();
+        m_isDragwing = false;
+        SelectionBox.gameObject.SetActive(false);
 
 
-
-        MouseDown();
-        MouseDrag();
     }
 
-    private static void CancleSelectAll()
+    public void MouseDrag()
     {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            UnitActionSystem.Instance.DeselectAll();
-        }
-    }
-
-    private void MouseUp()
-    {
-        // 카드 드로우 중일 때 선택하지 못 하게
-        if (BuildingTypeSelectUI.Instance.m_IsDrawing)
+        if (m_isDragwing == false)
             return;
 
-        if (Input.GetMouseButtonUp(0))
+        if ((MouseDownTime + DragDelay < Time.time))
         {
-            m_IsDraging = false;
-            SelectionBox.sizeDelta = Vector3.zero;
-            SelectionBox.gameObject.SetActive(false);
-
-            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, LayerManager.Instance.HitColLayerMask)
-                && hit.transform.parent.TryGetComponent<ControllableObject>(out ControllableObject unit))
-            {
-                if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
-                {
-                    if (UnitActionSystem.Instance.IsSelectedObject(unit))
-                    {
-                        UnitActionSystem.Instance.Deselect(unit);
-                    }
-                    else
-                    {
-                        UnitActionSystem.Instance.SetSelectedObject(unit);
-                    }
-                }
-                else
-                {
-                    UnitActionSystem.Instance.DeselectAll();
-                    UnitActionSystem.Instance.SetSelectedObject(unit);
-                }
-            }
-            // Deselect all if it's a short click, not a drag
-            else if (MouseDownTime + DragDelay > Time.time)
-            {
-                //UnitActionSystem.Instance.DeselectAll();
-            }
-
-            MouseDownTime = 0;
-            OnMouseUpChanged?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
-    private void MouseDrag()
-    {
-
-
-        if (Input.GetMouseButton(0) && MouseDownTime + DragDelay < Time.time && m_IsDraging)
-        {
+            Debug.Log("마우스 클릭 왼쪽 드래그 중");
             ResizeSelectionBox();
         }
     }
 
-    private void MouseDown()
+    public void MouseDown()
     {
         // 다른 UI에 손을 못대게
         if (EventSystem.current.IsPointerOverGameObject())
             return;
+        
+        // Drag Box
+        m_isDragwing = true;
+        startPosition = Input.mousePosition;
+        SelectionBox.gameObject.SetActive(true);
+        SelectionBox.sizeDelta = Vector3.zero;
+        MouseDownTime = Time.time;
 
-        // 카드 드로우 중일 때 선택하지 못 하게
-        if (BuildingTypeSelectUI.Instance.m_IsDrawing)
-            return;
-
-        if (Managers.Scene.CurrentScene.SceneType != Define.Scene.Game)
-            return;
-
-        if (Input.GetMouseButtonDown(0))
+        // 클릭 이벤트
+        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),
+            out RaycastHit hit, Managers.Layer.HitColLayerMask)
+            && hit.transform.parent.TryGetComponent<IInteractable>(out IInteractable unit))
         {
-            // Left Mosue Button Pressed
-            startPosition = Input.mousePosition;
-            SelectionBox.gameObject.SetActive(true);
-            SelectionBox.sizeDelta = Vector3.zero;
-            MouseDownTime = Time.time;
+            OnInteractableClicked?.Invoke(unit);
+            return;
+        }
 
-            m_IsDraging = true;
+        // 빈 땅 클릭
+        OnGroundClicked?.Invoke();
+    }
 
-            OnMouseDownChanged?.Invoke(this, EventArgs.Empty);
+    private void HandleUnitClicked(IInteractable obj)
+    {
+        if (Keyboard.current.shiftKey.isPressed)
+            Managers.Selection.Toggle(obj);
+        else
+        {
+            Managers.Selection.DeselectAll();
+            Managers.Selection.Select(obj);
         }
     }
+
+    private void HandleDragSelection(List<IInteractable> units)
+    {
+        Managers.Selection.DeselectAll();
+        foreach (var u in units)
+            Managers.Selection.Add(u);
+    }
+
+    private void HandleGroundClicked()
+    {
+        Managers.Selection.DeselectAll();
+    }
+
 
     private void ResizeSelectionBox()
     {
@@ -263,29 +167,28 @@ public class MouseWorld : MonoBehaviour
         SelectionBox.anchoredPosition = startPosition + new Vector2(width / 2, height / 2);
         SelectionBox.sizeDelta = new Vector2(Mathf.Abs(width), Mathf.Abs(height));
 
+        List<IInteractable> selected = new();
+
         Bounds bounds = new Bounds(SelectionBox.anchoredPosition, SelectionBox.sizeDelta);
 
-        var list = Managers.Object.GetObjectList<ControllableObject>().Where(obj => obj.m_TeamId == E_TeamId.Player).ToList();
-        for (int i = 0; i < list.Count; i++)
+        var list = Managers.Object.GetObjectList()
+                    .Where(obj => obj.GetComponent<IInteractable>() != null);
+
+        foreach (var obj in list)
+            if (ObjectIsInSelectionBox(Camera.main.WorldToScreenPoint(obj.transform.position), bounds))
+                selected.Add(obj.GetComponent<IInteractable>());
+
+        OnDragSelection?.Invoke(selected);
+
+        bool ObjectIsInSelectionBox(Vector2 position, Bounds bounds)
         {
-            if (UnitIsInSelectionBox(Camera.main.WorldToScreenPoint(list[i].transform.position), bounds))
-            {
-                UnitActionSystem.Instance.SetSelectedObject(list[i]);
-            }
-            else
-            {
-                UnitActionSystem.Instance.Deselect(list[i]);
-            }
+            return position.x > bounds.min.x && position.x < bounds.max.x
+                && position.y > bounds.min.y && position.y < bounds.max.y;
         }
     }
 
-    private bool UnitIsInSelectionBox(Vector2 position, Bounds bounds)
-    {
-        return position.x > bounds.min.x && position.x < bounds.max.x
-            && position.y > bounds.min.y && position.y < bounds.max.y;
-    }
-
-    private void InstantiateMouseEffect(object sender, UnitActionSystem.OnCommandActionEventArgs e)
+    // 마우스 클릭 이벤트
+    private void InstantiateMouseEffect(object sender, CommandManager.OnCommandActionEventArgs e)
     {
         float height = m_Defaultheight;
 
@@ -313,4 +216,39 @@ public class MouseWorld : MonoBehaviour
                 Managers.Resource.Destroy(m_goPoolableEffect.gameObject);
         }, 5f);
     }
+
+    #region Cursor
+
+    private void UpdateCursor()
+    {
+        if (!Application.isFocused) return;
+
+        Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
+        lastHoveredObject = null;
+
+        // Select Object
+        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, Managers.Layer.ControllableObjectLayerMask)
+            && hit.collider.TryGetComponent<GameEntity>(out GameEntity result))
+        {
+            if (lastHoveredObject != result)
+            {
+                if (result.m_TeamId == E_TeamId.Monster)
+                {
+                    if (Managers.Selection.SelectedUnits.Count == 0)
+                        return;
+
+                    Cursor.SetCursor(AttackCursor, hotspot, CursorMode.Auto);
+                }
+                else if (result.m_ObjectType == E_ObjectType.Interact)
+                {
+                    Cursor.SetCursor(InteractCursor, hotspot, CursorMode.Auto);
+
+                }
+
+                lastHoveredObject = result.gameObject;
+            }
+        }
+    }
+
+    #endregion
 }

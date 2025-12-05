@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7442596ccadf5bd42af18b0bbe396f46, type: 3}
   m_Name: Summon_Ghoul
   m_EditorClassIdentifier: 
-  ID: 2003
+  ID: 18
   AttackName: "\uAD6C\uC6B8 \uC18C\uD658"
   m_EAttackType: 7
   m_IsEnableSelfAttack: 0
@@ -27,21 +27,18 @@ MonoBehaviour:
     floor: 0
   m_ArcAngle: 90
   m_IsAttackStartPositionAtAttacker: 1
-  m_StartOffset:
-    x: 0
-    z: 0
-    floor: 0
   m_GridCheckTypes: 00000000
   m_ApplyTargetE_Tendency: 0
   m_iNextAttackPattern: []
   m_iConditionPrevAttackPattern: {fileID: 0}
   m_iCoolTime:
     _value: 20
-  lastCooltime:
+  m_fLastCooltime:
     _value: -20
   m_iManaCost:
     _value: 30
   m_IsTwoHandAttack: 0
+  m_IsIncludeCasterInAttack: 0
   m_iPhysicalAttackDamage:
     _value: 0
   m_iMagicAttackDamage:
@@ -67,8 +64,9 @@ MonoBehaviour:
   m_fLifeStealPercent:
     _value: 0
   AttackAudioClip: {fileID: 0}
+  AttackMissClipList: []
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: e1166e407696295409ca2bec07cf68c9, type: 2}
+  - AttackAnimationClip: {fileID: -203655887218126122, guid: 59d23756b5cd61f40bb39d293fa46ba4, type: 3}
   _summonUnitPrefab: {fileID: 8808644112757098810, guid: fee72c1f207517a4b9a30398945bb764, type: 3}
   m_IsRandomSpawnCount: 0
   _minSummonCount: 3

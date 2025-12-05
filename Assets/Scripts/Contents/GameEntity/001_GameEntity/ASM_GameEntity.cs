@@ -8,7 +8,7 @@ public class ASM_GameEntity : StateMachineBehaviour
 
     public override void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        if (Managers.Scene.CurrentScene.SceneType != Define.Scene.Game)
+        if (Managers.Scene.CurrentScene.SceneType != Define.Scene.Dungeon)
             return;
 
         // 캐싱: 없으면 GetComponentInParent로 가져오기

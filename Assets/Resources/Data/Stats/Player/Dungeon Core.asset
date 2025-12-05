@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 70c78824d1f9a4c448d8ad7d0a58204f, type: 3}
   m_Name: Dungeon Core
   m_EditorClassIdentifier: 
-  ID: 100001
+  ID: 5
   Name: Dungeon Core
   sprite: {fileID: 0}
   m_sDescription: 
@@ -36,6 +36,10 @@ MonoBehaviour:
   m_iCommandMoveDistance: 0
   m_iDetectRange: 0
   m_iChaseRange: 0
+  m_iPhysicalBaseDamamge:
+    _value: 0
+  m_iMagicalBaseDamamge:
+    _value: 0
   m_iPhysicalDefence:
     _value: 0
   m_iMagicalDefence:

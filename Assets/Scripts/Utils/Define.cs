@@ -4,13 +4,9 @@ using UnityEngine;
 
 public partial class Define
 {
-    #region Attack Pattern
 
-    public enum E_Projectile
-    {
-        Guided,
-        Straight,
-    }
+
+    #region Attack
 
     public enum E_AttackStartPos
     {
@@ -49,6 +45,12 @@ public partial class Define
         Horizontal  // 가로 일자 (ㅡ)
     }
 
+    public enum E_Projectile
+    {
+        Guided, // 유도탄
+        Straight, // 직격탄
+    }
+
     public enum E_AttackType
     {
         None,           // 비공격형
@@ -62,107 +64,6 @@ public partial class Define
         Knockback,      // 밀치기 등 위치 이동
     }
 
-    #endregion
-
-
-    public enum E_ObjectEnhanceType
-    {
-        Health, 
-        Magic, 
-        Physical, 
-        Defense, 
-        Speed, 
-        Critical, 
-        Range, 
-        Skill
-    }
-
-    public enum E_ObjectGrade
-    {
-        Normal,
-        Elite,
-        Boss
-    }
-
-    public enum E_BuildingType
-    {
-        None,
-    }
-
-    public enum E_NPC
-    {
-        None,
-        Shop, 
-        Quest,
-        Event, 
-        Enemy,
-    }
-
-    // NPC 성향
-    public enum E_NPCState
-    {
-        Hostile, 
-        Neutral, 
-        Friendly, 
-    }
-
-
-    public enum E_SetupObjectOffsetChange
-    {
-        None,
-        YOffset,
-        XZOffset,
-        All
-            
-    }
-
-
-    [System.Flags]
-    public enum E_GridCheckType
-    {
-        // 비어 있음
-        Walkable = 0,
-
-        // 유닛이 있음
-        GameEntity = 1 << 1,
-
-        // 예약된 자리임
-        Reserve = 1 << 2,
-
-        // 장애물이 있음
-        Obstacle = 1 << 3,
-
-        // 비어 있음, 공간이 없음
-        Void = 1 << 4,
-    }
-
-    public enum E_WeaponItemType
-    {
-        None,
-        Sword,
-        Bow
-    }
-
-    public enum E_DamagedValueTextDisplayType
-    {
-        Up,
-        MiddleBounce,
-
-    }
-
-    public enum E_HitDecisionType
-    {
-        Hit, // 공격 적중
-        CriticalHit, // 치명타 공격 적중
-        AttackMiss, // 공격 미스
-        Evasion, // 회피
-        Counter, // 반격
-    }
-
-    public enum E_HealType
-    {
-        LifeSteal,      // 흡혈
-    }
 
     public enum E_AttackCondition
     {
@@ -187,14 +88,83 @@ public partial class Define
         Knockback,  // 밀치기 등 위치 이동
     }
 
-    public enum E_UISoundType
+    public enum E_HitDecisionType
     {
+        Hit, // 공격 적중
+        CriticalHit, // 치명타 공격 적중
+        AttackMiss, // 공격 미스
+        Evasion, // 회피
+        Counter, // 반격
+    }
+
+    public enum E_HealType
+    {
+        LifeSteal,      // 흡혈
+        None,
+    }
+
+    public enum E_WeaponItemType
+    {
+        None,
+        Sword,
+        Bow
+    }
+
+    #endregion
+
+    public enum E_ActionType
+    {
+        None,
+        Idle,
+        Chase,
+        Combat,
+        Patrol,
+        CommandAttack,
+        CommandMove
+    }
+
+    public enum E_SetupObjectOffsetChange
+    {
+        None,
+        YOffset,
+        XZOffset,
+        All
+            
+    }
+
+    public enum E_DamagedValueTextDisplayType
+    {
+        Up,
+        MiddleBounce,
 
     }
 
-    public enum E_PlayerSoundType
-    {
 
+    #region Object
+
+
+    public enum E_ObjectEnhanceType
+    {
+        Health,
+        Magic,
+        Physical,
+        Defense,
+        Speed,
+        Critical,
+        Range,
+        Skill
+    }
+
+    public enum E_ObjectGrade
+    {
+        Normal,
+        Elite,
+        Boss
+    }
+
+    public enum E_BuildingType
+    {
+        None,
     }
 
     public enum E_GameEntityClipType
@@ -221,22 +191,6 @@ public partial class Define
         Damaged,
         PhaseChange,
         Evasion
-    }
-
-    public enum E_GridVisualType_Color
-    {
-        White,      // 이동 가능, 배치 가능
-        Blue,       // 이동 예약
-        Red,        // 주의 표시 (공격 혹은 배치 불가 자리)
-        Yellow,     // 주의 표시
-        Green
-    }
-
-    public enum E_GridVisualType_Intensity
-    {
-        Light,
-        Medium,
-        Strong
     }
 
     public enum E_Dir
@@ -267,9 +221,65 @@ public partial class Define
         AutoTrigger = 4,
         Obstacle,
         Skill,
-        PassiveObject,
-        NPC = 7,
+        PassiveObject
     }
+
+
+
+    #endregion
+
+    #region Grid
+
+    [System.Flags]
+    public enum E_GridCheckType
+    {
+        // 비어 있음
+        Walkable = 0,
+
+        // 유닛이 있음
+        GameEntity = 1 << 1,
+
+        // 예약된 자리임
+        Reserve = 1 << 2,
+
+        // 장애물이 있음
+        Obstacle = 1 << 3,
+
+        // 비어 있음, 공간이 없음
+        Void = 1 << 4,
+    }
+
+    public enum E_GridVisualType_Color
+    {
+        White,      // 이동 가능, 배치 가능
+        Blue,       // 이동 예약
+        Red,        // 주의 표시 (공격 혹은 배치 불가 자리)
+        Yellow,     // 주의 표시
+        Green
+    }
+
+    public enum E_GridVisualType_Intensity
+    {
+        Light,
+        Medium,
+        Strong
+    }
+
+    #endregion
+
+    #region Sound
+
+    public enum E_UISoundType
+    {
+
+    }
+
+    public enum E_PlayerSoundType
+    {
+
+    }
+
+    #endregion
 
     #region Base
 
@@ -293,9 +303,10 @@ public partial class Define
     {
         Unknown = 0,
         Start = 1,
-        Lobby = 2,
-        Game = 3,
-        Test = 4,
+        Dungeon = 2, // 미궁
+        Test = 3,
+        Loading,
+        Camp, // 거점 구역
     }
 
     public enum Sound
@@ -303,6 +314,13 @@ public partial class Define
         Bgm = 0,
         Effect = 1,
         MaxCount,
+    }
+
+    public enum EColorMode
+    {
+        RGB,       // 일반 RGB (0~255 기반)
+        RGB01,     // 정규화된 RGB (0~1)
+        HSV        // HSV 기반
     }
 
     public enum UIEvent

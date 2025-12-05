@@ -79,6 +79,7 @@ crashlytics-build.properties
 Assets/Resources/Data/Animation/SteppedClips/
 Assets/Resources/Data/Animation/SteppedClips.meta
 
+<<<<<<< HEAD
 # DVC internal meta
 *.dvc.meta
 *.dvc.lock
@@ -88,3 +89,5 @@ Assets/Resources/Data/Animation/SteppedClips.meta
 # DVC cache (로컬에서만 관리)
 .dvc/cache
 .dvc/tmp
+=======
+>>>>>>> develop

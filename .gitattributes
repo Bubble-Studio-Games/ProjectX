@@ -2,3 +2,10 @@
 * text=auto
 .husky/** text eol=lf
 *.sh text eol=lf
+Assets/Resources/Animation/Humanoid/Skeleton/Stand[[:space:]]Up[[:space:]]Back.fbx filter=lfs diff=lfs merge=lfs -text
+Assets/Resources/Animation/Humanoid/Skeleton/Stand[[:space:]]Up[[:space:]]Front.fbx filter=lfs diff=lfs merge=lfs -text
+Assets/Resources/Animation/Humanoid/Zombi/Zombi[[:space:]]Death.fbx filter=lfs diff=lfs merge=lfs -text
+Assets/Resources/Animation/Passive[[:space:]]Object/Dungeon[[:space:]]Spawner[[:space:]]Core[[:space:]]Spawn.anim filter=lfs diff=lfs merge=lfs -text
+Assets/Resources/Art/Pack/Character/Enemies/Zombi/Zombi.fbx filter=lfs diff=lfs merge=lfs -text
+Assets/Resources/Animation/Passive[[:space:]]Object/Dungen[[:space:]]Spawner/Dungeon[[:space:]]Spawner[[:space:]]Core[[:space:]]Spawn.anim filter=lfs diff=lfs merge=lfs -text
+Assets/Resources/Animation/Passive[[:space:]]Object/Dungeon[[:space:]]Spawner/Dungeon[[:space:]]Spawner[[:space:]]Core[[:space:]]Spawn.anim filter=lfs diff=lfs merge=lfs -text
