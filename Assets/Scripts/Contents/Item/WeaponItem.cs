@@ -9,5 +9,5 @@ using static Define;
 public class WeaponItem : Item
 {
     public E_WeaponItemType m_EWeaponItemType;
-    public Transform m_ProjectileSpawnTransform; // 발사체 소환 위치
+    public ProjectileTransform m_ProjectileSpawnTransform; // 발사체 소환 위치
 }

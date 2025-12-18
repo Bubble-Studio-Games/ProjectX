@@ -19,7 +19,7 @@ MonoBehaviour:
   m_iMaxHP:
     _value: 5
   m_iCurrentHp:
-    _value: 0
+    _value: 5
   m_iIsStepReduceHP: 1
   m_fHPRegenrate:
     _value: 0
@@ -33,7 +33,7 @@ MonoBehaviour:
     _value: 0
   m_fWalkSpeed:
     _value: 0
-  m_iCommandMoveDistance: 0
+  m_iCommandMoveRange: 0
   m_iDetectRange: 0
   m_iChaseRange: 0
   m_iPhysicalBaseDamamge:
@@ -50,3 +50,4 @@ MonoBehaviour:
     _value: 0
   m_fKnockbackRegist:
     _value: 0
+  m_EDetectedType: 2

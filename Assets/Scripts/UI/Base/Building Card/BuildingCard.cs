@@ -29,7 +29,7 @@ public class BuildingCard : UI_Base,
     [Header("Drag And Drop")]
     [SerializeField]  private Vector2 m_OriginalPosition;
     private Transform m_OriginalParent;
-    private bool m_IsDragging;
+    //private bool m_IsDragging;
     [SerializeField] private bool m_IsChange = true;
 
     [Header("Pointer")]
@@ -41,7 +41,7 @@ public class BuildingCard : UI_Base,
     public void Init(GameEntity gameEntity)
     {
         m_GameEntity = gameEntity;
-        var stat = gameEntity.m_AttributeSystem.m_Stat;
+        var stat = gameEntity.GetComponent<AttributeSystem>().m_Stat;
 
         if (stat.sprite == null)
         {
@@ -62,7 +62,7 @@ public class BuildingCard : UI_Base,
     // 드래그 시작
     public void OnBeginDrag(PointerEventData eventData)
     {
-        m_IsDragging = true;
+        //m_IsDragging = true;
         //m_OriginalPosition = m_RectTransform.anchoredPosition;
         m_OriginalParent = transform.parent;
         transform.SetParent(m_OriginalParent.root); // 최상단 레이어로 올리기
@@ -108,7 +108,7 @@ public class BuildingCard : UI_Base,
     // 드래그 종료
     public void OnEndDrag(PointerEventData eventData)
     {
-        m_IsDragging = false;
+        //m_IsDragging = false;
         transform.SetParent(m_OriginalParent);
         m_BGRectTransform.gameObject.SetActive(true);
 

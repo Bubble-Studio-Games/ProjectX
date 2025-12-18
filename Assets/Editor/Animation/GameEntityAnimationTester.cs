@@ -79,7 +79,7 @@ public partial class CustomToolWindow : EditorWindow
         if (activeEntity != null)
         {
             animators = activeEntity.GetComponentsInChildren<GameEntityAnimator>(true).ToList();
-            attackPatterns = activeEntity.GetComponent<AttributeSystem>()?.m_AttackPatterns ?? new();
+            attackPatterns = activeEntity.GetComponent<AttributeSystem>().m_AttackPatterns.ToList();
         }
         else
         {
@@ -496,7 +496,7 @@ public partial class CustomToolWindow : EditorWindow
 
     private void DrawSoundControlSection(GameEntityAnimator animator)
     {
-        var sounder = animator.GetComponentInParent<ControllableObjectSounder>();
+        var sounder = animator.GetComponentInParent<GameEntitySounder>();
         if (sounder == null) return;
 
         EditorGUILayout.Space(10);
@@ -596,8 +596,8 @@ public partial class CustomToolWindow : EditorWindow
         if (label.Contains("spawn")) return sounder.SpawnClipList?.FirstOrDefault()?.name;
         if (label.Contains("despawn")) return sounder.DeSpawnClipList?.FirstOrDefault()?.name;
         if (label.Contains("death")) return sounder.DestroyClipList?.FirstOrDefault()?.name;
-        if (label.Contains("walk") && sounder is ControllableObjectSounder co1) return co1.WalkClipList?.FirstOrDefault()?.name;
-        if (label.Contains("run") && sounder is ControllableObjectSounder co2) return co2.RunClipList?.FirstOrDefault()?.name;
+        if (label.Contains("walk") && sounder is GameEntitySounder co1) return co1.WalkClipList?.FirstOrDefault()?.name;
+        if (label.Contains("run") && sounder is GameEntitySounder co2) return co2.RunClipList?.FirstOrDefault()?.name;
         return null;
     }
 
@@ -644,10 +644,7 @@ public partial class CustomToolWindow : EditorWindow
         if (stateName.Contains("Critical"))
             stateName = "Damaged";
 
-        if (stateName.Contains("Order"))
-        {
-            stateName = animator.m_orderAnimationStateName[Array.IndexOf(animator.m_OrderAnimationClip, clip)];
-        }
+
 
         animator.ChangeAnimationAtStart(stateName, clip, true);
         Debug.Log($"[AnimationTester] {animator.name} → {clip.name} 재생됨");

@@ -1,3 +1,4 @@
+using Data;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,12 +8,14 @@ public class CampScene : BaseScene
 {
     public Button tempButton;
 
+    CampScene()
+    {
+        SceneType = Define.Scene.Camp;
+    }
+
     protected override void Init()
     {
         base.Init();
-
-        SceneType = Define.Scene.Camp;
-
 
         tempButton.onClick.AddListener(async () =>
         {
@@ -21,16 +24,18 @@ public class CampScene : BaseScene
         });
     }
 
-    protected override void Start()
-    {
-        base.Start();
-
-        // 데이거 긁어오기
-        var data = Managers.Load.GetContinueSaveData();
-    }
-
     public override void Clear()
     {
         
+    }
+
+    protected override void LoadSavedGame(SaveSlotData data)
+    {
+        base.LoadSavedGame(data);
+    }
+
+    protected override void LoadNewGame()
+    {
+        base.LoadNewGame();
     }
 }

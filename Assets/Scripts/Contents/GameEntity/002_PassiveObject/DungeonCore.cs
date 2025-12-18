@@ -89,12 +89,6 @@ public class DungeonCore : PassiveObject
     {
         // 게임 종료 처리
         Managers.Game.DungeonExplosionFail();
-
-
-
-        // TODO : 게임 종료 처리
-        // UIManager.Instance.ShowPopup("GameOverPopup");
-        // GameManager.Instance.GameOver();
     }
 
     public override void DeSpawnComplete()

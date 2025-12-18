@@ -18,70 +18,136 @@ public class SettingManager : MonoBehaviour
     [Header("UI")]
     public AudioClip m_UIButtonClickAudioClip;
 
-    private void Awake()
-    {
-        if (Instance == null)
-            Instance = this;
-
-        // 폴더 준비
-        EnsureSaveFolderExists();
-
-        LoadCache();
-    }
-
-    private void Start()
-    {
-        SaveData();
-    }
-
-    #region FPS
-
-    public event EventHandler OnEventApplicationQuit;
-
     [Range(0.1f, 120f)]
     public float fps = 12f;
     public SteppedAnimation.StepMode mode = SteppedAnimation.StepMode.FixedRate;
 
-    [Tooltip("Stepped 애니메이션이 저장될 폴더 경로 (예: Assets/SteppedClips)")]
-    public string saveFolder = "Assets/Resources/Data/Animation/SteppedClips";
-
+    [Tooltip("Stepped 애니메이션이 저장될 최상위 폴더 경로 (예: Assets/SteppedClips)")]
+    public string baseSaveFolder = "Assets/Resources/Data/Animation/SteppedClips";
     private const string CACHE_FILE_NAME = "SteppedCache.json";
-    private SteppedCacheData steppedCacheData = new();
 
-    private void SaveData()
+    private void Awake()
     {
-        SaveCache();
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
+        if (Instance == null)
+            Instance = this;
     }
 
     private void OnApplicationQuit()
     {
         Debug.Log("💾 애니메이션 캐시 저장 중...");
 
-        OnEventApplicationQuit?.Invoke(this, EventArgs.Empty);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+    }
 
-        SaveData();
+    public void ReplaceAnimationClipsInAttackPattern(string ownerName, AttackPattern pattern)
+    {
+        if (pattern == null) return;
+
+        bool modified = false;
+
+        var type = pattern.GetType();
+        while (type != null && type != typeof(object))
+        {
+            var fields = type.GetFields(
+                BindingFlags.Instance |
+                BindingFlags.Public |
+                BindingFlags.NonPublic |
+                BindingFlags.DeclaredOnly
+            );
+
+            foreach (var field in fields)
+            {
+                // 단일 AttackPatternInfoClip
+                if (typeof(AttackPatternInfoClip).IsAssignableFrom(field.FieldType))
+                {
+                    var info = field.GetValue(pattern) as AttackPatternInfoClip;
+                    if (info != null)
+                        modified |= ReplaceAnimationClipsInInfoClip(info);
+                }
+                // 배열 / 리스트 AttackPatternInfoClip
+                else if (typeof(IEnumerable<AttackPatternInfoClip>).IsAssignableFrom(field.FieldType))
+                {
+                    var infos = field.GetValue(pattern) as IEnumerable<AttackPatternInfoClip>;
+                    if (infos == null) continue;
+
+                    foreach (var info in infos)
+                    {
+                        if (info != null)
+                            modified |= ReplaceAnimationClipsInInfoClip(info);
+                    }
+                }
+            }
+
+            type = type.BaseType;
+        }
+
+        if (modified)
+            EditorUtility.SetDirty(pattern);
+
+        bool ReplaceAnimationClipsInInfoClip(AttackPatternInfoClip info)
+        {
+            bool modified = false;
+
+            var type = info.GetType();
+            var fields = type.GetFields(
+                BindingFlags.Instance |
+                BindingFlags.Public |
+                BindingFlags.NonPublic
+            );
+
+            foreach (var field in fields)
+            {
+                if (field.FieldType == typeof(AnimationClip))
+                {
+                    var clip = field.GetValue(info) as AnimationClip;
+                    var replaced = ReplaceOrLoadSteppedClip(ownerName, clip);
+
+                    if (replaced != null && replaced != clip)
+                    {
+                        field.SetValue(info, replaced);
+                        modified = true;
+                    }
+                }
+            }
+
+            return modified;
+        }
+
     }
 
     /// <summary>
     /// 주어진 AnimationClip을 Stepped 방식으로 변환하거나, 캐시에 존재하면 로드하여 반환.
-    /// Attack Pattern에서 써먹음
     /// </summary>
-    public AnimationClip ReplaceOrLoadSteppedClip(AnimationClip clip)
+    public AnimationClip ReplaceOrLoadSteppedClip(string ownerName, AnimationClip clip)
     {
         if (clip == null) return null;
+        if (string.IsNullOrEmpty(ownerName))
+        {
+            Debug.LogWarning("교체하고자 하는 오너의 이름이 없습니다. " + clip.name);
+            return null;
+        }
 
-        if (TryGetCachedClip(clip, out string cachedPath))
+        string ownerFolder = GetOwnerFolder(ownerName);
+        string cachePath = $"{ownerFolder}/{ownerName}_{CACHE_FILE_NAME}";
+
+        var cacheData = LoadCache(cachePath);
+
+        // Load
+        if (TryGetCachedClip(cacheData, clip, out string cachedPath))
         {
             var cachedClip = AssetDatabase.LoadAssetAtPath<AnimationClip>(cachedPath);
-            if (cachedClip != null) return cachedClip;
+            if (cachedClip != null)
+            {
+                //Debug.Log($"애니메이션 로드 성공 {clip.name}");
+                return cachedClip;
+            }
 
             Debug.LogWarning($"⚠️ 캐시 경로에 애셋이 없습니다. 재생성합니다: {cachedPath}");
         }
 
-        string steppedName = GetSteppedClipFileName(clip.name);
-        string outputPath = Path.Combine(saveFolder, steppedName);
+        // Create
+        string outputPath = $"{ownerFolder}/{clip.name}_stepped_{fps}fps_{mode}.anim";
 
         AnimationClip stepped = CreateSteppedClip(clip, outputPath);
         if (stepped == null)
@@ -90,13 +156,18 @@ public class SettingManager : MonoBehaviour
             return clip;
         }
 
-        AddCacheEntry(clip, outputPath);
+        AddCacheEntry(cacheData, clip, outputPath);
+        SaveCache(cachePath, cacheData);
         return stepped;
     }
 
-
-
-    public void ReplaceAllAnimationClipArraysInObject(MonoBehaviour gameEntity)
+    /// <summary>
+    /// 현재 애니메이션을 SteppAnimation으로 변경
+    /// ownerName 폴더에 에셋이 있으면 가져오고, 없으면 새로 만든다.
+    /// </summary>
+    /// <param name="ownername"></param>
+    /// <param name="gameEntity"></param>
+    public void ReplaceAllAnimationClipArraysInObject(string ownername, UnityEngine.Object gameEntity)
     {
         Type type = gameEntity.GetType();
 
@@ -116,7 +187,8 @@ public class SettingManager : MonoBehaviour
 
                     for (int i = 0; i < clips.Length; i++)
                     {
-                        var replaced = ReplaceOrLoadSteppedClip(clips[i]);
+                        // 애니메이션을 교체하거나 생성한 후 스탭 애니메이션을 반환한다.
+                        var replaced = ReplaceOrLoadSteppedClip(ownername, clips[i]);
                         if (replaced != null && replaced != clips[i])
                         {
                             clips[i] = replaced;
@@ -134,7 +206,7 @@ public class SettingManager : MonoBehaviour
                 else if (field.FieldType == typeof(AnimationClip))
                 {
                     var clip = field.GetValue(gameEntity) as AnimationClip;
-                    var replaced = ReplaceOrLoadSteppedClip(clip);
+                    var replaced = ReplaceOrLoadSteppedClip(ownername, clip);
                     if (replaced != null && replaced != clip)
                     {
                         field.SetValue(gameEntity, replaced);
@@ -151,6 +223,30 @@ public class SettingManager : MonoBehaviour
             type = type.BaseType;
         }
     }
+
+    private string GetOwnerFolder(string ownerName)
+    {
+        string folder = $"{baseSaveFolder}/{ownerName}";
+        EnsureFolderExists(folder);
+        return folder;
+    }
+
+    private void EnsureFolderExists(string folder)
+    {
+        if (AssetDatabase.IsValidFolder(folder)) return;
+
+        string[] split = folder.Split('/');
+        string path = split[0];
+
+        for (int i = 1; i < split.Length; i++)
+        {
+            if (!AssetDatabase.IsValidFolder($"{path}/{split[i]}"))
+                AssetDatabase.CreateFolder(path, split[i]);
+
+            path += "/" + split[i];
+        }
+    }
+
 
     private AnimationClip CreateSteppedClip(AnimationClip sourceClip, string outputPath)
     {
@@ -187,12 +283,18 @@ public class SettingManager : MonoBehaviour
         }
 
         // Asset 생성/갱신
+        if (AssetDatabase.LoadAssetAtPath<AnimationClip>(outputPath) != null)
+        {
+            AssetDatabase.DeleteAsset(outputPath);
+        }
+
         AssetDatabase.CreateAsset(steppedClip, outputPath);
         AssetDatabase.ImportAsset(outputPath);
 
+        //Debug.Log($"애니메이션 생성 {sourceClip.name}");
+
         return AssetDatabase.LoadAssetAtPath<AnimationClip>(outputPath);
     }
-
 
     private List<float> GetKeyframeTimes(AnimationClip clip)
     {
@@ -221,56 +323,45 @@ public class SettingManager : MonoBehaviour
         return times;
     }
 
-    private string GetSteppedClipFileName(string clipName)
+    private SteppedCacheData LoadCache(string path)
     {
-        return $"{clipName}_stepped_{fps}fps_{mode}.anim";
+        if (!File.Exists(path))
+            return new SteppedCacheData();
+
+        return JsonUtility.FromJson<SteppedCacheData>(
+            File.ReadAllText(path)
+        );
     }
 
-    private void EnsureSaveFolderExists()
+    private void SaveCache(string path, SteppedCacheData data)
     {
-        if (!AssetDatabase.IsValidFolder(saveFolder))
+        string dir = Path.GetDirectoryName(path);
+        if (!Directory.Exists(dir))
         {
-            string[] split = saveFolder.Split('/');
-            string path = split[0];
-            for (int i = 1; i < split.Length; i++)
-            {
-                string next = split[i];
-                if (!AssetDatabase.IsValidFolder($"{path}/{next}"))
-                {
-                    AssetDatabase.CreateFolder(path, next);
-                }
-                path += $"/{next}";
-            }
+            Directory.CreateDirectory(dir);
         }
+
+        File.WriteAllText(path, JsonUtility.ToJson(data, true));
+
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
     }
 
-    private void LoadCache()
+    private bool TryGetCachedClip(
+    SteppedCacheData cacheData,
+    AnimationClip clip,
+    out string cachedPath
+)
     {
-        string fullPath = Path.Combine(saveFolder, CACHE_FILE_NAME);
-        if (File.Exists(fullPath))
-        {
-            string json = File.ReadAllText(fullPath);
-            steppedCacheData = JsonUtility.FromJson<SteppedCacheData>(json);
-        }
-        else
-        {
-            steppedCacheData = new SteppedCacheData();
-        }
-    }
+        string guid = AssetDatabase.AssetPathToGUID(
+            AssetDatabase.GetAssetPath(clip)
+        );
 
-    private void SaveCache()
-    {
-        string json = JsonUtility.ToJson(steppedCacheData, true);
-        File.WriteAllText(Path.Combine(saveFolder, CACHE_FILE_NAME), json);
-    }
-
-    private bool TryGetCachedClip(AnimationClip clip, out string cachedPath)
-    {
-        string guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(clip));
-
-        foreach (var entry in steppedCacheData.stepped_cache)
+        foreach (var entry in cacheData.stepped_cache)
         {
-            if (entry.clipGUID == guid && Mathf.Approximately(entry.fps, fps) && entry.mode == mode.ToString())
+            if (entry.clipGUID == guid &&
+                Mathf.Approximately(entry.fps, fps) &&
+                entry.mode == mode.ToString())
             {
                 cachedPath = entry.path;
                 return true;
@@ -281,17 +372,29 @@ public class SettingManager : MonoBehaviour
         return false;
     }
 
-    private void AddCacheEntry(AnimationClip clip, string steppedPath)
+    private void AddCacheEntry(
+    SteppedCacheData cacheData,
+    AnimationClip clip,
+    string steppedPath
+)
     {
-        string guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(clip));
-        var entry = new SteppedCacheEntry
+        string guid = AssetDatabase.AssetPathToGUID(
+            AssetDatabase.GetAssetPath(clip)
+        );
+
+        cacheData.stepped_cache.RemoveAll(e =>
+            e.clipGUID == guid &&
+            Mathf.Approximately(e.fps, fps) &&
+            e.mode == mode.ToString()
+        );
+
+        cacheData.stepped_cache.Add(new SteppedCacheEntry
         {
             clipGUID = guid,
             fps = fps,
             mode = mode.ToString(),
             path = steppedPath
-        };
-        steppedCacheData.stepped_cache.Add(entry);
+        });
     }
 
     public void ClearSteppedCache()
@@ -300,8 +403,6 @@ public class SettingManager : MonoBehaviour
         //if (File.Exists(cachePath))
         //    File.Delete(cachePath);
     }
-
-    #endregion
 }
 
 [System.Serializable]

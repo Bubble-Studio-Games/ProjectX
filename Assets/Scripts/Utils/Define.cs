@@ -4,6 +4,30 @@ using UnityEngine;
 
 public partial class Define
 {
+    public enum E_StatModType
+    {
+        Add,        // +10
+        Multiply,   // x1.2
+    }
+
+
+    public enum E_AttackAnimationType
+    {
+        None,
+        Parabola
+    }
+
+    /// <summary>
+    /// 감지 당할 떄의 타입
+    /// Player -> Player에 의해서만 탐지됨.
+    /// </summary>
+    public enum E_DetectedType
+    {
+        None,        // 탐지 되지 않음.
+        Player,      // 플레이어에 의해 탐지됨
+        GameEntity,  // 게임 오브젝트(유닛)에 의해 탐지됨
+        All          // 모두에게 탐지됨
+    }
 
 
     #region Attack
@@ -69,12 +93,27 @@ public partial class Define
     {
         Success,
         Fail_None,
+
+        // 공격 쿨타임이 돌고 있음.
         Fail_CoolTime,
+
+        // 공격 거리가 
         Fail_Distance,
+
+        // 각 공격 타입에 따른 공격 실패
         Fail_IndividualCondition,
+
+        // 마나가 없음
         Fail_ManaCost,
+
+        // 콤보 공격에 실패
         Fail_Combo,
+
+        // 공격 조건을 만족하는 그리드 타입이 없음.
         Fail_ConditionGridType,
+
+        // 이동 가능한 공격 위치가 없음.
+        Fail_HasNotMovableGridPosition,
     }
 
     public enum E_AttackEffectType
@@ -160,11 +199,6 @@ public partial class Define
         Normal,
         Elite,
         Boss
-    }
-
-    public enum E_BuildingType
-    {
-        None,
     }
 
     public enum E_GameEntityClipType

@@ -7,7 +7,7 @@ using UnityEngine;
 public class Managers : MonoBehaviour
 {
     static Managers s_instance; // 유일성이 보장된다
-    static Managers Instance { get { Init(); return s_instance; } } // 유일한 매니저를 갖고온다
+    static Managers Instance { get { return s_instance; } } // 유일한 매니저를 갖고온다
 
     #region Contents
     ObjectManager _object = new ObjectManager();
@@ -48,12 +48,12 @@ public class Managers : MonoBehaviour
     public static LoadManager Load { get { return Instance._load; } }
     #endregion
 
-    void Start()
+    void Awake()
     {
         Init();
 	}
 
-    static void Init()
+    static async void Init()
     {
         if (s_instance == null)
         {
@@ -90,6 +90,6 @@ public class Managers : MonoBehaviour
 
     public void OnApplicationQuit()
     {
-        Game.OnApplicationQuit();
+        Clear();
     }
 }

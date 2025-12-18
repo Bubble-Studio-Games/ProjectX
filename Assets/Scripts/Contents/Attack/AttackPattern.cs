@@ -6,53 +6,57 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.ResourceManagement.ResourceProviders.Simulation;
+using UnityEngine.Splines;
 using static Define;
 
 [Serializable]
 public class AttackPatternInfoClip
 {
-    public AnimationClip AttackAnimationClip;
-}
+    [Header("Audio")]
+    public AudioClip AttackSuccessAudioClip;
+    public AudioClip AttackMissAudioClip;
+    public AudioClip AttackFailAudioClip;
 
-[Serializable]
-public class AttackPatternInfoClipWithReady : AttackPatternInfoClip
-{
+    [Header("Animation")]
+    public AnimationClip AttackAnimationClip;
     public AnimationClip ReadyFailAnimationClip;
 }
 
+//[Serializable]
+//public class AttackPattern<TClip> : AttackPattern
+//    where TClip : AttackPatternInfoClip
+//{
+//    public TClip[] m_Clips;
+
+//    public IReadOnlyList<TClip> Clips => m_Clips;
+
+//    public override IReadOnlyList<AttackPatternInfoClip> GetBaseClips() => m_Clips;
+
+//    public override bool Validate(bool log = false)
+//    {
+//        if (m_Clips == null || m_Clips.Length <= 0 ||
+//                m_Clips.Any(clip => clip == null) ||
+//                m_Clips.Any(clip => clip.AttackAnimationClip == null))
+//        {
+//            if (log)
+//                Debug.LogError($"{nameof(TClip)}: 공격 패턴 '{name}'에 클립 배열이 존재하지 않거나 Missing이 존재합니다", this);
+//            return false;
+//        }
+
+//        if (m_fAttackSpeed.Value <= 0f)
+//        {
+//            if (log)
+//                Debug.LogError($"{nameof(TClip)}: 공격 패턴 '{name}'의 m_fAttackSpeed가 {m_fAttackSpeed.Value}입니다! 1.0 이상으로 설정하세요.", this);
+//            return false;
+//        }
+
+//        return true;
+//    }
+//}
+
 [Serializable]
-public class AttackPattern<TClip> : AttackPattern
-    where TClip : AttackPatternInfoClip
-{
-
-    public TClip[] m_Clips;
-    public override AttackPatternInfoClip[] GetBaseClip() => m_Clips;
-
-    public override bool Validate(bool log = false)
-    {
-        if (m_Clips == null || m_Clips.Length <= 0 ||
-                m_Clips.Any(clip => clip == null) ||
-                m_Clips.Any(clip => clip.AttackAnimationClip == null))
-        {
-            if (log)
-                Debug.LogError($"{nameof(TClip)}: 공격 패턴 '{name}'에 클립 배열이 존재하지 않거나 Missing이 존재합니다", this);
-            return false;
-        }
-
-        if (m_fAttackSpeed.Value <= 0f)
-        {
-            if (log)
-                Debug.LogError($"{nameof(TClip)}: 공격 패턴 '{name}'의 m_fAttackSpeed가 {m_fAttackSpeed.Value}입니다! 1.0 이상으로 설정하세요.", this);
-            return false;
-        }
-
-        return true;
-    }
-}
-
-// 데이터
-[Serializable]
-public abstract class AttackPattern : ScriptableObject
+public  partial class AttackPattern : ScriptableObject
 {
     #region 공격 데이터
 
@@ -69,11 +73,6 @@ public abstract class AttackPattern : ScriptableObject
     private (int MinX, int MaxX, int MinZ, int MaxZ, int MinFloor, int MaxFloor) rangeOffsetMinMax;
     public float m_ArcAngle = 90f;
 
-    [Header("Attack Start Pos")]
-    // true이면 시전자 위치를 기준으로, false이면 타겟을 기준으로
-    // 타겟이 없으면 해당 공격은 canexecute에서 제외함.
-    public bool m_IsAttackStartPositionAtAttacker = true; 
-
     [Header("Condition")]
     public List<E_GridCheckType> m_GridCheckTypes = new List<E_GridCheckType>();
     public E_TargetTendencyType m_ApplyTargetE_Tendency; // 영향 받을 타겟 성향 ally의 경우 플레이어 유닛은 같은 플레이어 유닛만 스킬 범주에 넣는다.
@@ -89,7 +88,6 @@ public abstract class AttackPattern : ScriptableObject
     public bool m_bCoolTimeIsFinishied => Time.time - m_fLastCooltime >= m_iCoolTime;
     public StatValue m_iManaCost = new StatValue(0, false);
     public bool m_IsTwoHandAttack; // 두 손 행동인가?
-    public bool m_IsIncludeCasterInAttack; // 시전자도 공격 판정의 영향을 받는가?
 
     [Header("Damage Info")]
     public StatValue m_iPhysicalAttackDamage = new StatValue(0, false);     // 물리 공격 데미지
@@ -107,11 +105,9 @@ public abstract class AttackPattern : ScriptableObject
     public StatValue m_iKnockbackChance = new StatValue(0, false);    // 넉백 확률
     public StatValue m_fLifeStealPercent = new StatValue(0, false);  // 흡혈 비율 - 피해량 대비
 
-    [Header("Clip")]
-    public AudioClip AttackAudioClip;
-    public AudioClip[] AttackMissClipList;
-
-    public virtual AttackPatternInfoClip[] GetBaseClip() { return null; }
+    [Header("Clips")]
+    [SerializeField] protected AttackPatternInfoClip[] m_AttackPatternInfoClips;
+    public AttackPatternInfoClip selectInfoClip { get; protected set; }
 
     #endregion
 
@@ -124,61 +120,75 @@ public abstract class AttackPattern : ScriptableObject
     }
 
     // 반환은 공격 시전 위치, 성공 여부 이렇게
-    public virtual (E_AttackCondition condition, HashSet<GridPosition> CanAttackablePos)
+    public virtual (E_AttackCondition condition, List<GridPosition> CanAttackablePos)
         CanExecute(GameEntity attacker, GameEntity target)
     {
+        // 쿨타임
         if (!CheckCoolTime()) return (E_AttackCondition.Fail_CoolTime, default);
+
+        // 콤보
         if (!CheckCombo(attacker)) return (E_AttackCondition.Fail_Combo, default);
+
+        // 마나
         if (!CheckMana(attacker)) return (E_AttackCondition.Fail_ManaCost, default);
-        var filtered = CheckAttackableGridPositionbyGridType(attacker, target);
 
-        if (filtered == default || filtered.Count == 0)
-            return (E_AttackCondition.Fail_ConditionGridType, default);
+        // 공격 가능 위치 가져오기
+        var attackableGridPositions = GetAttackableGridPosition(attacker, target);
 
-        if (!CheckDistance(filtered, attacker)) return (E_AttackCondition.Fail_Distance, filtered);
+        // 그리드 타입
+        var filtered = GetGridPositionByCheckType(attackableGridPositions, attacker, target).ToList();
+        if (filtered == default || filtered.Count == 0) return (E_AttackCondition.Fail_ConditionGridType, default);
 
-        // 최종 판정
-        if (filtered.Count > 0)
+        // 이동 가능한 객체인가?
+        if (attacker.m_AttributeSystem.m_CanMoveableGameEntity)
         {
-            if (attacker.m_AttributeSystem.m_CanMoveableGameEntity)
-                return (E_AttackCondition.Success, filtered);
-            else
-                return default;
+            // 공격 위치들이 이동 가능한 곳인가?
+            if(!CheckCanReach(attacker, ref filtered)) return (E_AttackCondition.Fail_HasNotMovableGridPosition, filtered);
+
+            // 현재 거리가 있는가?
+            if (!CheckDistance(filtered, attacker)) return (E_AttackCondition.Fail_Distance, filtered);
         }
-        else
-            return (E_AttackCondition.Fail_ConditionGridType, default);
 
-        // 그리드 체크 타입에 따른 공격 가능한 위치 반환
-
-
+        return (E_AttackCondition.Success, filtered);
     }
 
+    /// <summary>
+    /// 공격 시작
+    /// </summary>
+    /// <param name="attacker"></param>
+    /// <param name="target"></param>
+    /// <param name="prevAttackpatern"></param>
     public virtual void StartAttack(GameEntity attacker, GameEntity target, AttackPattern prevAttackpatern) // 실행
     {
         // 쿨타임 갱신
         m_fLastCooltime = Time.time;
 
-        if (attacker is PassiveObject pobj)
+        // 전 준비 단계가 있다면 해시에서 제거
+        if (prevAttackpatern != null && prevAttackpatern.m_iNextAttackPattern.Select(p => p.ID).ToArray().Contains(ID))
         {
+            attacker.m_CombatManager.m_ReadyAttackPattern.Remove(prevAttackpatern as AttackPattern_Ready);
+        }
 
-        }
-        else if (attacker is ControllableObject cobj)
-        {
-            // 전 준비 단계가 있다면 해시에서 제거
-            if (prevAttackpatern != null && prevAttackpatern.m_iNextAttackPattern.Select(p => p.ID).ToArray().Contains(ID))
-            {
-                cobj.m_ControllableObjectCombatManager.m_ReadyAttackPattern.Remove(prevAttackpatern as AttackPattern_Ready);
-            }
-        }
-        else
-        {
-
-        }
+        SelectClip();
     }
 
-    public virtual void Attack(GameEntity attacker, GameEntity target) { } // 종료
+    /// <summary>
+    /// 공격 실행
+    /// </summary>
+    /// <param name="attacker"></param>
+    /// <param name="target"></param>
+    public virtual void Attack(GameEntity attacker, GameEntity target) 
+    {
+        // Reduce Mana
+        attacker.m_AttributeSystem.ReduceMP((int)m_iManaCost.Value);
+    }
 
-    public virtual void EndAttack(GameEntity attacker, GameEntity target) { } // 종료
+    /// <summary>
+    /// 공격이 종료 되었을 때
+    /// </summary>
+    /// <param name="attacker"></param>
+    /// <param name="target"></param>
+    public virtual void EndAttack(GameEntity attacker, GameEntity target) { }
 
     public virtual void StartAttackFail(GameEntity attacker, GameEntity target)
     {
@@ -199,9 +209,7 @@ public abstract class AttackPattern : ScriptableObject
 
     #endregion
 
-
-    public abstract bool Validate(bool log = false);
-
+    public virtual bool Validate(bool log = false) { return true; }
 
     public (int MinX, int MaxX, int MinZ, int MaxZ, int MinFloor, int MaxFloor)
     GetRangeMinMaxFromOffsets()
@@ -226,8 +234,73 @@ public abstract class AttackPattern : ScriptableObject
         return (minX, maxX, minZ, maxZ, minF, maxF);
     }
 
-    // 패턴에 의해 영향을 받을 그리드 리스트 가져오기
-    public virtual List<GridPosition> GetAttackGridPositions(GameEntity attacker, GameEntity target = null) { return default; }
+
+    /// <summary>
+    /// 현재 공격자의 위치를 기준으로 공격 가능한 전체 사거리(범위)와,
+    /// 특정 타겟을 지정한 경우 타겟 위치를 공격할 수 있는 실제 타겟팅 위치 목록을 반환한다.
+    /// </summary>
+    /// <param name="attacker">공격 범위를 계산할 공격자 유닛</param>
+    /// <param name="target">선택적 타겟 유닛 (없으면 null)</param>
+    /// <returns>
+    /// attackRangeGridList : 공격 사거리에 포함되는 그리드 목록
+    /// targetGridList : (타겟이 있을 경우) 타겟을 공격할 수 있는 유효 타겟 위치 그리드 목록
+    /// </returns>
+    public virtual (IEnumerable<GridPosition> attackRangeGridList, IEnumerable<GridPosition> targetGridList) 
+        GetAttackGridPositions(GameEntity attacker, GameEntity target = null)
+    {
+        // 현재 위치에서 공격 사거리 그리드 구하기
+        var rangeGridList = GetAttackRangeGridPositions(attacker.GetGridPosition(), target);
+
+        // 조건을 만족하는 그리드 가져오기
+        var targetList = GetAttackSelectGridPositions(rangeGridList, attacker, target).ToList();
+
+        return (rangeGridList, targetList);
+    }
+
+    /// <summary>
+    /// 공격 사거리 범위 구하기
+    /// </summary>
+    /// <param name="attacker"></param>
+    /// <param name="target"></param>
+    /// <returns></returns>
+    public IEnumerable<GridPosition> GetAttackRangeGridPositions(GridPosition attackerGridPosition, GameEntity target = null)
+    {
+        E_Dir dir;
+        if (target == null)
+        {
+            dir = LevelGrid.Instance.GetDirGridPosition(attackerGridPosition, attackerGridPosition);
+        }
+        else
+        {
+            var targetGridPosition = target.GetGridPosition();
+            dir = LevelGrid.Instance.GetDirGridPosition(attackerGridPosition, targetGridPosition);
+        }
+
+        var offsets = Managers.Game.GetPatternOffsets(this);
+        HashSet<GridPosition> candidates = new();
+
+        foreach (var offset in offsets)
+        {
+            GridPosition canAttackPos = LevelGrid.Instance.ToGridPosition(offset, attackerGridPosition, dir);
+
+            // 유효한 범위만 가져오기
+            if (!LevelGrid.Instance.IsValidGridPosition(canAttackPos)) // 유효한 위치만 추가
+                continue;
+
+            candidates.Add(canAttackPos);
+        }
+
+        // 공격자도 공격 범위에 포함되는가?
+        if (m_IsEnableSelfAttack == false)
+            candidates.Remove(attackerGridPosition);
+
+        return candidates;
+    }
+
+    protected virtual IEnumerable<GridPosition> GetAttackSelectGridPositions(IEnumerable<GridPosition> rangeGridList, GameEntity attacker, GameEntity target)
+    {
+        return rangeGridList.Where(pos => GetGridListValidByCheckTypes(pos, attacker));
+    }
 
     public List<int> GetNextIds()
     {
@@ -318,7 +391,7 @@ public abstract class AttackPattern : ScriptableObject
         // 관계 없는 콤보 필터링
         if (attack != null)
         {
-            if (attack.m_iNextAttackPattern.Count() > 0 && !attack.GetNextIds().Contains(ID))
+            if (attack.m_iNextAttackPattern.Length > 0 && !attack.GetNextIds().Contains(ID))
                 return false;
         }
 
@@ -336,60 +409,58 @@ public abstract class AttackPattern : ScriptableObject
         return true;
     }
 
-    HashSet<GridPosition> CheckAttackableGridPositionbyGridType(GameEntity attacker, GameEntity target)
+    /// <summary>
+    /// 공격 그리드 위치가 도달 가능한지 체크
+    /// </summary>
+    /// <param name="attacker"></param>
+    /// <param name="attackableGridPositionsList"></param>
+    bool CheckCanReach(GameEntity attacker, ref List<GridPosition> attackableGridPositionsList)
     {
-        // 공격 가능한 위치 가져오기
-        HashSet<GridPosition> candidates = new HashSet<GridPosition>();
         var attackerGridPosition = attacker.GetGridPosition();
+        attackableGridPositionsList = attackableGridPositionsList
+                            .Where(pos => Pathfinding.Instance.HasPath(attackerGridPosition, pos))
+                            .ToList();
 
-        // false이면 적 타겟을 중심으로 이동 가능한 위치 탐색
-        // true이면 공격자를 중심으로 탐색
-        if (!m_IsAttackStartPositionAtAttacker)
+        return attackableGridPositionsList.Count > 0;
+    }
+
+    bool CheckDistance(IEnumerable<GridPosition> attackablePositions, GameEntity attacker)
+    {
+        return attackablePositions.Contains(attacker.GetGridPosition());
+    }
+
+    protected virtual bool CheckIndividualCondition()
+    {
+        return true;
+    }
+
+    #endregion
+
+    #region Get
+
+    private HashSet<GridPosition> GetAttackableGridPosition(GameEntity attacker, GameEntity target)
+    {
+        // 공격 가능한 위치 가져오기 (사거리로만)
+        HashSet<GridPosition> attackablePosition = new HashSet<GridPosition>();
+
+        // 움직일 수 있는 객체인가?
+        if (attacker.m_AttributeSystem.m_CanMoveableGameEntity)
         {
             // 적을 중심으로 8방향에서 공격할 수 있는 범위 구하기
-            candidates = Enumerable.ToHashSet(GetCanAttackPosition(attacker, target));
-        }
-        else
-        {
-            candidates = Enumerable.ToHashSet(GetCanAttackPosition(attacker, attacker));
-        }
+            // 공격 사거리가 (0, 1, 0)이고, 적 위치가 (5, 5, 0) 이라면
+            // 구할 수 있는 위치는
+            // (4, 6, 0) (5, 6, 0) (6, 6, 0)
+            // (4, 5, 0)           (6, 5, 0)
+            // (4, 4, 0) (5, 4, 0) (6, 4, 0)
 
-        if(m_GridCheckTypes.Count > 0)
-        {
-            // 조건에 맞는 그리드를 필터링
-            var filtered = m_GridCheckTypes
-                                            .Select(t => GetAttackableGridPositionByGridCheckType(candidates, t))
-                                            .SelectMany(a => a)  // 일렬로
-                                            .ToHashSet<GridPosition>();
-
-            if (filtered.Count == 0)
-                return default;
-            else
-                return filtered;
-        }
-        else
-        {
-            return candidates;
-        }
-
-
-        // 타겟을 공격할 수 있는 모든 공격 위치 구하기
-        HashSet<GridPosition> GetCanAttackPosition
-        (GameEntity owner,
-        GameEntity target)
-        {
-            HashSet<GridPosition> result = new();
-            if (owner == null)
-                return result;
-
-            // 공격 사거리 오프셋을 이용해서 그리드에서 위치 구하기
-            var offsets = Managers.Game.GetPatternOffsets(this);
-            var attackerGridPosition = owner.GetGridPosition();
+            var attackerGridPosition = attacker.GetGridPosition();
             var targetGridPosition = target.GetGridPosition();
 
-            // 시작 위치(origin) 및 방향(8방향) 계산
+            var offsets = Managers.Game.GetPatternOffsets(this);
+
             foreach (var dir in Enum.GetValues(typeof(E_Dir)).Cast<E_Dir>())
             {
+
                 foreach (var offset in offsets)
                 {
                     GridPosition canAttackPos = LevelGrid.Instance.ToGridPosition(offset, targetGridPosition, dir);
@@ -398,104 +469,162 @@ public abstract class AttackPattern : ScriptableObject
                     if (!LevelGrid.Instance.IsValidGridPosition(canAttackPos)) // 유효한 위치만 추가
                         continue;
 
-                    if (m_IsAttackStartPositionAtAttacker == false)
-                    {
-                        if (attackerGridPosition == canAttackPos)
-                            return new HashSet<GridPosition> { canAttackPos };
+                    if (!LevelGrid.Instance.IsGridPositionCheckType(canAttackPos, E_GridCheckType.Walkable) && 
+                        canAttackPos != attackerGridPosition)
+                        continue;
 
-                        if (!Pathfinding.Instance.HasPath(attackerGridPosition, targetGridPosition))
-                            continue;
-                    }
-                    else
-                    {
-
-                    }
-
-                    result.Add(canAttackPos);
+                    attackablePosition.Add(canAttackPos);
                 }
             }
-
-            return result;
-        }
-    }
-
-    bool CheckDistance(HashSet<GridPosition> attackablePositions, GameEntity attacker)
-    {
-        if(m_IsAttackStartPositionAtAttacker)
-        {
-            return true;
         }
         else
         {
-            return attackablePositions.Contains(attacker.GetGridPosition());
+            // 공격 위치
+            attackablePosition.Add(attacker.GetGridPosition());
         }
+
+        return attackablePosition;
+    }
+
+    protected virtual void SelectClip()
+    {
+        selectInfoClip = m_AttackPatternInfoClips.RandomPick();
     }
 
     #endregion
 
-    #region Caculate
-
-    // 공격 가능한 위치에서 범위내 그리드 조건 탐색
-    private HashSet<GridPosition> GetAttackableGridPositionByGridCheckType
-            (IEnumerable<GridPosition> checkPositions, E_GridCheckType type)
+    // Public: 여러 위치 입력
+    protected IEnumerable<GridPosition> GetGridPositionByCheckType(
+        IEnumerable<GridPosition> attackableGridPositions, GameEntity attacker, GameEntity target)
     {
-        HashSet<GridPosition> validAttackablePositions = new HashSet<GridPosition>();
+        HashSet<GridPosition> result = new();
+        var offsets = Managers.Game.GetPatternOffsets(this);
+        GridPosition targetGridPosition;
+        if (target == null)
+            targetGridPosition = attacker.GetGridPosition();
+        else
+            targetGridPosition = target.GetGridPosition();
 
-        foreach (var grid in checkPositions)
+        foreach (var attackable in attackableGridPositions)
+        {
+            E_Dir dir = LevelGrid.Instance.GetDirGridPosition(attackable, targetGridPosition);
+
+            //attackable + offset 중 하나라도 조건 통과하면 attackable 채택
+            bool isValid = offsets.Any(offset =>
+            {
+                // 걍 더하면 안되고 적을 방향으로 더해야됨.
+                GridPosition pos = LevelGrid.Instance.ToGridPosition(offset, attackable, dir);
+
+                return LevelGrid.Instance.IsValidGridPosition(pos)
+                       && GetGridListValidByCheckTypes(pos, attacker);
+            });
+
+            if (isValid)
+                result.Add(attackable);
+        }
+
+        return result;
+    }
+
+
+    protected bool GetGridListValidByCheckTypes(GridPosition checkGridPosition, GameEntity attacker)
+    {
+        // 해당 위치에서 공격 사거리만큼 조건을 충족하는 그리드만을 반환.
+        if (m_GridCheckTypes.Count == 0)
+            return LevelGrid.Instance.HasEnemyAtGridPosition(attacker.GetGridPosition(), checkGridPosition);
+
+        foreach (var type in m_GridCheckTypes)
         {
             switch (type)
             {
-                // Walable => 빈 자리를 탐색
-                // checkPositions에서 공격 범위 내에 공격 오프셋 만큼
                 case E_GridCheckType.Walkable:
-                    if (!LevelGrid.Instance.IsGridPositionCheckType(grid, E_GridCheckType.Walkable))
-                        continue;
+                    if (!LevelGrid.Instance.IsGridPositionCheckType(checkGridPosition, E_GridCheckType.Walkable))
+                        return false;
                     break;
-                // GameEnitity => 공격 사거리 안에 닿는지 체크
+
                 case E_GridCheckType.GameEntity:
-                    // 타겟 성향 체크
-                    if (m_ApplyTargetE_Tendency == E_TargetTendencyType.Ally)
-                    {
-                        // 버프나 힐 같은 경우
-                        // 버프는 아직 버프가 남아 있다면 냅두고
-                        // 힐 같은 경우 최대 체력이 아닌 경우에만 힐을 준다.
-                        //CheckGridPositions
-                        //    (grid => LevelGrid.Instance.GetObjectAtGridPosition(grid)?.m_AttributeSystem.FullHealth == false,
-                        //    position);
-
-
-                    }
-
-                    else if (m_ApplyTargetE_Tendency == E_TargetTendencyType.Enemy)
-                    {
-
-                    }
-
-                    else if (m_ApplyTargetE_Tendency == E_TargetTendencyType.All)
-                    {
-
-                    }
+                    if (!IsValidTargetTendency(checkGridPosition, attacker))
+                        return false;
                     break;
-                // TODO
+
                 case E_GridCheckType.Reserve:
+                    if (!IsGridReserve(checkGridPosition))
+                        return false;
                     break;
-                // TODO
+
                 case E_GridCheckType.Obstacle:
+                    if (!IsGridObstacle(checkGridPosition))
+                        return false;
                     break;
-                // TODO
+
                 case E_GridCheckType.Void:
+                    if (!IsGridVoid(checkGridPosition))
+                        return false;
                     break;
+
                 default:
                     break;
             }
-
-            validAttackablePositions.Add(grid);
         }
 
-
-        return validAttackablePositions;
+        return true;
     }
 
+    #region Target Tendency 검사
+
+    private bool IsValidTargetTendency(GridPosition grid, GameEntity attacker)
+    {
+        var target = LevelGrid.Instance.GetObjectAtGridPosition(grid);
+
+        if (target == null)
+            return false;
+
+        switch (m_ApplyTargetE_Tendency)
+        {
+            case E_TargetTendencyType.Ally:
+                return IsValidAllyTarget(attacker, target);
+
+            case E_TargetTendencyType.Enemy:
+                return IsValidEnemyTarget(attacker, target);
+
+            case E_TargetTendencyType.All:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    protected virtual bool IsValidAllyTarget(GameEntity attacker, GameEntity target)
+    {
+        return attacker.IsAlly(target); // 또는 팀 비교로 구현
+    }
+
+    protected virtual bool IsValidEnemyTarget(GameEntity attacker, GameEntity target)
+    {
+        return attacker.IsEnemy(target); // 또는 팀 비교 방식
+    }
+
+    #endregion
+
+    #region TODO 영역 함수 (필요 시 구현)
+    protected virtual bool IsGridReserve(GridPosition grid)
+    {
+        // TODO: 구현
+        return true;
+    }
+
+    protected virtual bool IsGridObstacle(GridPosition grid)
+    {
+        // TODO: 구현
+        return true;
+    }
+
+    private bool IsGridVoid(GridPosition grid)
+    {
+        // TODO: 구현
+        return true;
+    }
     #endregion
 }
 

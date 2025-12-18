@@ -64,10 +64,7 @@ public class BuildingGhost : MonoBehaviour
             visual.m_CurrentEDir = placedObject.m_CurrentEDir;
 
             visual.SelectSpawnObject();
-            foreach (var t in visual.m_ModelTransforms)
-            {
-                Managers.Game.GameEntityModelsSetLayer(visual, LayerMask.NameToLayer("Ghost"));
-            }
+            Managers.Game.GameEntityModelsSetLayer(visual, LayerMask.NameToLayer("Ghost"));
         }
     }
 

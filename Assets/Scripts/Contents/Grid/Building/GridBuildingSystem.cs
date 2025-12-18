@@ -27,7 +27,23 @@ public class GridBuildingSystem : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance != null)
+        {
+            Debug.LogError($"There's more than one {name!}");
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
+    }
+
+    private void Start()
+    {
+        OnObjectPlacedCancel += (s, e) => GridSystemVisual.Instance.HideAllGridPosition();
+        OnObjectPlaced += (s, e) => GridSystemVisual.Instance.HideAllGridPosition();
+
+        // 최적화 필요
+        OnSelectedChanged += (s, e) => GridSystemVisual.Instance.UpdateGridPositionPlace();
+        OnRotateObject += (s, e) => GridSystemVisual.Instance.UpdateGridPositionPlace();
     }
 
     // Update is called once per frame

@@ -33,7 +33,7 @@ MonoBehaviour:
     _value: 4
   m_fWalkSpeed:
     _value: 0
-  m_iCommandMoveDistance: 4
+  m_iCommandMoveRange: 4
   m_iDetectRange: 3
   m_iChaseRange: 5
   m_iPhysicalBaseDamamge:
@@ -50,4 +50,6 @@ MonoBehaviour:
     _value: 0
   m_fKnockbackRegist:
     _value: 0
+  m_EDetectedType: 2
   m_iSpawnCost: 10
+  m_isChaseCore: 1

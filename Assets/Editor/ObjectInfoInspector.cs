@@ -2,7 +2,6 @@
 using UnityEditor;
 using UnityEngine;
 
-[CustomEditor(typeof(Unit))]
 public class ObjectInfoInspector : Editor
 {
     public override void OnInspectorGUI()

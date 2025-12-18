@@ -104,7 +104,6 @@ public class GuidedLauncher : IProjectileLauncher
         (Projectile projectile, GameEntity attacker, GameEntity target, LaunchContext launchContext)
     {
         Vector3 startPos = projectile.transform.position;
-        float elapsedTime = 0f;
 
         while (projectile != null)
         {
@@ -117,7 +116,7 @@ public class GuidedLauncher : IProjectileLauncher
 
 
             // 타겟이 사망시 직선형 전환
-            if (target == null || target.IsDead)
+            if (target == null || target.m_AttributeSystem.m_IsDead)
             {
                 Vector3 dir = projectile.m_Rigidbody.velocity.normalized;
                 //if (dir == Vector3.zero)

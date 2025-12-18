@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public static partial class Util
 {
@@ -93,11 +94,45 @@ public static partial class Util
 
     }
 
+    #region Random Pick
+
+    // System.Random 인스턴스를 static으로 선언하여 스크립트 전체에서 공유하고 한 번만 초기화합니다.
+    private static readonly System.Random Rng = new System.Random();
+
+    /// <summary>
+    /// 주어진 컬렉션에서 중복 없이 임의의 N개 요소를 추출합니다 (비복원 추출).
+    /// </summary>
+    /// <param name="source">원본 컬렉션</param>
+    /// <param name="count">추출할 요소의 개수 (원본 크기보다 클 수 없습니다)</param>
+    public static IEnumerable<T> GetRandomElements<T>(IEnumerable<T> source, int count)
+    {
+        // 1. 임의의 정렬 순서를 생성합니다.
+        // OrderBy(item => Rng.Next())는 각 요소에 임의의 정수(Rng.Next())를 할당하고,
+        // 이 임의의 정수를 기준으로 요소를 섞어줍니다.
+        // Rng는 static 필드로 선언하여 한 번만 초기화하는 것이 좋습니다.
+
+        // 2. Take(count)를 사용하여 섞인 리스트의 앞에서 count만큼 요소를 가져옵니다.
+
+        // 3. ToList()로 최종 리스트를 반환합니다.
+
+        return source
+            .OrderBy(item => Rng.Next())
+            .Take(count);
+    }
+
+    // IEnumerable 중 랜덤으로 하나 뽑기
+    public static int RandomPickIndex<T>(this IEnumerable<T> source)
+    {
+        if (source == null)
+            throw new System.ArgumentNullException(nameof(source));
+
+        return Random.Range(0, source.Count()); // 0 이상, itemPrefabs.Length 미만의 정수 반환
+    }
 
     // IEnumerable 중 랜덤으로 하나 뽑기
     public static T RandomPick<T>(this IEnumerable<T> source)
     {
-        if (source == null)
+        if (source == null || source.Count() == 0)
             throw new System.ArgumentNullException(nameof(source));
 
         var list = source as IList<T> ?? source.ToList(); // 캐싱
@@ -117,6 +152,7 @@ public static partial class Util
         return pick;
     }
 
+    #endregion
 
 
     /// <summary>
@@ -314,6 +350,49 @@ public static partial class Util
         return mat;
     }
 
+
+    #endregion
+    #region Screen Shot
+
+    // 1. 스크린 샷 찍기 (UI를 다 띄운 것도 보여줌)
+    public static Texture2D CaptureScreenshot()
+    {
+        int width = Screen.width;
+        int height = Screen.height;
+
+        Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
+        tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        tex.Apply();
+
+        return tex;
+    }
+
+    public static Texture2D CaptureCamera()
+    {
+        int width = Screen.width;
+        int height = Screen.height;
+        var cam = Camera.main;
+
+        // 1. RenderTexture 생성
+        RenderTexture rt = new RenderTexture(width, height, 24);
+        cam.targetTexture = rt;
+
+        // 2. 카메라 렌더링
+        Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
+        cam.Render();
+
+        // 3. 픽셀 읽기
+        RenderTexture.active = rt;
+        tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        tex.Apply();
+
+        // 4. 리소스 정리
+        cam.targetTexture = null;
+        RenderTexture.active = null;
+        UnityEngine.Object.Destroy(rt);
+
+        return tex;
+    }
 
     #endregion
 }

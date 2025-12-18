@@ -16,15 +16,14 @@ MonoBehaviour:
   AttackName: Warior 1 Front Attack Jump Spin
   m_EAttackType: 1
   m_IsEnableSelfAttack: 0
-  m_ERangeFillType: 0
+  m_ERangeFillType: 1
   m_ERangeShapeType: 6
   m_RangeOffset:
   - x: 0
     z: 1
     floor: 0
   m_ArcAngle: 90
-  m_IsAttackStartPositionAtAttacker: 0
-  m_GridCheckTypes: 02000000
+  m_GridCheckTypes: 
   m_ApplyTargetE_Tendency: 2
   m_iNextAttackPattern: []
   m_iConditionPrevAttackPattern: {fileID: 0}
@@ -35,7 +34,6 @@ MonoBehaviour:
   m_iManaCost:
     _value: 0
   m_IsTwoHandAttack: 0
-  m_IsIncludeCasterInAttack: 0
   m_iPhysicalAttackDamage:
     _value: 10
   m_iMagicAttackDamage:
@@ -60,7 +58,9 @@ MonoBehaviour:
     _value: 0
   m_fLifeStealPercent:
     _value: 0
-  AttackAudioClip: {fileID: 8300000, guid: 1785fff83652f42399d9b2017b05656c, type: 3}
-  AttackMissClipList: []
-  m_Clips:
-  - AttackAnimationClip: {fileID: 3060610079319413300, guid: 65748d9e245582b45be9c3893c87f787, type: 3}
+  m_AttackPatternInfoClips:
+  - AttackSuccessAudioClip: {fileID: 8300000, guid: 1785fff83652f42399d9b2017b05656c, type: 3}
+    AttackMissAudioClip: {fileID: 8300000, guid: 01999991d21504b5abb7a554bba05227, type: 3}
+    AttackFailAudioClip: {fileID: 0}
+    AttackAnimationClip: {fileID: 3060610079319413300, guid: 65748d9e245582b45be9c3893c87f787, type: 3}
+    ReadyFailAnimationClip: {fileID: 0}

@@ -7,11 +7,15 @@ using static Define;
 
 public class CommandMoveAction : MoveAction
 {
-    protected override void Awake()
+    CommandMoveAction()
     {
-        base.Awake();
+        m_actionName = "Command Move";
+    }
 
-        m_iMaxMoveDistance = m_StatSystem.m_Stat.m_iCommandMoveDistance;
+    protected override void Start()
+    {
+        base.Start();
+        m_iGetActionValidRange = m_GameEntity.m_AttributeSystem.m_Stat.m_iCommandMoveRange;
     }
 
     public override BaseAction TakeAction(GridPosition gridPosition, Action onActionComplete)
@@ -24,12 +28,12 @@ public class CommandMoveAction : MoveAction
             DestGirdPosition = default;
             m_iPathCurrentCount = 0;
             ActionComplete();
-            return m_BaseObject.GetAction<IdleAction>();
+            return m_GameEntity.GetAction<IdleAction>();
         }
 
         // Find Path
         List<GridPosition> pathGridPositionList = 
-            Pathfinding.Instance.FindPath(m_BaseObject.GetGridPosition(), 
+            Pathfinding.Instance.FindPath(m_GameEntity.GetGridPosition(), 
             DestGirdPosition, 
             out int pathLength);
 
@@ -47,7 +51,7 @@ public class CommandMoveAction : MoveAction
 
                 forwardPosition = LevelGrid.Instance.GetWorldPosition(pathGridPositionList[0]);
 
-                LevelGrid.Instance.SetGridPositionCellInfo(pathGridPositionList[0], E_GridCheckType.Reserve, m_BaseObject);
+                LevelGrid.Instance.SetGridPositionCellInfo(pathGridPositionList[0], E_GridCheckType.Reserve, m_GameEntity);
 
                 // Event
                 ActionStart(onActionComplete);
@@ -78,13 +82,13 @@ public class CommandMoveAction : MoveAction
     {
         List<GridPosition> validGridPositionList = new List<GridPosition>();
 
-        GridPosition unitGridPosition = m_BaseObject.GetGridPosition();
+        GridPosition unitGridPosition = m_GameEntity.GetGridPosition();
 
-        for (int x = -m_iMaxMoveDistance; x <= m_iMaxMoveDistance; x++)
+        for (int x = -m_iGetActionValidRange; x <= m_iGetActionValidRange; x++)
         {
-            for (int z = -m_iMaxMoveDistance; z <= m_iMaxMoveDistance; z++)
+            for (int z = -m_iGetActionValidRange; z <= m_iGetActionValidRange; z++)
             {
-                for (int floor = -m_iMaxMoveDistance; floor <= m_iMaxMoveDistance; floor++)
+                for (int floor = -m_iGetActionValidRange; floor <= m_iGetActionValidRange; floor++)
                 {
                     GridPosition offsetGridPosition = new GridPosition(x, z, floor);
                     GridPosition testGridPosition = unitGridPosition + offsetGridPosition;
@@ -104,14 +108,13 @@ public class CommandMoveAction : MoveAction
                     if (!LevelGrid.Instance.IsGridPositionCheckType(testGridPosition, E_GridCheckType.Walkable))
                         continue;
 
-
                     if (!Pathfinding.Instance.HasPath(unitGridPosition, testGridPosition))
                     {
                         continue;
                     }
 
                     int pathfindingDistanceMultiplier = 10;
-                    if (Pathfinding.Instance.GetPathLength(unitGridPosition, testGridPosition) > m_iMaxMoveDistance * pathfindingDistanceMultiplier)
+                    if (Pathfinding.Instance.GetPathLength(unitGridPosition, testGridPosition) > m_iGetActionValidRange * pathfindingDistanceMultiplier)
                     {
                         // Path length is too long
                         continue;

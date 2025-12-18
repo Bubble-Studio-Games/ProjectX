@@ -15,19 +15,8 @@ using Material = UnityEngine.Material;
 using Random = UnityEngine.Random;
 using Type = System.Type;
 
-
-public interface IAccessories<TAnimator, TSounder> 
-    where TAnimator : GameEntityAnimator 
-    where TSounder : GameEntitySounder
-{
-    public  List<TAnimator> GetAnimationsManager();
-    public  TSounder GetSounderManager();
-}
-
 [RequireComponent(typeof(AttributeSystem))]
-public class GameEntity : 
-    MonoBehaviour, 
-    IAccessories<GameEntityAnimator,  GameEntitySounder>, 
+public class GameEntity : MonoBehaviour,
     ISaveable, 
     IGuidObject,
     IInteractable
@@ -38,6 +27,7 @@ public class GameEntity :
     public event EventHandler OnObjectDespawned; // 파괴되거나 비활성화될 때
     public event EventHandler OnSelectedEvent;
     public event EventHandler OnDeselectedEvent;
+    public event EventHandler OnChangeBaseActionEvent;
 
     public string _guid { get; private set; } = string.Empty; // private field로 변경하고 프로퍼티로 접근
     public string guid => _guid;
@@ -51,11 +41,11 @@ public class GameEntity :
     [Header("Ref")]
     protected List<GameEntityAnimator> m_AnimatorManagers;
     protected GameEntitySounder m_SounderManager;
-    [SerializeField] public AttributeSystem m_AttributeSystem;
+    public AttributeSystem m_AttributeSystem { get; private set; }
     public Collider m_HitCollider { get; protected set; }
     public SetupAnimation m_SetupAnimation { get; private set; }
+    public GameEntityCombat m_CombatManager { get; private set; }    
 
-    [SerializeField] public Transform[] m_ModelTransforms;
     protected HashSet<(Material mat, GameObject obj)> m_ModelMaterials = new();
 
     [Header("Info")]
@@ -66,32 +56,29 @@ public class GameEntity :
     public E_TeamId m_TeamId;
 
     [Header("Action")]
-    [SerializeField] protected BaseAction currentAction;
+    protected BaseAction currentAction;
     public BaseAction m_CurrentAction
     {
         get => currentAction;
         protected set => currentAction = value;
     }
-
-    [SerializeField] protected BaseAction m_NextAction;
-    [SerializeField] protected BaseAction m_BeforeAction;
-
-    public Transform m_ActionsTransform;
+    protected BaseAction m_NextAction;
+    protected BaseAction m_BeforeAction;
 
     protected Dictionary<Type, BaseAction> baseActionDict = new Dictionary<Type, BaseAction>();
-
-    [SerializeField] float m_fDelayDestroyTime = 3f;
 
     [Header("Flag")]
     public bool m_IsDirectDesawnAtDeath = true; // 사망 후 바로 디스폰 처리 하는가?
     public bool m_IsSetuping { get; protected set; } = false; // 카드에서 뽑아 소환 중인가?
 
+    [Tooltip("체크 되어 있을 경우 무조건 던전 코어를 향해 이동 (몬스터 전용)")]
+    public bool m_IsTowardDungeonCore = false;
+
+
     // 전역 캐시 (Prefab 단위)
     private static Dictionary<string, bool> s_RotateSymmetryCache = new();
     public bool m_IsRotateSymmetry { get; private set; }
 
-    public bool IsDead => m_AttributeSystem.m_IsDead;
-    public float MaxHP => m_AttributeSystem.m_Stat.m_iMaxHP;
     
     protected virtual void Awake()
     {
@@ -107,13 +94,15 @@ public class GameEntity :
             m_AnimatorManagers = GetComponentsInChildren<GameEntityAnimator>().ToList();
         if(m_SounderManager == null)
             m_SounderManager = GetComponent<GameEntitySounder>();
+        if (m_CombatManager == null)
+            m_CombatManager = GetComponent<GameEntityCombat>();
 
         m_SetupAnimation = GetComponent<SetupAnimation>();
 
         foreach (var action in GetComponentsInChildren<BaseAction>())
             baseActionDict[action.GetType()] = action;
 
-        m_AttributeSystem.OnDead += ClearAction;
+        m_AttributeSystem.OnDead += (s, e) => ClearAction();
     }
 
     protected virtual void Start()
@@ -137,6 +126,8 @@ public class GameEntity :
 
     public virtual void OnDestroy()
     {
+        if (UnitActionSystem.Instance != null)
+            UnitActionSystem.Instance.OnUpdateActionTick -= ExecuteAction;
     }
 
     protected virtual void Update()
@@ -149,7 +140,7 @@ public class GameEntity :
         if (m_ModelMaterials == null || m_ModelMaterials.Count == 0)
         {
             // 렌더러 리스트를 먼저 구해서 즉시 평가
-            var renderers = m_ModelTransforms
+            var renderers = GetComponentsInChildren<Transform>()
                 .Where(t => t != null)
                 .SelectMany(t => t.GetComponentsInChildren<Renderer>(true))
                 .ToArray(); // ✅ ToArray()로 즉시 평가 (지연 실행 방지)
@@ -185,7 +176,7 @@ public class GameEntity :
         return colliders;
     }
 
-    protected void UpdateGridPosition()
+    public void UpdateGridPosition()
     {
         GridPosition newGridPosition = LevelGrid.Instance.GetGridPosition(transform.position);
 
@@ -200,6 +191,8 @@ public class GameEntity :
         }
     }
 
+    #region Select
+
     public void OnDeselected()
     {
         //Debug.Log($"{name} DeSelect");
@@ -211,6 +204,8 @@ public class GameEntity :
         //Debug.Log($"{name} Select");
         OnSelectedEvent?.Invoke(this, EventArgs.Empty);
     }
+
+    #endregion
 
     public GridPosition GetGridPosition()
     {
@@ -317,6 +312,19 @@ public class GameEntity :
     {
         m_IsSetuping = false;
         m_AnimatorManagers.ToList().ForEach(animator => animator.AnimationPlay());
+
+        // Base Action
+        if (m_CurrentAction == null && baseActionDict.Count > 0)
+        {
+            var action = baseActionDict.First().Value;
+            if (action != null)
+                SwitchToNextStateAction(action);
+
+        }
+        if (baseActionDict.Count > 0)
+            UnitActionSystem.Instance.OnUpdateActionTick += ExecuteAction;
+
+        LevelGrid.Instance.AddUnitAtGridPosition(GetGridPositionListAtCurrentDir(), this);
     }
 
     // 보통은 디스폰을 사망 애니메이션이 끝나면 바로 호출.
@@ -325,7 +333,7 @@ public class GameEntity :
         OnObjectDespawned?.Invoke(this, EventArgs.Empty);
     }
 
-    //
+    // 디스폰 후 호출되는 함수.
     public virtual void DeSpawnComplete()
     {
         LevelGrid.Instance.RemoveUnitAtGridPosition(GetGridPositionListAtCurrentDir(), this);
@@ -400,15 +408,28 @@ public class GameEntity :
 
     #region Action
 
-    protected virtual void ExecuteAction(object sender, EventArgs args) { }
+    protected virtual void ExecuteAction(object sender, EventArgs args) 
+    { 
+        if (m_AttributeSystem.m_IsDead)
+            return;
 
+        m_NextAction = m_CurrentAction?.TakeAction();
+
+        if (m_NextAction is not null && m_NextAction != m_CurrentAction)
+        {
+            m_CurrentAction.ClearAction();
+            SwitchToNextStateAction(m_NextAction);
+        }
+    }
 
     public virtual void SwitchToNextStateAction(BaseAction nextAction)
     {
         m_CurrentAction = nextAction;
+
+        OnChangeBaseActionEvent?.Invoke(this, EventArgs.Empty);
     }
 
-    public void ClearAction(object sender, EventArgs e)
+    public void ClearAction()
     {
         m_CurrentAction = null;
     }
@@ -439,12 +460,12 @@ public class GameEntity :
 
     #endregion
 
-    public bool IsEnemy(GameEntity target)
-    {
-        return GetEnemyTeamIDs().Contains(target.m_TeamId);
-    }
+    #region Target Tendency
 
-    public List<E_TeamId> GetEnemyTeamIDs()
+    public bool IsEnemy(GameEntity target) => GetEnemyTeamIDs().Contains(target.m_TeamId);
+    public bool IsAlly(GameEntity target) => GetAllyTeamIDs().Contains(target.m_TeamId);
+
+    private List<E_TeamId> GetEnemyTeamIDs()
     {
         List<E_TeamId> enemyTeams = new();
 
@@ -463,6 +484,32 @@ public class GameEntity :
 
         return enemyTeams;
     }
+
+    private List<E_TeamId> GetAllyTeamIDs()
+    {
+        List<E_TeamId> allyTeams = new();
+
+        switch (m_TeamId)
+        {
+            case E_TeamId.Player:
+                allyTeams.Add(E_TeamId.Player);
+                allyTeams.Add(E_TeamId.NPC); // 친구 NPC도 아군
+                break;
+
+            case E_TeamId.NPC:
+                allyTeams.Add(E_TeamId.Player);
+                allyTeams.Add(E_TeamId.NPC);
+                break;
+
+            case E_TeamId.Monster:
+                allyTeams.Add(E_TeamId.Monster);
+                break;
+        }
+
+        return allyTeams;
+    }
+
+    #endregion
 
     #region Save & Load Data
 
@@ -568,7 +615,7 @@ public class GameEntity :
 
         if(m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
         {
-            combatAction.m_ThisTimeAttack = m_AttributeSystem.m_AttackPatterns.Find(attack => attack.ID == gdata.thisAttackPattern.id);
+            combatAction.m_ThisTimeAttack = m_AttributeSystem.m_AttackPatterns.FirstOrDefault(attack => attack.ID == gdata.thisAttackPattern.id);
         }
 
         BaseAction GetActionByEActionType(E_ActionType action)
@@ -603,7 +650,12 @@ public class GameEntity :
         throw new NotImplementedException();
     }
 
-
     #endregion
+
+    public GameEntity m_Target { get; protected set; }
+    public void SetTarget(GameEntity target)
+    {
+        m_Target = target;
+    }
 
 }

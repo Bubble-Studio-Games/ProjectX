@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static Define;
 using static Unity.Cinemachine.CinemachineInputAxisController;
@@ -27,6 +28,12 @@ public  class GameEntitySounder : MonoBehaviour
     [Header("Battle")]
     public AudioClip[] DamagedClipList; // 피격
     public AudioClip[] CriticalDamagedClipList; // 피격
+    public AudioClip[] PhaseChangeClipList;
+    public AudioClip[] DodgeClipList;
+
+    [Header("Move")]
+    public AudioClip[] WalkClipList;
+    public AudioClip[] RunClipList;
 
     protected virtual void Awake()
     {
@@ -38,15 +45,36 @@ public  class GameEntitySounder : MonoBehaviour
         m_GameEntity.OnObjectSpawned += (s, e) => SoundPlay(SpawnClipList, E_GameEntityClipType.Spawn.ToString());
         m_GameEntity.OnSpawnObjectSelected += (s, e) => SoundPlay(SpawnObjectSelectedClipList, E_GameEntityClipType.Select.ToString());
         m_GameEntity.OnObjectDespawned += (s, e) => SoundPlay(DeSpawnClipList, E_GameEntityClipType.DeSpawn.ToString());
+        m_GameEntity.OnSpawnObjectSelected += (s, e) => SoundPlay(SpawnObjectSelectedClipList, E_GameEntityClipType.Select.ToString());
 
         m_StatSystem = GetComponentInParent<AttributeSystem>();
         m_StatSystem.OnRevived += (s, e) => SoundPlay(ReviveClipList, E_GameEntityClipType.Revive.ToString());
         m_StatSystem.OnDead += (s, e) => SoundPlay(DestroyClipList, E_GameEntityClipType.Death.ToString());
+        m_StatSystem.OnDamaged += (s, e) => AttackReadyFailSoundPlay();
 
         m_StatSystem.OnDamaged += DamagedSoundPlay;
+
+        if (m_GameEntity.TryGetComponent<CombatAction>(out CombatAction combat))
+        {
+            combat.OnPhaseChange += (s, e) => SoundPlay(PhaseChangeClipList, E_GameEntityClipType.PhaseChange.ToString());
+        }
     }
 
-    public virtual void StepSoundPlay() { }
+    // 이동 상태에 따른 발자국 사운드 플레이
+    public virtual void StepSoundPlay()
+    {
+        switch (m_GameEntity.m_AttributeSystem.m_EMoveType)
+        {
+            case E_MoveType.Walk:
+                SoundPlay(WalkClipList, E_GameEntityClipType.Walk.ToString());
+                break;
+            case E_MoveType.Run:
+                SoundPlay(RunClipList, E_GameEntityClipType.Run.ToString());
+                break;
+            default:
+                break;
+        }
+    }
 
 
     public virtual void DamagedSoundPlay(object sender, AttributeSystem.OnAttackInfoEventArgs e) 
@@ -65,6 +93,13 @@ public  class GameEntitySounder : MonoBehaviour
             case E_HitDecisionType.CriticalHit:
                 SoundPlay(CriticalDamagedClipList, E_GameEntityClipType.Damaged.ToString());
                 break;
+            case E_HitDecisionType.Evasion:
+                SoundPlay(DodgeClipList, E_GameEntityClipType.Evasion.ToString());
+                break;
+            case E_HitDecisionType.Counter:
+                break;
+            case E_HitDecisionType.AttackMiss: // 공격자 입장에서 쓰고 싶은데, 무기 종류에 따라
+                break;
         }
     }
 
@@ -72,17 +107,17 @@ public  class GameEntitySounder : MonoBehaviour
 
     public void AttackSoundPlay(AttackPattern attack)
     {
-        SoundPlay(attack.AttackAudioClip, E_GameEntityClipType.Attack.ToString());
+        SoundPlay(attack.selectInfoClip.AttackSuccessAudioClip, E_GameEntityClipType.Attack.ToString());
     }
 
-    public void AttackMissPlay(object sender, AttackPattern attack)
+    public void AttackMissSoundPlay(object sender, AttackPattern attack)
     {
-        SoundPlay(attack.AttackMissClipList, E_GameEntityClipType.Attack.ToString());
+        SoundPlay(attack.selectInfoClip.AttackMissAudioClip, E_GameEntityClipType.Attack.ToString());
     }
 
-    public void AttackReadyFailPlay()
+    public void AttackReadyFailSoundPlay()
     {
-        var attack = m_GameEntity.GetAction<CombatAction>().m_ThisTimeAttack;
+        var attack = m_GameEntity.GetAction<CombatAction>()?.m_ThisTimeAttack;
 
         if (attack == null)
             return;
@@ -91,7 +126,7 @@ public  class GameEntitySounder : MonoBehaviour
         if (attack is not AttackPattern_Ready readyPattern)
             return;
 
-        SoundPlay(readyPattern.ReadyFailAudioClip, E_GameEntityClipType.Attack.ToString());
+        SoundPlay(attack.selectInfoClip.AttackFailAudioClip, E_GameEntityClipType.Attack.ToString());
     }
 
     public void SoundPlay(AudioClip audioClip, string audioClipName, int loop = 0, float pitch = 1.0f)

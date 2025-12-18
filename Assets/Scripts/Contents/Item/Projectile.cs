@@ -15,7 +15,6 @@ public class Projectile : Item
     public float m_DetectionHitRadius = 2f; // 유도형의 경우 필요
 
     [Header("Destroy")]
-    public bool m_hasDestoryAnimation;
     private AttackPattern m_AttackPattern;
     public GameEntity m_Target { get; private set; }
 
@@ -70,24 +69,6 @@ public class Projectile : Item
         m_IsHit = false;
     }
 
-
-    public override void Destroy(float seconds = 3.0f)
-    {
-        if (m_hasDestoryAnimation)
-        {
-            animator.CrossFade("Destroy", 0.2f);
-            CoroutineRunner.Instance.StartCoroutine(ObjectDestroy(2f));
-        }
-        else
-        {
-            CoroutineRunner.Instance.StartCoroutine(ObjectDestroy(seconds));
-
-            foreach (Transform child in transform)
-                child.gameObject.SetActive(false);
-
-        }
-    }
-
     public void AttackReady(GameEntity owner, AttackPattern attack, GameEntity target)
     {
         foreach (Transform child in transform)
@@ -129,18 +110,20 @@ public class Projectile : Item
 
     private void OnCollisionEnter(Collision col)
     {
-        // 충돌 지점을 알 수 있습니다.
-        Vector3 hitPoint = col.contacts[0].point;
+        int layerBit = 1 << col.gameObject.layer;
 
-        // 충돌 순간의 속도 방향을 계산합니다. (화살이 박힐 방향)
-        // m_Rigidbody.velocity를 바로 사용하는 것이 가장 정확합니다.
-        Vector3 impactDirection = m_Rigidbody.velocity.normalized;
-
-        // 1. 목표 타겟 레이어 확인
-        if (((1 << col.gameObject.layer) & Managers.Layer.HitColLayerMask) != 0)
+        // 적에게 부딪혔거나 지형 지물에 부딪혔을 경우에 한하여
+        if ((layerBit & Managers.Layer.HitColLayerMask) != 0 ||
+            (layerBit & Managers.Layer.m_StructLayer) != 0)
         {
-            // 적에게 부딪혔거나 지형 지물에 부딪혔을 경우에 한하여
             GameEntity target = col.gameObject.GetComponentInParent<GameEntity>();
+
+            // 충돌 지점을 알 수 있습니다.
+            Vector3 hitPoint = col.contacts[0].point;
+
+            // 충돌 순간의 속도 방향을 계산합니다. (화살이 박힐 방향)
+            // m_Rigidbody.velocity를 바로 사용하는 것이 가장 정확합니다.
+            Vector3 impactDirection = m_Rigidbody.velocity.normalized;
 
             // 🎯 타겟 유닛 충돌 처리
             if (target != null && m_Owner.IsEnemy(target))
@@ -163,34 +146,9 @@ public class Projectile : Item
                 // 4. 물리 연산 중지 (필수)
                 m_Rigidbody.isKinematic = true;
 
-                Destroy(); // Destroy()는 Poolable을 통해 오브젝트를 끄는 역할로 가정
-
                 //Debug.Log($"오브젝트 충돌!! {target.name}");
-                // --------------------------------------------------------------------------
+                Destroy();
             }
-        }
-
-        // 2. 일반 사물 레이어 확인
-        if (((1 << col.gameObject.layer) & Managers.Layer.m_StructLayer) != 0)
-        {
-            HitEffect(hitPoint);
-
-            // -------------------- ★ 화살이 박히는 로직 추가/수정 ★ --------------------
-            // 1. 화살의 위치를 충돌 지점으로 이동
-            transform.position = hitPoint;
-
-            // 2. 화살의 회전을 충돌 방향으로 맞춥니다.
-            transform.rotation = Quaternion.LookRotation(impactDirection);
-
-            // 3. 구조물에 자식으로 붙입니다. (대부분 구조물은 움직이지 않아도 안정성을 위해)
-            transform.SetParent(col.transform, true);
-
-            // 4. 물리 연산 중지 (필수)
-            m_Rigidbody.isKinematic = true;
-
-            Destroy();
-            Debug.Log($"구조물 오브젝트 충돌!! {col.gameObject.name}");
-            // --------------------------------------------------------------------------
         }
     }
 

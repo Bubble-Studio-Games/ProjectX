@@ -23,8 +23,7 @@ MonoBehaviour:
     z: 2
     floor: 0
   m_ArcAngle: 90
-  m_IsAttackStartPositionAtAttacker: 0
-  m_GridCheckTypes: 02000000
+  m_GridCheckTypes: 
   m_ApplyTargetE_Tendency: 2
   m_iNextAttackPattern: []
   m_iConditionPrevAttackPattern: {fileID: 11400000, guid: 4473d3c84544fe44897429ddf891ceb1, type: 2}
@@ -35,7 +34,6 @@ MonoBehaviour:
   m_iManaCost:
     _value: 0
   m_IsTwoHandAttack: 0
-  m_IsIncludeCasterInAttack: 0
   m_iPhysicalAttackDamage:
     _value: 15
   m_iMagicAttackDamage:
@@ -60,12 +58,15 @@ MonoBehaviour:
     _value: 0
   m_fLifeStealPercent:
     _value: 0
-  AttackAudioClip: {fileID: 8300000, guid: 12e9889bee319ad47aee7c816dfa5153, type: 3}
-  AttackMissClipList: []
-  m_Clips:
-  - AttackAnimationClip: {fileID: 3060610079319413300, guid: 6d812cfad9062314983d3d95e412bfc4, type: 3}
+  m_AttackPatternInfoClips:
+  - AttackSuccessAudioClip: {fileID: 0}
+    AttackMissAudioClip: {fileID: 0}
+    AttackFailAudioClip: {fileID: 0}
+    AttackAnimationClip: {fileID: 3060610079319413300, guid: 6d812cfad9062314983d3d95e412bfc4, type: 3}
+    ReadyFailAnimationClip: {fileID: 0}
   m_ProjectilePrefab: {fileID: 3399050517368323396, guid: f6a671fc0bec79b4bb5c33df90d1ce54, type: 3}
   _selectType: 1
   m_iSpawnProjectileCount: 1
   m_IsImmediateLaunch: 0
   m_SpawnFromWeapon: 1
+  m_EAttackAnimationType: 0

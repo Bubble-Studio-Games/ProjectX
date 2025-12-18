@@ -24,7 +24,6 @@ public class LevelGrid : MonoBehaviour
         public List<GridPosition> toGridPositions;
     }
 
-
     [SerializeField] private Transform gridDebugObjectPrefab;
     Dictionary<GridPosition, GridDebugObject> m_griddebug = new();
     [SerializeField] private int width;
@@ -197,67 +196,6 @@ public class LevelGrid : MonoBehaviour
             .Select(pos => GetObjectAtGridPosition(pos))
             .Where(obj => obj != null)
             .ToList();
-    }
-
-    public (ControllableObject, GridPosition) GetClosestTargetGridInfo(GridPosition gridPosition, List<GridPosition> positions)
-    {
-        if (positions.Count == 0)
-            return (null, default);
-
-        GridPosition closest = default;
-        ControllableObject obj = null;
-        int minPathLength = int.MaxValue;
-
-        foreach (GridPosition pos in positions)
-        {
-            if (!Pathfinding.Instance.HasPath(gridPosition, pos))
-                continue;
-
-            // 직접 조작 유닛 외 제외
-            if (GetObjectAtGridPosition(pos) is not ControllableObject serch)
-                continue;
-
-            // 죽은 놈패스
-            if (serch == null || serch.m_AttributeSystem.m_IsDead)
-                continue;
-
-            int pathLength = Pathfinding.Instance.GetPathLength(gridPosition, pos);
-            if (pathLength < minPathLength)
-            {
-                minPathLength = pathLength;
-                closest = pos;
-                obj = serch;
-            }
-        }
-
-        return (obj, closest);
-    }
-
-    public GridPosition GetClosestGridPositionSpecificCondition(GridPosition gridPosition, List<GridPosition> positions, Func<GridPosition, bool> condition = null)
-    {
-        if (positions.Count == 0)
-            return default;
-
-        GridPosition closest = default;
-        int minPathLength = int.MaxValue;
-
-        foreach (GridPosition pos in positions)
-        {
-            if (!Pathfinding.Instance.HasPath(gridPosition, pos))
-                continue;
-
-            if (condition != null && !condition(pos))
-                continue;
-
-            int pathLength = Pathfinding.Instance.GetPathLength(gridPosition, pos);
-            if (pathLength < minPathLength)
-            {
-                minPathLength = pathLength;
-                closest = pos;
-            }
-        }
-
-        return closest;
     }
 
     public bool IsValidGridPosition(GridPosition gridPosition)
@@ -450,7 +388,7 @@ public class LevelGrid : MonoBehaviour
 
     public float GetObstacleMaxHeight(GridPosition gridPosition, GridPosition targetPosition)
     {
-        var posList = Pathfinding.Instance.FindPath(gridPosition, targetPosition, out int len, false);
+        var posList = Pathfinding.Instance.FindPath(gridPosition, targetPosition, out int len, ignoreGridtype: E_GridCheckType.GameEntity);
         float maxHegiht = 0;
 
         // 공격자와 피격자 사이의 1칸 이상의 거리가 있다면
@@ -504,13 +442,15 @@ public class LevelGrid : MonoBehaviour
 
     #region ===== 그리드 Cache와 관련된 함수들 =====
 
-    public void SetGridPositionCellInfo(ICollection<GridPosition> gridPositions, E_GridCheckType type, GameEntity entity = null)
+    public void SetGridPositionCellInfo(IEnumerable<GridPosition> gridPositions, E_GridCheckType type, GameEntity entity = null)
     {
-        if (gridPositions == null || gridPositions.Count == 0)
+        if (gridPositions == null || gridPositions.Count() == 0)
             return;
 
         foreach (var gridPosition in gridPositions)
             m_DicFloorGridCache[gridPosition.floor][gridPosition] = new GridCellInfo(entity, type);
+
+        //Debug.Log($"그리드 지정 타입 : {type},  위치 : {string.Join(" ", gridPositions)}, GameEntity : {entity?.name}");
 
         // 3이벤트 호출
         OnChangeGrid?.Invoke(this, new OnChangeGridAgrs
@@ -524,6 +464,8 @@ public class LevelGrid : MonoBehaviour
     {
         // 1층 딕셔너리가 없으면 생성
         m_DicFloorGridCache[gridPosition.floor][gridPosition] = new GridCellInfo(entity, type);
+
+        //Debug.Log($"그리드 지정 타입 : {type},  위치 : {gridPosition}, GameEntity : {entity?.name}");
 
         // 3이벤트 호출
         OnChangeGrid?.Invoke(this, new OnChangeGridAgrs

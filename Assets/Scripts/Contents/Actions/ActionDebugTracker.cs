@@ -97,7 +97,7 @@ public class ActionDebugTracker : MonoBehaviour
         if (action == null)
             return "None";
 
-        return action.GetActionName();
+        return action.m_actionName;
     }
 
     private T GetPrivateField<T>(string fieldName) where T : class

@@ -91,7 +91,7 @@ public class CommandManager
         where TAction : BaseAction
     {
         // ✔ 액션 가능 유닛만 가져오기
-        var filtered = FilterUnitsWithAction<TAction>();
+        var filtered = FilterUnitsWithAction<TAction, ControllableObject>();
 
         if (filtered.Count == 0)
             return;
@@ -121,11 +121,12 @@ public class CommandManager
         }
     }
 
-    public List<(ControllableObject unit, TAction action)>
-        FilterUnitsWithAction<TAction>()
-        where TAction : BaseAction
+    public List<(TClass unit, TAction action)>
+        FilterUnitsWithAction<TAction, TClass>()
+        where TAction : BaseAction 
+        where TClass : GameEntity
     {
-        var selectedUnits = Managers.Selection.GetSelectedByClass<ControllableObject>();
+        var selectedUnits = Managers.Selection.GetSelectedByClass<TClass>();
 
         return selectedUnits
             .Select(unit => (unit, action: unit.GetAction<TAction>()))

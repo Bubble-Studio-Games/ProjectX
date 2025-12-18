@@ -26,19 +26,17 @@ MonoBehaviour:
     z: 2
     floor: 0
   m_ArcAngle: 90
-  m_IsAttackStartPositionAtAttacker: 1
   m_GridCheckTypes: 00000000
   m_ApplyTargetE_Tendency: 0
   m_iNextAttackPattern: []
   m_iConditionPrevAttackPattern: {fileID: 0}
   m_iCoolTime:
-    _value: 5
+    _value: 10
   m_fLastCooltime:
     _value: -5
   m_iManaCost:
     _value: 30
   m_IsTwoHandAttack: 0
-  m_IsIncludeCasterInAttack: 0
   m_iPhysicalAttackDamage:
     _value: 0
   m_iMagicAttackDamage:
@@ -63,12 +61,14 @@ MonoBehaviour:
     _value: 0
   m_fLifeStealPercent:
     _value: 0
-  AttackAudioClip: {fileID: 0}
-  AttackMissClipList: []
-  m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: 50d7b74b1fb087f4dbb624058552add6, type: 2}
-  _summonUnitPrefab: {fileID: 6932039019377333456, guid: e660127e418b36244a45fabaf68e95ad, type: 3}
+  m_AttackPatternInfoClips:
+  - AttackSuccessAudioClip: {fileID: 0}
+    AttackMissAudioClip: {fileID: 0}
+    AttackFailAudioClip: {fileID: 0}
+    AttackAnimationClip: {fileID: 7400000, guid: 50d7b74b1fb087f4dbb624058552add6, type: 2}
+    ReadyFailAnimationClip: {fileID: 0}
+  _summonUnitPrefab: {fileID: 3622812279832257327, guid: 48b28fb79c7a19f4eb313fd36ba92087, type: 3}
   m_IsRandomSpawnCount: 1
-  _minSummonCount: 0
+  _minSummonCount: 1
   _maxSummonCount: 3
   m_IsInfiniteSpawn: 1

@@ -1,3 +1,4 @@
+using Data;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,7 +8,13 @@ using static Define;
 
 public class StartScene : BaseScene
 {
-    [SerializeField] private GameObject m_goMenuUI;
+
+
+    StartScene()
+    {
+        SceneType = Define.Scene.Start;
+    }
+
     [SerializeField] private MenuUI m_MenuUI;
     [SerializeField] bool m_IsSkip = false;
 
@@ -50,7 +57,7 @@ public class StartScene : BaseScene
 
     private IEnumerator IProcessUI()
     {
-        m_goMenuUI.SetActive(false);
+        m_MenuUI.gameObject.SetActive(false);
         m_CompanyTitle.enabled = false;
 
         // 회사 타이틀
@@ -76,8 +83,8 @@ public class StartScene : BaseScene
         yield return new WaitForSeconds(1f);
 
         // 페이드 효과가 전부 끝나면  메인 UI
-        m_goMenuUI.SetActive(true);
-        Managers.UI.FadeInWithChildren(m_goMenuUI, m_ShowAndHideTime, EColorMode.HSV);
+        m_MenuUI.gameObject.SetActive(true);
+        Managers.UI.FadeInWithChildren(m_MenuUI.gameObject, m_ShowAndHideTime, EColorMode.HSV);
         m_MenuUI.m_Animator.Play("Show");
 
         yield return new WaitForSeconds(1f);
@@ -88,12 +95,12 @@ public class StartScene : BaseScene
 
     private void CompleteUI()
     {
-        Managers.UI.SetColorAlphaWithChildren(m_goMenuUI, 100, EColorMode.HSV);
+        Managers.UI.SetColorAlphaWithChildren(m_MenuUI.gameObject, 100, EColorMode.HSV);
         Managers.UI.SetColorAlpha(m_CompanyTitle, 0, EColorMode.HSV);
         Managers.UI.SetColorAlpha(m_CompanyTitleBG, 0, EColorMode.HSV);
 
         Managers.Sound.Play(m_SceneMainTemaAudioclip, 1, Sound.Bgm);
-        m_goMenuUI.SetActive(true);
+        m_MenuUI.gameObject.SetActive(true);
         m_MenuUI.m_Animator.Play("Empty");
         m_IsSkip = true;
     }
@@ -101,5 +108,15 @@ public class StartScene : BaseScene
     public override void Clear()
     {
 
+    }
+
+    protected override void LoadSavedGame(SaveSlotData data)
+    {
+        base.LoadSavedGame(data);
+    }
+
+    protected override void LoadNewGame()
+    {
+        base.LoadNewGame();
     }
 }

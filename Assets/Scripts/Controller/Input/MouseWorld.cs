@@ -58,10 +58,15 @@ public class MouseWorld : MonoBehaviour
 
     private void Update()
     {
-        MouseDrag();
-        UpdateCursor();
+        if (Managers.Scene.CurrentScene.SceneType == Define.Scene.Dungeon ||
+           Managers.Scene.CurrentScene.SceneType == Define.Scene.Camp)
+        {
 
-        UpdateGridPosition();
+            MouseDrag();
+            UpdateCursor();
+
+            UpdateGridPosition();
+        }
     }
 
     void UpdateGridPosition()
@@ -93,8 +98,6 @@ public class MouseWorld : MonoBehaviour
     {
         m_isDragwing = false;
         SelectionBox.gameObject.SetActive(false);
-
-
     }
 
     public void MouseDrag()

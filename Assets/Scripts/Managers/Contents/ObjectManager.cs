@@ -70,7 +70,7 @@ public class ObjectManager
             }
         }
 
-        Debug.Log($"✅ ObjectManager Init: {_prefabs.Count}개의 프리팹 로드 완료.");
+        //Debug.Log($"✅ ObjectManager Init: {_prefabs.Count}개의 프리팹 로드 완료.");
     }
 
     // 💡 추가: SaveManager에서 Instantiate를 호출할 때 사용할 메서드

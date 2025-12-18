@@ -30,20 +30,9 @@ public class GameManager
     public int m_PlaySlotId;
     public float sessionStartTime;
 
-    // 패턴별로, (owner, field, originalClip) 목록을 저장
-    private static readonly Dictionary<AttackPattern, List<ClipBackup>> _attackPatternAnimationOriginals = new();
-
-    private sealed class ClipBackup
-    {
-        public object Owner;          // 필드의 실제 소유자 (패턴이 아닐 수 있음)
-        public FieldInfo Field;       // AnimationClip 필드 자체
-        public AnimationClip Original; // 원본 클립
-    }
-
     // 클래스 상단에 캐시 추가
     private readonly Dictionary<(E_RangeShapeType, (int, int, int, int, int, int), E_RangeFillType), HashSet<GridPosition>> _patternOffsetCache
         = new();
-
 
     #region Init
 
@@ -58,7 +47,8 @@ public class GameManager
     //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void InitAllRewards()
     {
-        if (CheckRunMethodThisScene() == false)
+        string sceneName = SceneManager.GetActiveScene().name;
+        if (!sceneName.Contains(Scene.Dungeon.ToString()) && !sceneName.Contains(Scene.Test.ToString()))
             return;
 
         Reward[] rewards = Resources.LoadAll<Reward>("Data/Reward");
@@ -69,122 +59,7 @@ public class GameManager
         }
     }
 
-    /// <summary>
-    /// AttackPattern 내부의 모든 AnimationClip을 스텝 애니메이션으로 변환
-    /// 중복 변환 방지 및 캐시 기반 로드
-    /// </summary>
-    //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-    private static void InitAttackAnimationStepAnimation()
-    {
-        if (!CheckRunMethodThisScene()) return;
-
-        var patterns = Resources.LoadAll<AttackPattern>("Data/AttackPattern");
-        int convertedCount = 0;
-
-        foreach (var pattern in patterns)
-        {
-            if (pattern == null) continue;
-
-            pattern.Init();
-
-            // 백업용 사전 초기화
-            if (!_attackPatternAnimationOriginals.ContainsKey(pattern))
-                _attackPatternAnimationOriginals[pattern] = new();
-
-            // 모든 AnimationClip 필드 검색 (배열/리스트/Serializable 내부 포함)
-            var clipFields = Util.FindAllFieldsOfType<AnimationClip>(pattern);
-
-            foreach (var (field, owner, clip) in clipFields)
-            {
-                if (clip == null) continue;
-                if (clip.name.Contains("_stepped_")) continue;
-
-                // 🔸 (owner, field) 단위로 한 번만 백업
-                if (!_attackPatternAnimationOriginals[pattern].Exists(b => ReferenceEquals(b.Owner, owner) && b.Field == field))
-                {
-                    _attackPatternAnimationOriginals[pattern].Add(new ClipBackup
-                    {
-                        Owner = owner,
-                        Field = field,
-                        Original = clip
-                    });
-                }
-
-                // 스텝 애니메이션 로드 or 변환
-                var stepped = SettingManager.Instance.ReplaceOrLoadSteppedClip(clip);
-                if (stepped != null && stepped != clip)
-                {
-                    // 실제 필드 값 교체
-                    Util.ReplaceFieldValue(owner, field, stepped);
-                    convertedCount++;
-                }
-            }
-        }
-
-        //Debug.Log($"✅ AttackPattern 스텝 애니메이션 변환 완료: {convertedCount}개 변환됨 ({patterns.Length}개 패턴)");
-    }
-
-    // 🔹 게임 종료 시 원본 복원
-    public static void RestoreOriginalClips()
-    {
-        int restoreCount = 0;
-
-        foreach (var kvp in _attackPatternAnimationOriginals)
-        {
-            var pattern = kvp.Key;
-            var backups = kvp.Value;
-
-            foreach (var b in backups)
-            {
-                try
-                {
-                    // 🔸 원래의 owner와 field를 사용해 되돌린다
-                    b.Field.SetValue(b.Owner, b.Original);
-                    restoreCount++;
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogWarning($"⚠️ 복원 실패: {pattern.name} :: {b.Owner?.GetType().Name}.{b.Field?.Name} - {e.Message}");
-                }
-            }
-        }
-
-        //Debug.Log($"♻️ AttackPattern 원본 복원 완료: {restoreCount}개 필드 복원 (패턴 {_attackPatternOriginals.Count}개)");
-    }
-
-    static bool CheckRunMethodThisScene()
-    {
-        string sceneName = SceneManager.GetActiveScene().name;
-
-        if (!sceneName.Contains(Scene.Dungeon.ToString()) && !sceneName.Contains(Scene.Test.ToString()))
-            return false;
-
-        return true;
-    }
-
-
-    // 🔹 게임 종료 시 Restore 호출
-    public void OnApplicationQuit()
-    {
-        RestoreOriginalClips();
-    }
-
     #endregion
-
-
-    public Transform FindDeepChild(Transform parent, string name)
-    {
-        foreach (Transform child in parent)
-        {
-            if (child.name == name)
-                return child;
-
-            Transform result = FindDeepChild(child, name);
-            if (result != null)
-                return result;
-        }
-        return null;
-    }
 
     // 선택한 오브젝트의 가장 긴 y축(월드 상) 가져오기
     public float GetObjectColliderLongLength(GameObject obj)
@@ -214,11 +89,13 @@ public class GameManager
 
     #region Dungeon Start & End
 
+    // 미궁 탐사 시작
     public void DungeonExplosionStart()
     {
 
     }
 
+    // 미궁 탐사 실패
     public void DungeonExplosionFail()
     {
         Debug.Log("Dungeon Core destroyed! Game Over.");
@@ -230,6 +107,7 @@ public class GameManager
         DungeonExplosionFinish();
     }
 
+    // 미궁 탐사 종료
     public void DungeonExplosionFinish()
     {
         PauseGame();
@@ -256,6 +134,7 @@ public class GameManager
         //Debug.Log("게임 일시 정지 해제");
     }
 
+    // 게임 데이터 저장
     public async Task GameSave(Action action = null)
     {
         Debug.Log("Data Save...");
@@ -270,6 +149,7 @@ public class GameManager
         action?.Invoke();
     }
 
+    // 게임 종료
     public void ExitGame()
     {
 #if UNITY_EDITOR
@@ -281,68 +161,7 @@ public class GameManager
 
     #endregion
 
-
-    public float GetStateClipLength(Animator animator, string stateName, int layerIndex = 0)
-    {
-        if (animator == null) return 0f;
-
-        var controller = animator.runtimeAnimatorController as AnimatorController;
-        if (controller == null) return 0f;
-
-        foreach (var childState in controller.layers[layerIndex].stateMachine.states)
-        {
-            if (childState.state.name == stateName && childState.state.motion is AnimationClip clip)
-            {
-                return clip.length;
-            }
-        }
-
-        return 0f; // 못 찾았을 때
-    }
-
     #region Screen Shot
-
-    // 1. 스크린 샷 찍기
-    // UI를 다 띄운 것도 보여줌
-    private Texture2D CaptureScreenshot()
-    {
-        int width = Screen.width;
-        int height = Screen.height;
-
-        Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
-        tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-        tex.Apply();
-
-        return tex;
-    }
-
-    public Texture2D CaptureCamera()
-    {
-        int width = Screen.width;
-        int height = Screen.height;
-        var cam = Camera.main;
-
-        // 1. RenderTexture 생성
-        RenderTexture rt = new RenderTexture(width, height, 24);
-        cam.targetTexture = rt;
-
-        // 2. 카메라 렌더링
-        Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
-        cam.Render();
-
-        // 3. 픽셀 읽기
-        RenderTexture.active = rt;
-        tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-        tex.Apply();
-
-        // 4. 리소스 정리
-        cam.targetTexture = null;
-        RenderTexture.active = null;
-        UnityEngine.Object.Destroy(rt);
-
-        return tex;
-    }
-
 
     public void CaptureAndSave()
     {
@@ -354,9 +173,8 @@ public class GameManager
     {
         yield return new WaitForEndOfFrame(); // 화면 렌더 끝난 후 캡처
 
-        Texture2D tex = CaptureCamera();
+        Texture2D tex = Util.CaptureCamera();
         byte[] bytes = tex.EncodeToPNG();
-
 
 #if UNITY_EDITOR
         // 에디터 환경에서만 직접 Assets 접근
@@ -376,6 +194,7 @@ public class GameManager
         AssetDatabase.Refresh();
 #endif
     }
+
 
     public Sprite LoadScreenShot(int slotID)
     {
@@ -414,6 +233,8 @@ public class GameManager
         Debug.Log($"파일 복사 완료: {originalName} → {newName}");
     }
 
+    #region GameEntity
+
     public void GameEntityModelsSetLayer(GameEntity gameEntity, int layerID)
     {
         if (gameEntity == null)
@@ -435,11 +256,44 @@ public class GameManager
         }
     }
 
+    #endregion
 
     #region Grid Range System With Attack Pattern
 
+    public IEnumerable<GridPosition> GetAllDirAndAllAttackpatternDistance(GameEntity attacker, GridPosition targetGridPosition, bool checkHasPath = false)
+    {
+        HashSet<GridPosition> result = new();
 
-    // 1. 공격 오프셋 가져오기
+        var attackerGridPosition = attacker.GetGridPosition();
+
+        // 공격자가 가지고 있는 모든 공격 패턴의 오프셋을 이용해서 destgridpostion에 모든 방향을 더한다.
+        var offsets = GetAllPatternOffsets(attacker.m_AttributeSystem.m_AttackPatterns);
+        // 시작 위치(origin) 및 방향(8방향) 계산
+        foreach (var dir in Enum.GetValues(typeof(E_Dir)).Cast<E_Dir>())
+        {
+            foreach (var offset in offsets)
+            {
+                GridPosition canAttackPos = LevelGrid.Instance.ToGridPosition(offset, targetGridPosition, dir);
+
+                // 유효한 범위만 가져오기
+                if (!LevelGrid.Instance.IsValidGridPosition(canAttackPos)) // 유효한 위치만 추가
+                    continue;
+
+                if (checkHasPath)
+                {
+                    if (!Pathfinding.Instance.HasPath(attackerGridPosition, canAttackPos))
+                        continue;
+                }
+
+
+                result.Add(canAttackPos);
+            }
+        }
+
+        return result;
+    }
+
+    // 공격 오프셋 가져오기
     public HashSet<GridPosition> GetAllPatternOffsets(IEnumerable<AttackPattern> attackPatterns)
     {
         HashSet<GridPosition> unique = new();
@@ -477,7 +331,7 @@ public class GameManager
         return computed;
     }
 
-    public HashSet<GridPosition> CalculatePatternOffsets(AttackPattern pattern)
+    private HashSet<GridPosition> CalculatePatternOffsets(AttackPattern pattern)
     {
         var unique = new HashSet<GridPosition>();
         if (pattern == null)
@@ -895,21 +749,18 @@ public class GameManager
         return unique;
     }
 
-    public void ClearPatternOffsetCache()
-    {
-        _patternOffsetCache.Clear();
-    }
-
     /// <summary>
     /// 🔍 AttackPattern의 실행 조건을 검사하고,
     /// 지정한 E_AttackCondition만 필터링해서 반환.
     /// </summary>
-    public List<(AttackPattern pattern, E_AttackCondition condition, HashSet<GridPosition> canAttackPosition)> EvaluateAttackPatternsByCondition(
+    public IEnumerable
+        <(AttackPattern pattern, E_AttackCondition condition, IEnumerable<GridPosition> canAttackPosition)> 
+        EvaluateAttackPatternsByCondition(
         GameEntity owner,
         GameEntity target,
         params E_AttackCondition[] conditions)
     {
-        List<(AttackPattern pattern, E_AttackCondition condition, HashSet<GridPosition>)> result = new();
+        List<(AttackPattern pattern, E_AttackCondition condition, IEnumerable<GridPosition>)> result = new();
 
         IEnumerable<AttackPattern> patterns = owner.m_AttributeSystem.m_AttackPatterns;
 
@@ -934,42 +785,5 @@ public class GameManager
         return result;
     }
 
-    /// <summary>
-    /// Game Entity 타입에 따라 하이어 라키가 배치되게 한다.
-    /// 나중에..
-    /// </summary>
-    public void SetTransformGameEntityOfType(GameEntity entity)
-    {
-        if(Managers.Scene.CurrentScene is DungeonScene dungeonScene)
-        {
-            switch (entity.m_ObjectType)
-            {
-                case E_ObjectType.None:
-                    break;
-                case E_ObjectType.Unit:
-                    //if(entity.m_TeamId == E_TeamId.Player)
-                    //    entity.transform.SetParent(dungeonScene.PlayerUnits);
-                    //else if (entity.m_TeamId == E_TeamId.Monster)
-                    //    entity.transform.SetParent(dungeonScene.EnemyUnits);
-                    break;
-                case E_ObjectType.Building:
-                    break;
-                case E_ObjectType.Interact:
-                    break;
-                case E_ObjectType.AutoTrigger:
-                    break;
-                case E_ObjectType.Obstacle:
-                    break;
-                case E_ObjectType.Skill:
-                    break;
-                case E_ObjectType.PassiveObject:
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
     #endregion
-
 }

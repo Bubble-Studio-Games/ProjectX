@@ -17,7 +17,6 @@ public class SaveManager
         await SavePlayStatistics();
     }
 
-
     #region Slot
     /// <summary>
     /// 🔹 현재 슬롯의 인게임 데이터를 DataManager 캐시에 반영

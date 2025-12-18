@@ -7,7 +7,7 @@ using static Define;
 /// 유닛 소환 공격 패턴
 /// </summary>
 [CreateAssetMenu(menuName = "Attack Pattern/Summon")]
-public class AttackPattern_Summon : AttackPattern<AttackPatternInfoClip>
+public class AttackPattern_Summon : AttackPattern
 {
     [Header("Summon Settings")]
     [SerializeField] private GameObject _summonUnitPrefab;
@@ -17,8 +17,13 @@ public class AttackPattern_Summon : AttackPattern<AttackPatternInfoClip>
     private List<GameEntity> _summonInstances = new List<GameEntity>();
     [SerializeField] private bool m_IsInfiniteSpawn = false;
 
+
+    int m_iThisAttackSummonCount = 0;
+
+
     // 소환 위치 가져오기
-    List<GridPosition> selectedPositions = new();
+    // 랜덤 결과 고정을 위해서 List 사용
+    List<GridPosition> selectedPositions;
 
     public AttackPattern_Summon()
     {
@@ -31,7 +36,7 @@ public class AttackPattern_Summon : AttackPattern<AttackPatternInfoClip>
         _summonInstances.Clear();
     }
 
-    public override (E_AttackCondition condition, HashSet<GridPosition> CanAttackablePos) 
+    public override (E_AttackCondition condition, List<GridPosition> CanAttackablePos) 
         CanExecute(GameEntity attacker, GameEntity target)
     {
         var ret = base.CanExecute(attacker, target);
@@ -49,33 +54,23 @@ public class AttackPattern_Summon : AttackPattern<AttackPatternInfoClip>
         return ret;
     }
 
+    /// <summary>
+    /// 소환의 경우 미리 소환할 만큼만 그리드 예약 <- TODO 저지 가능
+    /// </summary>
+    /// <param name="attacker"></param>
+    /// <param name="target"></param>
+    /// <param name="prevAttackpatern"></param>
     public override void StartAttack(GameEntity attacker, GameEntity target, AttackPattern prevAttackpatern)
     {
         base.StartAttack(attacker, target, prevAttackpatern);
 
-        // 초기화
-        HashSet<GridPosition> summonablePositions = new();
+        // 소환 범위 그리드 리스트
+        var spawnCandidate = GetAttackRangeGridPositions(attacker.GetGridPosition(), target);
 
-        // 소환만 하면 됨.
-        var attackerGridPosition = attacker.GetGridPosition();
+        // 그리드 체크
+        var spawnfilterd = spawnCandidate.Where(pos => GetGridListValidByCheckTypes(pos, attacker));
 
-        // 소환 범위 자리 예약
-        foreach (var offset in Managers.Game.GetPatternOffsets(this))
-        {
-            var testGridPosition = attackerGridPosition + offset;
-
-            // 소환 가능한 빈 공간 체크
-            if (LevelGrid.Instance.IsGridPositionCheckType(testGridPosition, E_GridCheckType.Walkable))
-            {
-                summonablePositions.Add(testGridPosition);
-            }
-        }
-
-        GameEntity spawnEneity = null;
-        if (_summonUnitPrefab.TryGetComponent<GameEntity>(out var summonedUnit))
-            spawnEneity = summonedUnit;
-
-        int unitsToSummon = 0;
+        Debug.Log($"소환 가능 : {string.Join(" \n", spawnfilterd)}");
 
         if (m_IsInfiniteSpawn == false)
         {
@@ -84,24 +79,34 @@ public class AttackPattern_Summon : AttackPattern<AttackPatternInfoClip>
                 ? UnityEngine.Random.Range(_minSummonCount, _maxSummonCount + 1)
                 : _maxSummonCount;
 
-            unitsToSummon = Mathf.Min(randomCount - _summonInstances.Count, summonablePositions.Count);
+            m_iThisAttackSummonCount = Mathf.Min(randomCount - _summonInstances.Count, spawnfilterd.Count());
         }
         else
         {
             // 무한 소환이면 단순히 랜덤 or 최대치
-            unitsToSummon = m_IsRandomSpawnCount
+            m_iThisAttackSummonCount = m_IsRandomSpawnCount
                 ? UnityEngine.Random.Range(_minSummonCount, _maxSummonCount + 1)
                 : _maxSummonCount;
 
-            unitsToSummon = Mathf.Min(unitsToSummon, summonablePositions.Count);
+            m_iThisAttackSummonCount = Mathf.Min(m_iThisAttackSummonCount, spawnfilterd.Count());
         }
 
+        // 소환 오브젝트
+        GameEntity spawnEneity = null;
+        if (_summonUnitPrefab.TryGetComponent<GameEntity>(out var summonedUnit))
+            spawnEneity = summonedUnit;
 
-        // 랜덤 셔플 후 Take
-        List<GridPosition> shuffled = summonablePositions.OrderBy(_ => UnityEngine.Random.value).ToList();
-        selectedPositions = shuffled.Take(unitsToSummon).ToList();
+        // 섞음
+        selectedPositions = spawnfilterd.OrderBy(_ => UnityEngine.Random.value).Take(m_iThisAttackSummonCount).ToList();
+
+        Debug.Log($"예약 : {string.Join(" ", selectedPositions)}");
 
         LevelGrid.Instance.SetGridPositionCellInfo(selectedPositions, E_GridCheckType.Reserve, spawnEneity);
+    }
+
+    protected override IEnumerable<GridPosition> GetAttackSelectGridPositions(IEnumerable<GridPosition> rangeGridList, GameEntity attacker, GameEntity target)
+    {
+        return selectedPositions;
     }
 
     /// <summary>
@@ -109,6 +114,8 @@ public class AttackPattern_Summon : AttackPattern<AttackPatternInfoClip>
     /// </summary>
     public override void Attack(GameEntity attacker, GameEntity target)
     {
+        Debug.Log($"소환 : {string.Join(" ", selectedPositions)}");
+
         foreach (GridPosition spawnPos in selectedPositions)
         {
             Vector3 worldPos = LevelGrid.Instance.GetWorldPosition(spawnPos);
@@ -134,7 +141,7 @@ public class AttackPattern_Summon : AttackPattern<AttackPatternInfoClip>
             }
         }
 
-        selectedPositions.Clear();
+        selectedPositions = null;
     }
 }
 

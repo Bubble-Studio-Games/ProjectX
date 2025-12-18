@@ -13,9 +13,7 @@ public class Pathfinding : MonoBehaviour
     private const int MOVE_STRAIGHT_COST = 10;
     private const int MOVE_DIAGONAL_COST = 14;
 
-    [SerializeField] private Transform gridDebugObjectPrefab;
     [SerializeField] private Transform pathfindingLinkContainer;
-
 
     private int width;
     private int height;
@@ -104,12 +102,10 @@ public class Pathfinding : MonoBehaviour
     }
 
     public List<GridPosition> FindPath
-        (GridPosition startGridPosition, 
-        GridPosition endGridPosition, 
-        out int pathLength, 
-
-        bool CheckHasObject = true, 
-        bool CheckReserve = true)
+        (GridPosition startGridPosition,
+        GridPosition endGridPosition,
+        out int pathLength,
+        params E_GridCheckType[] ignoreGridtype)
     {
         List<PathNode> openList = new List<PathNode>();
         List<PathNode> closedList = new List<PathNode>();
@@ -160,42 +156,36 @@ public class Pathfinding : MonoBehaviour
                     continue;
                 }
 
-                //bool isStart = neighbourNode == startNode;
-                //bool isEnd = neighbourNode == endNode;
-                var toCheckGridCellInfo = LevelGrid.Instance.GetGridPositionCellInfo(neighbourNode.GetGridPosition());
-                
-                //if (!isStart && !isEnd)
+
+                var cellInfo = LevelGrid.Instance.GetGridPositionCellInfo(neighbourNode.GetGridPosition());
+                var cellType = cellInfo.gridType;
+
+                // 1) Walkable이면 바로 통과
+                if (cellType == E_GridCheckType.Walkable)
                 {
-                    // 1. Walkable이 아니면 기본적으로 제외
-                    // 장애물, Void, Unit 등 막힌 칸
-                    if (toCheckGridCellInfo.gridType != E_GridCheckType.Walkable)
+                    // pass
+                }
+                else
+                {
+                    // 2) 예외적으로 통과 가능한 타입인가?
+                    bool canPass = false;
+
+                    if (ignoreGridtype.Contains(cellType))
+                        canPass = true;
+
+                    // 3) Reserve 추가 예외
+                    if (cellType == E_GridCheckType.Reserve)
                     {
-                        bool isPassableReserve = false;
+                        var startEntity = LevelGrid.Instance.GetObjectAtGridPosition(startGridPosition);
+                        if (cellInfo.Entity == startEntity)
+                            canPass = true;
+                    }
 
-                        // LevelGrid.Instance.GetObjectAtGridPosition(startGridPosition) 는 
-                        // 현재 길을 찾는 주체(Entity)를 가져오는 것으로 가정합니다.
-                        if (toCheckGridCellInfo.gridType  == E_GridCheckType.GameEntity && CheckHasObject)
-                        {
-                            // 통과 가능: 현재 객체가 예약한 Reserve 칸
-                            isPassableReserve = true;
-                        }
-
-                        // 예외 조건에 해당하지 않는다면, 길을 막습니다. (closedList에 추가하고 다음 노드로 넘어감)
-                        if (toCheckGridCellInfo.gridType == E_GridCheckType.Reserve && CheckReserve)
-                        {
-                            if(toCheckGridCellInfo.Entity == LevelGrid.Instance.GetObjectAtGridPosition(startGridPosition))
-                            {
-                                // 통과 가능: 현재 객체가 예약한 Reserve 칸
-                                isPassableReserve = true;
-                            }
-                        }
-
-                        // 예외 조건에 해당하지 않는다면, 길을 막습니다. (closedList에 추가하고 다음 노드로 넘어감)
-                        if (!isPassableReserve)
-                        {
-                            closedList.Add(neighbourNode);
-                            continue;
-                        }
+                    // 4) 예외 외에는 모두 막음
+                    if (!canPass)
+                    {
+                        closedList.Add(neighbourNode);
+                        continue;
                     }
                 }
 
@@ -364,14 +354,17 @@ public class Pathfinding : MonoBehaviour
         return gridPositionList;
     }
 
-    public bool HasPath(GridPosition startGridPosition, GridPosition endGridPosition)
+    public bool HasPath(
+        GridPosition startGridPosition, 
+        GridPosition endGridPosition, 
+        params E_GridCheckType[] ignoreGridtype)
     {
-        return FindPath(startGridPosition, endGridPosition, out int pathLength) != null;
+        return FindPath(startGridPosition, endGridPosition, out int pathLength, ignoreGridtype) != null;
     }
 
-    public int GetPathLength(GridPosition startGridPosition, GridPosition endGridPosition)
+    public int GetPathLength(GridPosition startGridPosition, GridPosition endGridPosition, params E_GridCheckType[] ignoreGridtype)
     {
-        FindPath(startGridPosition, endGridPosition, out int pathLength);
+        FindPath(startGridPosition, endGridPosition, out int pathLength, ignoreGridtype);
         return pathLength;
     }
 
@@ -379,7 +372,6 @@ public class Pathfinding : MonoBehaviour
     // allowApproachWhenUnreachable == true → 이동 불가능한 목표라도 근처까지 접근.
     // false → 도달 불가능하면 빈 리스트 반환.
     public List<GridPosition> FindNearestCandidatePath(
-        GameEntity entity,
         GridPosition start,
         IEnumerable<GridPosition> attackablePositions,
         bool allowApproachWhenUnreachable = false)

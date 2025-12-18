@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class PatrolAction : BaseAction
 {
-    public override string GetActionName()
+    PatrolAction()
     {
-        throw new NotImplementedException();
+        m_actionName = "Patrol";
     }
 
     public override EnemyAIAction GetEnemyAIAction(GridPosition gridPosition)

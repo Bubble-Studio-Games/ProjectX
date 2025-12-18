@@ -21,18 +21,20 @@ public abstract class BaseAction : MonoBehaviour
         public ControllableObject obj;
     }
 
-    public GameEntity m_BaseObject { get; protected set; }
-    protected AttributeSystem m_StatSystem;
+    [Header("Ref")]
     protected bool m_bIsActive;
+    protected GameEntity m_GameEntity;
     protected Action onActionComplete;
+
+    public string m_actionName { get; protected set; }
+    protected int m_iGetActionValidRange;
 
     [Header("Grid Position")]
     public GridPosition DestGirdPosition;
 
     protected virtual void Awake()
     {
-        m_BaseObject = GetComponentInParent<GameEntity>();
-        m_StatSystem = GetComponentInParent<AttributeSystem>();
+        m_GameEntity = GetComponentInParent<GameEntity>();
     }
 
     protected virtual void Start()
@@ -42,13 +44,7 @@ public abstract class BaseAction : MonoBehaviour
 
     protected virtual void Update()
     {
-        if (m_BaseObject.name == "Unit (5)")
-        {
-            //Debug.Log($"{GetActionName()} : {DestGirdPosition}");
-        }
     }
-
-    public abstract string GetActionName();
 
     public abstract BaseAction TakeAction(GridPosition gridPosition = default, Action onActionComplete = null);
 
@@ -64,8 +60,6 @@ public abstract class BaseAction : MonoBehaviour
     public virtual void ActionStart(Action onActionComplete)
     {
         m_bIsActive = true;
-        //this.onActionComplete = onActionComplete;
-
         OnAnyActionStarted?.Invoke(this, EventArgs.Empty);
     }
 
@@ -81,11 +75,6 @@ public abstract class BaseAction : MonoBehaviour
     {
         this.onActionComplete = onActionComplete;
 
-    }
-
-    public GameEntity GetObject()
-    {
-        return m_BaseObject;
     }
 
     public EnemyAIAction GetBestEnemyAIAction()

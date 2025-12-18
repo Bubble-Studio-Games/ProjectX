@@ -66,6 +66,9 @@ public partial class DataManager
     // 🔹 세이브 슬롯 (ID 기반)
     public Dictionary<int, SaveSlotData> SaveDic => GetDic<SaveSlotLoader, int, SaveSlotData>();
 
+    public bool IsReady { get; private set; }
+    public event Action OnDataReady;
+
     public DataManager()
     {
         _storage = new LocalFileStorage(); // 기본 로컬 파일 저장
@@ -113,6 +116,9 @@ public partial class DataManager
         await LoadSingleAsync<SettingData>();
         await LoadSingleAsync<AchievementData>();
         await LoadSingleAsync<PlayStatistics>();
+
+        IsReady = true;
+        OnDataReady?.Invoke();
     }
     #endregion
 
@@ -135,7 +141,7 @@ public partial class DataManager
         if (File.Exists(path))
         {
             // 💡 동기 파일 시스템 접근을 Task로 포장
-            json = File.ReadAllText(path);
+            json = await File.ReadAllTextAsync(path);
         }
 
         if (string.IsNullOrEmpty(json))
@@ -146,7 +152,7 @@ public partial class DataManager
             return newObj;
         }
 
-        //T obj = JsonUtility.FromJson<T>(json);
+
         T obj = JsonConvert.DeserializeObject<T>(json);
         _dataCache[t] = obj;
         return obj;
@@ -180,23 +186,22 @@ public partial class DataManager
             }
 
             // 🔹 JSON 파일 읽기
-            string json = File.ReadAllText(jsonPath);
-            //loaderObj = JsonUtility.FromJson<TLoader>(json);
+            string json = await File.ReadAllTextAsync(jsonPath);
             loaderObj = JsonConvert.DeserializeObject<TLoader>(json, settings);
 
             if (loaderObj == null)
             {
-                Debug.LogWarning($"⚠️ JsonUtility 변환 실패: {jsonPath}");
+                Debug.LogWarning($"⚠️ 게임 슬롯 데이터 JsonUtility 변환 실패: {jsonPath}");
                 loaderObj = new TLoader();
             }
 
             _dataCache[t] = loaderObj;
-            Debug.Log($"✅ JSON 로드 완료: {jsonPath}");
+            Debug.Log($"✅ 게임 슬롯 데이터 로드 완료: {jsonPath}");
             return loaderObj;
         }
         catch (Exception e)
         {
-            Debug.LogError($"❌ 로드 실패: {e.Message}");
+            Debug.LogError($"❌ 게임 슬롯 데이터 로드 실패: {e.Message}");
             loaderObj = new TLoader();
             _dataCache[t] = loaderObj;
             return loaderObj;
@@ -240,16 +245,16 @@ public partial class DataManager
         return default;
 
         // 2. 캐시에 데이터가 없는 경우
-        {
-            Debug.LogWarning($"⚠️ {t.Name} 데이터가 로드되지 않았습니다. 빈 객체를 생성하여 반환합니다.");
+        //{
+        //    Debug.LogWarning($"⚠️ {t.Name} 데이터가 로드되지 않았습니다. 빈 객체를 생성하여 반환합니다.");
 
-            // 3. 새로운 인스턴스 생성 및 캐시에 추가
-            // T : new() 제약 조건이 있으므로 안전하게 new T() 사용
-            T newObj = new T();
-            _dataCache.Add(t, newObj);
+        //    // 3. 새로운 인스턴스 생성 및 캐시에 추가
+        //    // T : new() 제약 조건이 있으므로 안전하게 new T() 사용
+        //    T newObj = new T();
+        //    _dataCache.Add(t, newObj);
 
-            return newObj;
-        }
+        //    return newObj;
+        //}
     }
 
     public void Set<T>(T data)

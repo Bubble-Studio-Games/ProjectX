@@ -9,10 +9,8 @@ using static Define;
 using static Util;
 
 
-[RequireComponent(typeof(ControllableObjectCombatManager), typeof(SetupAnimation), typeof(Poolable))]
-public class ControllableObject : 
-    GameEntity, 
-    IAccessories<ControllableObjectAnimator, ControllableObjectSounder>
+[RequireComponent(typeof(SetupAnimation), typeof(Poolable))]
+public class ControllableObject : GameEntity
 {
     public event EventHandler<OnChangeGradeEventArgs> OnChangeGrade;
     public class OnChangeGradeEventArgs: EventArgs
@@ -23,23 +21,8 @@ public class ControllableObject :
         public bool isSuccessGrade;
     }
 
-    [Header("Ref")]
-    protected List<ControllableObjectAnimator> m_ControllableObjectAnimator;
-    protected ControllableObjectSounder m_ControllableObjectSounder;
-    public ControllableObjectCombatManager m_ControllableObjectCombatManager { get; private set; }
-
     [Header("Action")]
     [SerializeField] public BaseAction m_CommandAction;
-
-    public GameEntity m_Target { get; protected set; }
-    protected StatBarUI m_StatBarUI;
-
-    [Header("Flag")]
-    public bool IsAttackStand;
-    public bool m_isDetectionsurroundingsEnabled = true; // 주위 적 탐색이 가능한가?
-    public bool m_isChaseCore = true; // 몬스터는 항상 코어를 찾는가? 임시
-
-    public E_MoveType m_EMoveType { get; private set; }
 
     [Header("Grade")]
     public E_ObjectGrade m_originalEObjectGrade; //원래 등급
@@ -50,18 +33,10 @@ public class ControllableObject :
 
     private GridPosition commandGrid;
 
+
     protected override void Awake()
     {
         base.Awake();
-
-        m_ControllableObjectCombatManager = GetComponent<ControllableObjectCombatManager>();
-
-
-
-        m_ControllableObjectAnimator = GetComponentsInChildren<ControllableObjectAnimator>().ToList();
-        m_ControllableObjectSounder = GetComponent<ControllableObjectSounder>();
-
-        m_StatBarUI = GetComponentInChildren<StatBarUI>();
 
         // Event
         OnChangeGrade += ChangeMaterialOfGrade;
@@ -77,25 +52,6 @@ public class ControllableObject :
         }
     }
 
-    public override void SpawnComplete()
-    {
-        base.SpawnComplete();
-
-        // Base Action
-        if(m_CurrentAction == null)
-            SwitchToNextStateAction(GetAction<IdleAction>());
-
-        // UnitActionSystem
-        UnitActionSystem.Instance.OnUpdateActionTick += ExecuteAction;
-    }
-
-    public override void OnDestroy()
-    {
-        base.OnDestroy();
-
-        if (UnitActionSystem.Instance != null)
-            UnitActionSystem.Instance.OnUpdateActionTick -= ExecuteAction;
-    }
 
     protected override void Update()
     {
@@ -104,7 +60,7 @@ public class ControllableObject :
         if (m_IsSetuping)
             return;
 
-        UpdateGridPosition();
+        //UpdateGridPosition();
     }
 
     #region Action
@@ -134,46 +90,6 @@ public class ControllableObject :
                 m_CurrentAction.ClearAction();
                 SwitchToNextStateAction(m_NextAction);
             }
-        }
-    }
-
-    public override void SwitchToNextStateAction(BaseAction nextAction)
-    {
-        base.SwitchToNextStateAction(nextAction);
-
-        UpdateMoveState();
-    }
-
-    private void UpdateMoveState()
-    {
-        m_EMoveType = E_MoveType.Idle;
-
-        if (m_CurrentAction is ChaseAction || m_CurrentAction is CommandMoveAction)
-        {
-            if (m_TeamId == E_TeamId.Monster)
-            {
-                if (m_Target == DungeonCore.instance)
-                    m_EMoveType = E_MoveType.Walk;
-                else
-                    m_EMoveType = E_MoveType.Run;
-            }
-            else
-                m_EMoveType = E_MoveType.Run;
-        }
-    }
-
-    public float GetMoveSpeed()
-    {
-        switch (m_EMoveType)
-        {
-            case E_MoveType.Idle:
-                return 0;
-            case E_MoveType.Walk:
-                return m_AttributeSystem.m_Stat.m_fWalkSpeed;
-            case E_MoveType.Run:
-                return m_AttributeSystem.m_Stat.m_fChaseSpeed;
-            default:
-                return 0;
         }
     }
 
@@ -223,21 +139,6 @@ public class ControllableObject :
         return GetAttacksBaseByIDs(ids);
     }
 
-    public virtual void SetTarget(GameEntity target)
-    {
-        m_Target = target;
-    }
-
-
-    public new List<ControllableObjectAnimator> GetAnimationsManager()
-    {
-        return m_ControllableObjectAnimator;
-    }
-
-    public new ControllableObjectSounder GetSounderManager()
-    {
-        return m_ControllableObjectSounder;
-    }
 
     #endregion
 
@@ -327,11 +228,11 @@ public class ControllableObject :
 
             // 하위 클래스 고유 데이터 추가
             attackReadyItemData =
-                m_ControllableObjectCombatManager?.m_AttackReadyItemObject.Select(item => item.obj.CaptureSaveData()).ToList(),
+                m_CombatManager?.m_AttackReadyItemObject.Select(item => item.obj.CaptureSaveData()).ToList(),
 
             readyAttackPatternData =
-               m_ControllableObjectCombatManager?.m_ReadyAttackPattern != null
-                   ? m_ControllableObjectCombatManager.m_ReadyAttackPattern
+               m_CombatManager?.m_ReadyAttackPattern != null
+                   ? m_CombatManager.m_ReadyAttackPattern
                        .Select(attack => attack?.CaptureSaveData())
                        .Where(data => data != null)
                        .ToHashSet()
@@ -350,7 +251,7 @@ public class ControllableObject :
         // readyAttackPatternData가 null이 아니고, 비어있지 않을 때만 복원
         if (cData.readyAttackPatternData != null && cData.readyAttackPatternData.Count > 0)
         {
-            m_ControllableObjectCombatManager.m_ReadyAttackPattern =
+            m_CombatManager.m_ReadyAttackPattern =
                 m_AttributeSystem.m_AttackPatterns
                     .Where(a => cData.readyAttackPatternData.Any(b => a.ID == b.id))
                     .OfType<AttackPattern_Ready>() // 타입 안전 변환

@@ -1,18 +1,24 @@
+using Data;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class TestScene : BaseScene
 {
-    protected override void Init()
+    TestScene()
     {
-        base.Init();
-
         SceneType = Define.Scene.Test;
     }
 
     public override void Clear()
     {
+    }
 
+    protected override void LoadSavedGame(SaveSlotData data)
+    {
+    }
+
+    protected override void LoadNewGame()
+    {
     }
 }

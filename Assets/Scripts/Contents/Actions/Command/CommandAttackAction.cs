@@ -6,46 +6,24 @@ using System.Threading.Tasks;
 
 public class CommandAttackAction : BaseAction
 {
+    CommandAttackAction()
+    {
+        m_actionName = "Command Attack";
+    }
+
     int m_iMaxDistance = 10;
 
     public override BaseAction TakeAction(GridPosition gridPosition = default, Action onActionComplete = null)
     {
-        if (m_BaseObject is PassiveObject pobj)
-        {
-            return this;
-        }
-        else if (m_BaseObject is ControllableObject cobj)
-        {
-            // 적의 위치를 가져오는 상태
-            if (gridPosition != default)
-            {
-                // 유저가 선택한 오브젝트의 위치의 적을 가져오기
-                var target = LevelGrid.Instance.GetObjectAtGridPosition(gridPosition);
+        // 유저가 선택한 오브젝트의 위치의 적을 가져오기
+        var target = LevelGrid.Instance.GetObjectAtGridPosition(gridPosition);
 
-                if (target == null || target.m_AttributeSystem.m_IsDead)
-                    return m_BaseObject.GetBackStateAction();
+        if (target == null || target.m_AttributeSystem.m_IsDead)
+            return m_GameEntity.GetBackStateAction();
 
-                cobj.SetTarget(target);
+        m_GameEntity.SetTarget(target);
 
-                // 지정한 적만 따라가도록
-                cobj.m_isDetectionsurroundingsEnabled = false;
-
-                // 1. 공격 사거리까지 이동 후 공격
-            }
-        }
-        else
-        {
-            return this;
-        }
-
-
-
-        return m_BaseObject.GetAction<ChaseAction>();
-    }
-
-    public override string GetActionName()
-    {
-        throw new NotImplementedException();
+        return m_GameEntity.GetAction<ChaseAction>();
     }
 
     public override EnemyAIAction GetEnemyAIAction(GridPosition gridPosition)
@@ -58,7 +36,7 @@ public class CommandAttackAction : BaseAction
         // 적이 있는가?
         // 갈 수 있는가?
         // 이것만 체크하면 된다.
-        GridPosition unitGridPosition = m_BaseObject.GetGridPosition();
+        GridPosition unitGridPosition = m_GameEntity.GetGridPosition();
 
         // 적이 있는가?
         if (!LevelGrid.Instance.HasEnemyAtGridPosition(unitGridPosition, gridPosition))

@@ -41,7 +41,7 @@ public class GridSystemVisual : MonoBehaviour
     {
         if (Instance != null)
         {
-            Debug.LogError("There's more than one GridSystemVisual! " + transform + " - " + Instance);
+            Debug.LogError($"There's more than one {name!}");
             Destroy(gameObject);
             return;
         }
@@ -84,14 +84,18 @@ public class GridSystemVisual : MonoBehaviour
         Managers.Command.OnSelectedActionChanged += (s, e) => UpdateGridVisual();
         Managers.Selection.OnSelectionChanged += (s, e) => UpdateGridVisual();
 
-        // Building Place
-        GridBuildingSystem.Instance.OnObjectPlacedCancel += (s, e) => HideAllGridPosition();
-        GridBuildingSystem.Instance.OnObjectPlaced += (s, e) => HideAllGridPosition();
+        //// Building Place
+        //if(GridBuildingSystem.Instance != null)
+        //{
+        //    GridBuildingSystem.Instance.OnObjectPlacedCancel += (s, e) => HideAllGridPosition();
+        //    GridBuildingSystem.Instance.OnObjectPlaced += (s, e) => HideAllGridPosition();
 
-        // 최적화 필요
-        GridBuildingSystem.Instance.OnSelectedChanged += (s, e) => UpdateGridPositionPlace();
-        GridBuildingSystem.Instance.OnRotateObject += (s, e) => UpdateGridPositionPlace();
-        CameraController.Instance.OnChangeLookFloor += (s, e) => UpdateGridPositionPlace();
+        //    // 최적화 필요
+        //    GridBuildingSystem.Instance.OnSelectedChanged += (s, e) => UpdateGridPositionPlace();
+        //    GridBuildingSystem.Instance.OnRotateObject += (s, e) => UpdateGridPositionPlace();
+        //}
+        if(CameraController.Instance != null)
+            CameraController.Instance.OnChangeLookFloor += (s, e) => UpdateGridPositionPlace();
 
         MouseWorld.Instance.OnMousePositionChanged += (s, e) => UpdateGridPositionPlace();
 
@@ -255,46 +259,103 @@ public class GridSystemVisual : MonoBehaviour
 
     /// <summary>
     /// 전체 Grid Visual을 갱신.
-    /// 선택된 액션이나 유닛의 상태에 따라 이동/공격 범위를 갱신하고 표시.
+    /// 
+    /// - 오브젝트 배치 상태 체크
+    /// - 기존 시각화 초기화
+    /// - 선택된 액션 여부에 따라 이동/공격 그리드 구성
+    /// - 예약된 그리드 필터링
+    /// - 실제 그리드 색상 적용
     /// </summary>
     private void UpdateGridVisual()
     {
         // 현재 배치중인 오브젝트가 없으면 건너 띔
-        if (GridBuildingSystem.Instance.m_PlacedObject != null)
+        if (GridBuildingSystem.Instance?.m_PlacedObject != null)
             return;
 
         // 전체 초기화
         HideAllGridPosition();
 
         BaseAction selectedAction = Managers.Command.m_SelectAction;
-        IEnumerable<GridPosition> commonGrid = null;
-        IEnumerable<GridPosition> ActionGrid = null;
 
-        // 현재 선택된 커맨드 그리드가 없을 때
+        // 액션 선택이 없을 때 = "유닛 공통 이동/공격 범위" 표시 모드
         if (selectedAction == null)
         {
-            // 선택한 유닛 중 일부가 전투 중이라면 공격 그리드 그리기 이는 이동 그리드 위에 덧 씌운다.
-            commonGrid = UnitCommonGetValidactionGridPositionList<CommandMoveAction>
-                (obj => obj.GetAction<CommandMoveAction>().GetValidActionGridPositionList());
-
-            ActionGrid = UnitCommonGetValidactionGridPositionList<CombatAction>( 
-                obj => obj.GetAction<CombatAction>().m_ThisTimeAttack
-                    .GetAttackGridPositions(obj, obj.m_Target),
-                unit => unit.GetAction<CombatAction>().m_ThisTimeAttack != null);
-
+            GetCommonAttackGridFromUnits<CommandMoveAction>();
+            GetCommonAttackGridFromUnits<CombatAction>();
         }
-
-        // 값이 없으면 패스
-        if (commonGrid == null || !commonGrid.Any())
-            return;
-
-        // 예약된 그리드 제거
-        commonGrid = Enumerable.ToHashSet(FilterGridReservation(commonGrid));
-
-        // 시각화
-        ShowGridPositionList(commonGrid, E_GridVisualType_Color.White, E_GridVisualType_Intensity.Medium);
-        ShowGridPositionList(ActionGrid, E_GridVisualType_Color.Red, E_GridVisualType_Intensity.Light);
     }
+
+    /// <summary>
+    /// 특정 액션(TAction)을 가진 유닛들 중에서,
+    /// condition(선택) 조건을 만족하는 유닛들의
+    /// 공통된 GridPosition 집합을 반환.
+    /// 
+    /// gridSelector는 각 유닛의 Grid 리스트를 가져오는 함수.
+    /// </summary>
+    private void GetCommonAttackGridFromUnits<TAction>() 
+        where TAction : BaseAction
+    {
+        // 특정 TAction만 가진 객체 필터링
+        var filter =
+            Managers.Command.FilterUnitsWithAction<TAction, GameEntity>();
+
+
+        if (typeof(TAction) == typeof(CommandMoveAction))
+        {
+            HashSet<GridPosition> commonRange = null;
+
+            // Move 전용 처리
+            foreach (var (unit, action) in filter)
+            {
+                var validList = action.GetValidActionGridPositionList();
+
+                // 첫 번째 유닛 초기화
+                if (commonRange == null)
+                    commonRange = Enumerable.ToHashSet(validList);
+                // 교집합
+                else
+                    commonRange.IntersectWith(validList);
+            }
+
+            // 시각화
+            ShowGridPositionList(commonRange, E_GridVisualType_Color.White, E_GridVisualType_Intensity.Medium);
+        }
+        else if (typeof(TAction) == typeof(CombatAction))
+        {
+            HashSet<GridPosition> rangeList = null;
+            HashSet<GridPosition> targetList = null;
+
+            // Move 전용 처리
+            foreach (var (unit, action) in filter)
+            {
+                // 필터링
+                if (unit.GetAction<CombatAction>().m_ThisTimeAttack == null)
+                    continue;
+
+                var filterGrid = unit.GetAction<CombatAction>().m_ThisTimeAttack.GetAttackGridPositions(unit, unit.m_Target);
+
+                // 첫 번째 유닛 초기화
+                if (rangeList == null)
+                    rangeList = Enumerable.ToHashSet(filterGrid.attackRangeGridList);
+                // 교집합
+                else
+                    rangeList.IntersectWith(filterGrid.attackRangeGridList);
+
+                // 첫 번째 유닛 초기화
+                if (targetList == null)
+                    targetList = Enumerable.ToHashSet(filterGrid.targetGridList);
+                // 교집합
+                else
+                    targetList.IntersectWith(filterGrid.targetGridList);
+            }
+
+            // 시각화
+            ShowGridPositionList(rangeList, E_GridVisualType_Color.Yellow, E_GridVisualType_Intensity.Light);
+            ShowGridPositionList(targetList, E_GridVisualType_Color.Red, E_GridVisualType_Intensity.Medium);
+        }
+    }
+
+
 
     #region Place GameEntity (그리드 배치)
 
@@ -371,64 +432,6 @@ public class GridSystemVisual : MonoBehaviour
     }
 
     #endregion
-
-    /// <summary>
-    /// 특정 액션(TAction)을 가진 유닛들의 공통된 유효 Grid 리스트를 추출.
-    /// gridSelector로 가져올 Grid 계산 함수를, conditionUnit으로 유닛 필터 조건을 지정 가능.
-    /// </summary>
-    /// <typeparam name="TAction">액션 타입</typeparam>
-    /// <param name="gridSelector">각 유닛에서 GridPosition을 가져오는 함수</param>
-    /// <param name="conditionUnit">선택적 유닛 필터 조건</param>
-    /// <returns>공통 유효 GridPosition 집합</returns>
-    private IEnumerable<GridPosition> UnitCommonGetValidactionGridPositionList<TAction>(
-        Func<ControllableObject, IEnumerable<GridPosition>> gridSelector, 
-        Func<ControllableObject, bool> conditionUnit = null) 
-        where TAction : BaseAction
-    {
-        // ✔ 액션 가능 유닛만 가져오기
-        var filtered = Managers.Command.FilterUnitsWithAction<TAction>();
-
-        // 유닛이 0명이면 패스
-        if (filtered == null || filtered.Count == 0)
-            return default;
-
-        // 특정 조건 필터링
-        if (conditionUnit != null)
-        {
-            filtered = filtered
-                .Where(pair => conditionUnit(pair.unit))
-                .ToList();
-        }
-
-
-        HashSet<GridPosition> commonSet = null;
-
-        foreach (var (unit, action) in filtered)
-        {
-            // ✔ ToHashSet 충돌 방지
-            var grids = Enumerable.ToHashSet(gridSelector(unit));
-
-            if (grids == null || grids.Count == 0)
-                continue;
-
-            if (commonSet == null)
-            {
-                // ✔ 첫 번째 유닛의 grid를 기준으로 삼음
-                commonSet = new HashSet<GridPosition>(grids);
-            }
-            else
-            {
-                // ✔ 교집합 수행
-                commonSet.IntersectWith(grids);
-            }
-
-            // ✔ 최적화: 공통 grid가 비면 더 볼 필요 없음
-            if (commonSet.Count == 0)
-                break;
-        }
-
-        return commonSet;
-    }
 
     #region Get
 

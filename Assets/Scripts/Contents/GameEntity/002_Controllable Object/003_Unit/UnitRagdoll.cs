@@ -31,7 +31,7 @@ public class UnitRagdoll : MonoBehaviour
     private void Awake()
     {
         // 사망 애니메이션이 있다면 실행 x
-        if (GetComponent<ControllableObjectAnimator>().m_DeathAnimationClip.Length > 0)
+        if (GetComponent<GameEntityAnimator>().m_DeathAnimationClip.Length > 0)
             return;
 
         m_Animator = GetComponent<Animator>();
@@ -47,7 +47,7 @@ public class UnitRagdoll : MonoBehaviour
         SetRagdollState(false);
 
         // Event
-        GetComponentInParent<Unit>().OnObjectSpawned += DisableRagdollAndRestorePose;
+        GetComponentInParent<GameEntity>().OnObjectSpawned += DisableRagdollAndRestorePose;
         m_StatSystem = GetComponentInParent<AttributeSystem>();
         m_StatSystem.OnDead += EnableRagdoll;
     }

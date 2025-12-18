@@ -1,19 +1,22 @@
 using Data;
 using System;
 using System.Collections;
+using System.Security.Cryptography;
 using UnityEngine;
 using static Define;
 
-[RequireComponent(typeof(AudioSource), typeof(Animator))]
+[RequireComponent(typeof(AudioSource))]
 public class Item : MonoBehaviour, ISaveable, IGuidObject
 {
     [Header("Ref")]
-    protected Animator animator;
     protected Transform spawnTransform;
     protected GameEntity m_Owner;
 
     public string _guid { get; private set; } = string.Empty; // private field로 변경하고 프로퍼티로 접근
     public string guid => _guid;
+
+    [Header("Destroy")]
+    private bool _isDestroying;
 
     public void SetGUID(string inputGuid)
     {
@@ -22,7 +25,6 @@ public class Item : MonoBehaviour, ISaveable, IGuidObject
 
     public virtual void Awake()
     {
-        animator = GetComponentInChildren<Animator>();
         Managers.Object.Add(gameObject);
 
         // 씬에 배치된 오브젝트인 경우, GUID가 없으면 새로 생성
@@ -34,48 +36,28 @@ public class Item : MonoBehaviour, ISaveable, IGuidObject
 
     public virtual void OnEnable()
     {
-        foreach (Transform child in transform)
-        {
-            child.gameObject.SetActive(true);
-        }
-
         spawnTransform = transform;
     }
 
-    public virtual void OnDestroy()
+    public virtual void OnDisable()
     {
+        StopAllCoroutines();
+    }
+
+    public void Destroy()
+    {
+        StartCoroutine(DestroyRoutine());
+    }
+
+    private IEnumerator DestroyRoutine(float seconds = 3.0f)
+    {
+        yield return new WaitForSecondsRealtime(seconds);
+
+        Managers.Resource.Destroy(gameObject); // 풀 반환
         Managers.Object.Remove(gameObject);
     }
 
-
-    public virtual void OnDisable()
-    {
-    }
-
-    public virtual void Destroy(float seconds = 3.0f)
-    {
-        // 모델은 숨기고
-        // 사운드 때문에 이렇게 해 놓은거
-        foreach (Transform child in transform)
-        {
-            child.gameObject.SetActive(false);
-        }
-
-        StartCoroutine(ObjectDestroy(seconds));
-    }
-
-    protected IEnumerator ObjectDestroy(float seconds = 3.0f)
-    {
-        yield return new WaitForSeconds(seconds);
-
-        // UnityEngine.Object는 == 연산자 오버라이드로 "Missing"도 null로 판단함
-        if (gameObject == null)
-            yield break;
-
-        Managers.Resource.Destroy(gameObject);
-    }
-
-
+    #region Data Save & Load
     public virtual BaseData CaptureSaveData()
     {
         return new ItemData()
@@ -99,12 +81,11 @@ public class Item : MonoBehaviour, ISaveable, IGuidObject
         transform.SetPositionAndRotation(iData.position, iData.rotation);
         m_Owner = Managers.Object.FindByGuidObject<GameEntity>(iData.onwerGuid);
 
-        if(m_Owner is ControllableObject cObj)
+        if(m_Owner.m_CombatManager != null)
         {
-            if(cObj.m_ControllableObjectCombatManager != null)
-            {
-                cObj.m_ControllableObjectCombatManager.m_AttackReadyItemObject.Add((this, spawnTransform));
-            }
+            m_Owner.m_CombatManager.m_AttackReadyItemObject.Add((this, spawnTransform));
         }
     }
+
+    #endregion
 }
