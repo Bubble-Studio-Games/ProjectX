@@ -24,7 +24,7 @@ public partial class AttributeSystem : MonoBehaviour
     }
 
     // 데이터 로드 후 원본 복사를 2번 하는 것을 방지하기 위해서
-    [SerializeField] bool m_isStatInstantiate;
+    bool m_isStatInstantiate;
 
 
     [Header("Flag")]

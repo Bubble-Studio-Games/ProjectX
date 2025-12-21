@@ -125,7 +125,7 @@ public class LevelGrid : MonoBehaviour
 
         E_GridCheckType type = E_GridCheckType.Walkable;
 
-        switch (unit.m_ObjectType)
+        switch (unit.m_EObjectType)
         {
             case E_ObjectType.None:
                 type = E_GridCheckType.Obstacle;
@@ -419,14 +419,14 @@ public class LevelGrid : MonoBehaviour
     #endregion
 
     #region Todo Delete
-    public IInteractable GetInteractableAtGridPosition(GridPosition gridPosition)
+    public ISelectable GetInteractableAtGridPosition(GridPosition gridPosition)
     {
         GridObject gridObject = GetGridSystem(gridPosition.floor).GetGridObject(gridPosition);
         return gridObject.GetInteractable();
     }
 
 
-    public void SetInteractableAtGridPosition(GridPosition gridPosition, IInteractable interactable)
+    public void SetInteractableAtGridPosition(GridPosition gridPosition, ISelectable interactable)
     {
         GridObject gridObject = GetGridSystem(gridPosition.floor).GetGridObject(gridPosition);
         gridObject.SetInteractable(interactable);

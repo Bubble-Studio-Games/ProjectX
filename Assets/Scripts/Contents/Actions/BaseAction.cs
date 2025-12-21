@@ -13,8 +13,8 @@ public class BaseActionData
 
 public abstract class BaseAction : MonoBehaviour
 {
-    public static event EventHandler OnAnyActionStarted;
-    public static event EventHandler OnAnyActionCompleted;
+    public event EventHandler OnActionStarted;
+    public event EventHandler OnActionCompleted;
 
     public class OnChangeMoveGridEventArgs : EventArgs
     {
@@ -24,13 +24,11 @@ public abstract class BaseAction : MonoBehaviour
     [Header("Ref")]
     protected bool m_bIsActive;
     protected GameEntity m_GameEntity;
-    protected Action onActionComplete;
 
     public string m_actionName { get; protected set; }
     protected int m_iGetActionValidRange;
 
-    [Header("Grid Position")]
-    public GridPosition DestGirdPosition;
+    public GridPosition DestGirdPosition { get; protected set; }
 
     protected virtual void Awake()
     {
@@ -46,7 +44,7 @@ public abstract class BaseAction : MonoBehaviour
     {
     }
 
-    public abstract BaseAction TakeAction(GridPosition gridPosition = default, Action onActionComplete = null);
+    public abstract BaseAction TakeAction(GridPosition gridPosition = default);
 
     public virtual bool IsValidActionGridPosition(GridPosition gridPosition)
     {
@@ -57,24 +55,16 @@ public abstract class BaseAction : MonoBehaviour
     public abstract List<GridPosition> GetValidActionGridPositionList();
 
 
-    public virtual void ActionStart(Action onActionComplete)
+    public virtual void ActionStart()
     {
         m_bIsActive = true;
-        OnAnyActionStarted?.Invoke(this, EventArgs.Empty);
+        OnActionStarted?.Invoke(this, EventArgs.Empty);
     }
 
     protected virtual void ActionComplete()
     {
         m_bIsActive = false;
-        onActionComplete?.Invoke();
-
-        OnAnyActionCompleted?.Invoke(this, EventArgs.Empty);
-    }
-
-    public void SetActionComlete(Action onActionComplete)
-    {
-        this.onActionComplete = onActionComplete;
-
+        OnActionCompleted?.Invoke(this, EventArgs.Empty);
     }
 
     public EnemyAIAction GetBestEnemyAIAction()

@@ -5,6 +5,8 @@ using static UnitActionSystem;
 using System.Linq;
 using System.Collections.Generic;
 
+
+
 public class CommandManager
 {
     public event EventHandler<OnCommandActionEventArgs> OnSelectedActionChanged;
@@ -35,7 +37,7 @@ public class CommandManager
             }
 
             //Debug.Log($"대상 선택 {target.name}");
-            switch (target.m_ObjectType)
+            switch (target.m_EObjectType)
             {
                 case E_ObjectType.Unit:
                 case E_ObjectType.Building:
@@ -68,26 +70,26 @@ public class CommandManager
         }
     }
 
-    private void CommandMove(GridPosition gridPos)
+    public void CommandMove(GridPosition gridPos)
     {
         ExecuteCommand<CommandMoveAction>(gridPos);
     }
 
-    private void CommandAttack(GameEntity target)
+    public void CommandAttack(GameEntity target)
     {
         var pos = target.m_GridPosition;
         ExecuteCommand<CommandAttackAction>(pos);
     }
 
-    private void CommandInteract(GameEntity target)
+    public void CommandInteract(GameEntity target)
     {
         var pos = target.m_GridPosition;
-        //ExecuteCommand<CommandAttackAction>(pos);
+        Debug.Log($"{target.name} 상호작용 시작");
+        ExecuteCommand<CommandInteractAction>(pos);
     }
 
     private void ExecuteCommand<TAction>
-        (GridPosition gridPosition, // 목표 그리드
-        Action<ControllableObject, TAction> onActionComplete = null)  // 액션이 끝나면 할 Action
+        (GridPosition gridPosition)
         where TAction : BaseAction
     {
         // ✔ 액션 가능 유닛만 가져오기
@@ -107,7 +109,7 @@ public class CommandManager
             executedAny = true;
 
             // ✔ 개별 유닛에 명령 실행
-            unit.DirectCommand(action, gridPosition, onActionComplete);
+            unit.DirectCommand(action, gridPosition);
         }
 
         // ✔ 하나라도 실행된 경우에만 이벤트 보내기

@@ -43,22 +43,6 @@ public class GameManager
         m_PlaySlotId = Managers.Data.playStatistics?.lastSlotID ?? 0;
     }
 
-    // 보상품 리스트의 뽑힐 확률의 총합을 1.0으로 맞춤.
-    //[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void InitAllRewards()
-    {
-        string sceneName = SceneManager.GetActiveScene().name;
-        if (!sceneName.Contains(Scene.Dungeon.ToString()) && !sceneName.Contains(Scene.Test.ToString()))
-            return;
-
-        Reward[] rewards = Resources.LoadAll<Reward>("Data/Reward");
-        foreach (var reward in rewards)
-        {
-            reward.Init();
-            //Debug.Log($"[RewardInitializer] {reward.name} initialized.");
-        }
-    }
-
     #endregion
 
     // 선택한 오브젝트의 가장 긴 y축(월드 상) 가져오기

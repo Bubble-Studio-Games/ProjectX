@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Define;
 
-public class CommandAttackAction : BaseAction
+public class CommandAttackAction : BaseAction, ICommandAction
 {
     CommandAttackAction()
     {
@@ -13,7 +14,7 @@ public class CommandAttackAction : BaseAction
 
     int m_iMaxDistance = 10;
 
-    public override BaseAction TakeAction(GridPosition gridPosition = default, Action onActionComplete = null)
+    public override BaseAction TakeAction(GridPosition gridPosition = default)
     {
         // 유저가 선택한 오브젝트의 위치의 적을 가져오기
         var target = LevelGrid.Instance.GetObjectAtGridPosition(gridPosition);

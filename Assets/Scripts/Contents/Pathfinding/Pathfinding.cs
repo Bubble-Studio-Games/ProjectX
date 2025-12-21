@@ -373,16 +373,16 @@ public class Pathfinding : MonoBehaviour
     // false → 도달 불가능하면 빈 리스트 반환.
     public List<GridPosition> FindNearestCandidatePath(
         GridPosition start,
-        IEnumerable<GridPosition> attackablePositions,
+        IEnumerable<GridPosition> gridPositions,
         bool allowApproachWhenUnreachable = false)
     {
         // 1-1) 가장 빠르게 도달할 수 있는 후보 위치 찾기
-        if (attackablePositions.Count() > 0)
+        if (gridPositions.Count() > 0)
         {
             int bestLength = int.MaxValue;
             List<GridPosition> bestPath = new();
 
-            foreach (var tgt in attackablePositions)
+            foreach (var tgt in gridPositions)
             {
                 var path = FindPath(start, tgt, out int length);
                 if (path == null || path.Count == 0) continue;
@@ -406,7 +406,7 @@ public class Pathfinding : MonoBehaviour
         // 근처까지 접근 시도 (fallback)
         var fallbackCandidates = new List<(List<GridPosition> pathToStop, int fullPathLength)>();
 
-        foreach (var tgt in attackablePositions)
+        foreach (var tgt in gridPositions)
         {
             var fullPath = FindPath(start, tgt, out int fullLength);
             if (fullPath == null || fullPath.Count == 0)
@@ -458,5 +458,33 @@ public class Pathfinding : MonoBehaviour
         }
 
         return new List<GridPosition>();
+    }
+
+    /// <summary>
+    /// 탐색된 경로들을 거리 순으로 정렬
+    /// </summary>
+    /// <param name="startPos"></param>
+    /// <param name="list"></param>
+    /// <returns></returns>
+    public IEnumerable<GridPosition> GetGridPositionByOrderPathLength(GridPosition startPos, IEnumerable<GridPosition> list)
+    {
+        // 가까운 위치 순으로 정렬
+        return list
+            .OrderBy(pos =>
+            {
+                int length = GetPathLength(startPos, pos);
+                return length == 0 ? int.MaxValue : length; // 경로 없으면 맨 뒤로
+            });
+    }
+
+    /// <summary>
+    /// 리스트 중에서 가장 가까운 그리드 반환
+    /// </summary>
+    /// <param name="startPos"></param>
+    /// <param name="list"></param>
+    /// <returns></returns>
+    public GridPosition GetGridPositionFindNearest(GridPosition startPos, IEnumerable<GridPosition> list)
+    {
+        return GetGridPositionByOrderPathLength(startPos, list).First();
     }
 }

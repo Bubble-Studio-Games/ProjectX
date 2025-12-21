@@ -17,9 +17,7 @@ public class IdleAction : BaseAction
         m_iGetActionValidRange = m_GameEntity.m_AttributeSystem.m_Stat.m_iDetectRange;
     }
 
-
-
-    public override BaseAction TakeAction(GridPosition gridPosition, Action onActionComplete)
+    public override BaseAction TakeAction(GridPosition gridPosition)
     {
         if(m_GameEntity.m_AttributeSystem.m_CanMoveableGameEntity)
         {
@@ -87,7 +85,7 @@ public class IdleAction : BaseAction
 
 
                     m_GameEntity.SetTarget(serachTareget);
-                    ActionStart(onActionComplete);
+                    ActionStart();
                     return m_GameEntity.GetAction<CombatAction>();
                 }
 
@@ -103,7 +101,7 @@ public class IdleAction : BaseAction
                     Util.DrawDebugPositions(best.canAttackPosition);
 #endif
                     m_GameEntity.SetTarget(serachTareget);
-                    ActionStart(onActionComplete);
+                    ActionStart();
                     return m_GameEntity.GetAction<ChaseAction>();
                     // 이동해서 공격 가능한 후보가 있음 -> 이동 행동 리턴
                     // distList.First().canAttackPosition 중 하나로 이동

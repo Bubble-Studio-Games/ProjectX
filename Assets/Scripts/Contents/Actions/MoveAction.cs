@@ -112,7 +112,7 @@ public class MoveAction : BaseAction
         }
     }
 
-    public override BaseAction TakeAction(GridPosition gridPosition, Action onActionComplete)
+    public override BaseAction TakeAction(GridPosition gridPosition)
     {
         return this;
     }
@@ -127,9 +127,9 @@ public class MoveAction : BaseAction
         return default;
     }
 
-    public override void ActionStart(Action onActionComplete)
+    public override void ActionStart()
     {
-        base.ActionStart(onActionComplete);
+        base.ActionStart();
         OnStartMoving?.Invoke(this, EventArgs.Empty);
     }
 

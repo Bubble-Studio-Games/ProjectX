@@ -12,13 +12,6 @@ public class PassiveObject : GameEntity
 {
     [SerializeField] private GameObject crateDestroyedPrefab;
 
-    protected override void Awake()
-    {
-        base.Awake();
-
-
-    }
-
     public override void DeSpawnComplete()
     {
         var crateDestroyedTransform = Managers.Resource.Instantiate(crateDestroyedPrefab, transform.position, transform.rotation);

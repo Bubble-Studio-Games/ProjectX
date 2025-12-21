@@ -621,7 +621,7 @@ public partial class CustomToolWindow : EditorWindow
                 SetMoveType(controllable, E_MoveType.Run);
 
 
-            var sounder = controllable.GetSounderManager();
+            var sounder = controllable.m_Sounder;
             if (sounder != null)
             {
                 // 애니메이션 이름 기반으로 자동 사운드 연동

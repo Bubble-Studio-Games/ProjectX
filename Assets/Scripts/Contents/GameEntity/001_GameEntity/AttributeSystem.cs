@@ -26,8 +26,8 @@ public partial class AttributeSystem : MonoBehaviour
 
     private GameEntity m_GameEntity;
 
-    [Header("Reward")]
-    public Reward m_Reward;
+    [Header("RewardTable")]
+    public RewardTable m_RewardTable;
 
     public bool Validate()
     {
@@ -201,82 +201,14 @@ public partial class AttributeSystem : MonoBehaviour
         Init();
     }
 
-    #region Reward
-
     // 보물 상자, 몬스터 처치 등으로 보상 수령 가능
     public void Reward()
     {
-        if (m_Reward == null)
+        if (m_RewardTable == null)
             return;
 
-        // --- 카드 보상 ---
-        if (Random.value <= m_Reward.CardProb) // 0~1 범위 확률 체크
-        {
-            if (m_Reward.rewardCards.Count > 0)
-            {
-                RewardCard selected = WeightedRandomSelect(m_Reward.rewardCards);
-                //Debug.Log($"카드 획득: {selected.m_GameEntity.m_StatSystem.m_Stat.Name}");
-
-                BuildingTypeSelectUI.Instance.AddCard(selected.m_GameEntity, transform.position);
-                // TODO: 카드 인벤토리 추가 처리
-            }
-        }
-
-        // --- 잼 보상 ---
-        if (Random.value <= m_Reward.downJamProb)
-        {
-            int jam = Random.Range(m_Reward.downJamMin, m_Reward.downJamMax + 1);
-            Inventory.Instance.AddDownJam(jam);
-            //Debug.Log($"다운잼 획득: {jam}");
-        }
-
-        // --- 버프 보상 ---
-        if (Random.value <= m_Reward.BuffProb)
-        {
-            if (m_Reward.rewardBuffs.Count > 0)
-            {
-                RewardBuff selected = WeightedRandomSelect(m_Reward.rewardBuffs);
-                Debug.Log($"버프 획득: {selected.buffId}");
-                // TODO: 대상 오브젝트에 버프 적용
-            }
-        }
-
-        //// --- 이펙트 보상 ---
-        if (Random.value <= m_Reward.EffectProb)
-        {
-            if (m_Reward.rewardEffects.Count > 0)
-            {
-                RewardEffect selected = WeightedRandomSelect(m_Reward.rewardEffects);
-                Debug.Log($"이펙트 발동: {selected.effectId}");
-                // TODO: 이펙트 실행
-            }
-        }
+        m_RewardTable.Execute(m_GameEntity);
     }
-
-    /// <summary>
-    /// 리스트 내부 확률이 합=1인 것을 전제하고 랜덤 선택
-    /// </summary>
-    private T WeightedRandomSelect<T>(List<T> list) where T : class
-    {
-        float roll = UnityEngine.Random.value;
-        float cumulative = 0f;
-
-        foreach (var item in list)
-        {
-            float prob = 0f;
-            if (item is RewardCard rc) prob = rc.Probability;
-            else if (item is RewardBuff rb) prob = rb.Probability;
-            else if (item is RewardEffect re) prob = re.Probability;
-
-            cumulative += prob;
-            if (roll <= cumulative)
-                return item;
-        }
-
-        return list[list.Count - 1]; // 안전장치
-    }
-
-    #endregion
 
     #region Data
 
@@ -286,7 +218,7 @@ public partial class AttributeSystem : MonoBehaviour
         {
             stat = m_Stat,
             attackPatterns = m_AttackPatterns.Select(attack => attack.CaptureSaveData()).ToList(),
-            rewardData = m_Reward?.CaptureSaveData(),
+            //rewardData = m_Reward?.CaptureSaveData(),
         };
     }
 
@@ -310,16 +242,9 @@ public partial class AttributeSystem : MonoBehaviour
                 attack.RestoreSaveData(attackData);
                 continue;
             }
-
-            // TODO 새로 얻은 스킬 → 생성
-            //var newAttack = CreateAttackPatternFromData(attackData);
-            //if (newAttack != null)
-            //{
-            //    m_AttackPatterns.Add(newAttack);
-            //}
         }
 
-        m_Reward.RestoreSaveData(data.rewardData);
+        //m_Reward.RestoreSaveData(data.rewardData);
 
         // 3. 복원 후 이벤트 발생 (UI 갱신 등)
         OnUpdateStat?.Invoke(this, EventArgs.Empty);

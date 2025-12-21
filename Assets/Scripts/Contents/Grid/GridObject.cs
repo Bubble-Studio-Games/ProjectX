@@ -8,7 +8,7 @@ public class GridObject
     private GridSystem<GridObject> gridSystem;
     private GridPosition gridPosition;
     private GameEntity unit;
-    private IInteractable interactable;
+    private ISelectable interactable;
 
     public GridObject(GridSystem<GridObject> gridSystem, GridPosition gridPosition)
     {
@@ -41,12 +41,12 @@ public class GridObject
         return unit;
     }
 
-    public IInteractable GetInteractable()
+    public ISelectable GetInteractable()
     {
         return interactable;
     }
 
-    public void SetInteractable(IInteractable interactable)
+    public void SetInteractable(ISelectable interactable)
     {
         this.interactable = interactable;
     }

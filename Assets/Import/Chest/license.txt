@@ -1,0 +1,11 @@
+Model Information:
+* title:	Chest
+* source:	https://sketchfab.com/3d-models/chest-6168cb12219a4a61a90ea615559bd74f
+* author:	Aki_Kato (https://sketchfab.com/Aki_Kato)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Chest" (https://sketchfab.com/3d-models/chest-6168cb12219a4a61a90ea615559bd74f) by Aki_Kato (https://sketchfab.com/Aki_Kato) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

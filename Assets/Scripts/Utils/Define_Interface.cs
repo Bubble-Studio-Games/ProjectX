@@ -7,12 +7,21 @@ using static Define;
 
 public partial class Define
 {
-    // 플레이어가 마우스 클릭으로 상호작용이 가능한 오브젝트에 부착할 용도
+    public interface ICommandAction
+    {
+
+    }
+
     public interface IInteractable
     {
-        // TODO 삭제 예정 => OnSelected로 대체
-        void Interact(Action onInteractionComplete);
+        bool CanInteract(GameEntity interactor);
+        void Interact(GameEntity interactor);
+        int GetInteractRange();
+    }
 
+    // 플레이어가 마우스 클릭으로 상호작용이 가능한 오브젝트에 부착할 용도
+    public interface ISelectable
+    {
         public event EventHandler OnSelectedEvent;
         public event EventHandler OnDeselectedEvent;
 

@@ -1,26 +1,21 @@
 using Data;
-using GLTF.Schema;
-using RootMotion.FinalIK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Mathematics;
-using Unity.VisualScripting;
+using Unity.Collections;
 using UnityEngine;
 using static Define;
-using static UnityEngine.UI.Image;
 using Material = UnityEngine.Material;
-using Random = UnityEngine.Random;
 using Type = System.Type;
 
 [RequireComponent(typeof(AttributeSystem))]
 public class GameEntity : MonoBehaviour,
     ISaveable, 
     IGuidObject,
-    IInteractable
+    ISelectable
 {
+    #region Field
+
     // Event
     public event EventHandler OnSpawnObjectSelected; // 오브젝트를 배치하려고 할 때
     public event EventHandler OnObjectSpawned; // 씬에 생성되거나 활성화될 때
@@ -40,7 +35,7 @@ public class GameEntity : MonoBehaviour,
     // Ref
     [Header("Ref")]
     protected List<GameEntityAnimator> m_AnimatorManagers;
-    protected GameEntitySounder m_SounderManager;
+    public GameEntitySounder m_Sounder { get; protected set; }
     public AttributeSystem m_AttributeSystem { get; private set; }
     public Collider m_HitCollider { get; protected set; }
     public SetupAnimation m_SetupAnimation { get; private set; }
@@ -51,12 +46,12 @@ public class GameEntity : MonoBehaviour,
     [Header("Info")]
     public GridPosition[] m_GridPositionOffsets;
     public GridPosition m_GridPosition { get; protected set; }
-    public E_ObjectType m_ObjectType;
+    public E_ObjectType m_EObjectType;
     public E_Dir m_CurrentEDir = E_Dir.South;
     public E_TeamId m_TeamId;
 
     [Header("Action")]
-    protected BaseAction currentAction;
+    [SerializeField, ReadOnly] protected BaseAction currentAction;
     public BaseAction m_CurrentAction
     {
         get => currentAction;
@@ -67,6 +62,13 @@ public class GameEntity : MonoBehaviour,
 
     protected Dictionary<Type, BaseAction> baseActionDict = new Dictionary<Type, BaseAction>();
 
+    [Tooltip("현재 객체에 할당된 Action 큐")]
+    protected Queue<(BaseAction action, GridPosition grid)> m_ActionQueue = new();
+    
+    // 지정 명령 예약
+    // 1, 2 번의 Action이 들어왔을 때 1번 Action이 완전히 끝나면 2번 Action이 실행되게 만든다.
+    protected bool m_IsCommandAction = false;
+
     [Header("Flag")]
     public bool m_IsDirectDesawnAtDeath = true; // 사망 후 바로 디스폰 처리 하는가?
     public bool m_IsSetuping { get; protected set; } = false; // 카드에서 뽑아 소환 중인가?
@@ -74,12 +76,14 @@ public class GameEntity : MonoBehaviour,
     [Tooltip("체크 되어 있을 경우 무조건 던전 코어를 향해 이동 (몬스터 전용)")]
     public bool m_IsTowardDungeonCore = false;
 
-
     // 전역 캐시 (Prefab 단위)
     private static Dictionary<string, bool> s_RotateSymmetryCache = new();
     public bool m_IsRotateSymmetry { get; private set; }
 
-    
+    #endregion
+
+    #region 기본 함수
+
     protected virtual void Awake()
     {
         // 씬에 배치된 오브젝트인 경우, GUID가 없으면 새로 생성
@@ -92,8 +96,8 @@ public class GameEntity : MonoBehaviour,
 
         if(m_AnimatorManagers == null)
             m_AnimatorManagers = GetComponentsInChildren<GameEntityAnimator>().ToList();
-        if(m_SounderManager == null)
-            m_SounderManager = GetComponent<GameEntitySounder>();
+        if(m_Sounder == null)
+            m_Sounder = GetComponent<GameEntitySounder>();
         if (m_CombatManager == null)
             m_CombatManager = GetComponent<GameEntityCombat>();
 
@@ -103,6 +107,20 @@ public class GameEntity : MonoBehaviour,
             baseActionDict[action.GetType()] = action;
 
         m_AttributeSystem.OnDead += (s, e) => ClearAction();
+
+        // 현재 Command Action에만 지정 명령 종료를 지정함.
+        GetActions()
+            .Where(action => action.GetComponent<ICommandAction>() != null)
+            .ToList()
+            .ForEach(a =>
+            {
+                a.OnActionCompleted += (s, e) =>
+                {
+                    m_IsCommandAction = false;
+                    //Debug.Log($"{a.m_actionName}의 실행 종료");
+                };
+            });
+
     }
 
     protected virtual void Start()
@@ -134,6 +152,18 @@ public class GameEntity : MonoBehaviour,
     {
 
     }
+
+    protected void OnValidate()
+    {
+        // 해당 조건은 몬스터 전용이다.
+        if (m_TeamId != E_TeamId.Monster && m_IsTowardDungeonCore)
+        {
+            m_IsTowardDungeonCore = false;
+            Debug.Log("해당 조건은 팀 타입이 몬스터일 때에만 허용됩니다.");
+        }
+    }
+
+    #endregion
 
     public IEnumerable<(Material mat, GameObject obj)> GetModelsMaterial()
     {
@@ -191,22 +221,6 @@ public class GameEntity : MonoBehaviour,
         }
     }
 
-    #region Select
-
-    public void OnDeselected()
-    {
-        //Debug.Log($"{name} DeSelect");
-        OnDeselectedEvent?.Invoke(this, EventArgs.Empty);
-    }
-
-    public void OnSelected()
-    {
-        //Debug.Log($"{name} Select");
-        OnSelectedEvent?.Invoke(this, EventArgs.Empty);
-    }
-
-    #endregion
-
     public GridPosition GetGridPosition()
     {
         return m_GridPosition;
@@ -222,10 +236,21 @@ public class GameEntity : MonoBehaviour,
         return m_AnimatorManagers;
     }
 
-    public GameEntitySounder GetSounderManager()
+    #region Select
+
+    public void OnDeselected()
     {
-        return m_SounderManager;
+        //Debug.Log($"{name} DeSelect");
+        OnDeselectedEvent?.Invoke(this, EventArgs.Empty);
     }
+
+    public void OnSelected()
+    {
+        //Debug.Log($"{name} Select");
+        OnSelectedEvent?.Invoke(this, EventArgs.Empty);
+    }
+
+    #endregion
 
     #region Dir
 
@@ -365,8 +390,8 @@ public class GameEntity : MonoBehaviour,
 
         if (m_AnimatorManagers == null)
             m_AnimatorManagers = GetComponentsInChildren<GameEntityAnimator>().ToList();
-        if (m_SounderManager == null)
-            m_SounderManager = GetComponent<GameEntitySounder>();
+        if (m_Sounder == null)
+            m_Sounder = GetComponent<GameEntitySounder>();
 
         m_AnimatorManagers.ToList().ForEach(a => a.AnimationStop());
     }
@@ -403,42 +428,74 @@ public class GameEntity : MonoBehaviour,
         m_IsRotateSymmetry = s_RotateSymmetryCache[prefabKey];
     }
 
-
     #endregion
 
     #region Action
 
-    protected virtual void ExecuteAction(object sender, EventArgs args) 
-    { 
+    /// <summary>
+    /// 매 Tick마다 호출되는 유닛의 메인 Action 루프
+    /// 1. CommandQueue에 쌓인 명령을 우선 처리
+    /// 2. Command가 없으면 FSM(Action) Tick 수행
+    /// </summary>
+    protected void ExecuteAction(object sender, EventArgs args) 
+    {
+        // 사망 상태면 모든 Action 중단
         if (m_AttributeSystem.m_IsDead)
             return;
 
-        m_NextAction = m_CurrentAction?.TakeAction();
+        // Command는 FSM보다 우선 처리 (Tick당 1개)
+        // Command가 소비되면 FSM Tick은 실행하지 않음
+        if (TryConsumeCommand())
+            return;
 
-        if (m_NextAction is not null && m_NextAction != m_CurrentAction)
-        {
-            m_CurrentAction.ClearAction();
-            SwitchToNextStateAction(m_NextAction);
-        }
+        // 일반 FSM Action Tick
+        TickCurrentAction();
     }
 
-    public virtual void SwitchToNextStateAction(BaseAction nextAction)
+    /// <summary>
+    /// 현재 Action을 즉시 교체한다.
+    /// (Action 종료 여부와 무관하게 강제 전환)
+    /// </summary>
+    public void SwitchToNextStateAction(BaseAction nextAction)
     {
         m_CurrentAction = nextAction;
 
+        // 디버그 / UI / 로그용 Action 변경 이벤트
         OnChangeBaseActionEvent?.Invoke(this, EventArgs.Empty);
     }
 
-    public void ClearAction()
+    /// <summary>
+    /// 현재 Action과 예약된 ActionQueue를 전부 초기화한다.
+    /// (유닛 리셋 / 강제 상태 변경 시 사용)
+    /// </summary>
+    private void ClearAction()
     {
         m_CurrentAction = null;
+
+        ActionQueueClear();
     }
 
+    /// <summary>
+    /// Command / Action 예약 큐를 완전히 비운다.
+    /// </summary>
+    private void ActionQueueClear()
+    {
+        m_ActionQueue.Clear();
+    }
+
+    /// <summary>
+    /// 유닛이 보유한 모든 Action 목록을 반환한다.
+    /// (디버그 / 초기화 / 이벤트 바인딩 용도)
+    /// </summary>
     public IEnumerable<BaseAction> GetActions()
     {
         return baseActionDict.Values;
     }
 
+    /// <summary>
+    /// 특정 타입의 Action을 가져온다.
+    /// (없으면 null 반환)
+    /// </summary>
     public T GetAction<T>() where T : BaseAction
     {
         if (baseActionDict.TryGetValue(typeof(T), out var action))
@@ -446,6 +503,10 @@ public class GameEntity : MonoBehaviour,
         return null;
     }
 
+    /// <summary>
+    /// 이전 Action이 존재하면 되돌아가고,
+    /// 없으면 IdleAction으로 복귀한다.
+    /// </summary>
     public BaseAction GetBackStateAction()
     {
         if (m_BeforeAction == null)
@@ -458,9 +519,90 @@ public class GameEntity : MonoBehaviour,
         }
     }
 
+    /// <summary>
+    /// 다음에 실행할 Action을 큐에 예약한다.
+    /// (현재 Command 또는 Action이 끝난 후 실행됨)
+    /// </summary>
+    public void EnqueueNextAction(BaseAction action, GridPosition grid)
+    {
+        if (action == null)
+            return;
+
+        m_ActionQueue.Enqueue((action, grid));
+    }
+
+    /// <summary>
+    /// 여러 개의 Action을 순차적으로 예약한다.
+    /// (Shift+명령, 연속 행동 등에 사용)
+    /// </summary>
+    public void EnqueueNextAction(List<(BaseAction action, GridPosition grid)> list)
+    {
+        if (list.Count == 0)
+            return;
+
+        foreach (var (action, grid) in list)
+            m_ActionQueue.Enqueue((action, grid));
+    }
+
+    /// <summary>
+    /// ActionQueue에 쌓인 Command를 하나 소비한다.
+    /// - Tick당 최대 1개만 처리
+    /// - Command 수행 중에는 중복 소비 방지
+    /// </summary>
+    /// <returns>
+    /// Command를 소비했으면 true,
+    /// 소비하지 않았으면 false
+    /// </returns>
+    private bool TryConsumeCommand()
+    {
+        // 예약된 Action이 없으면 처리하지 않음
+        if (m_ActionQueue.Count == 0)
+            return false;
+
+        // 현재 CommandAction이 아직 끝나지 않음
+        if (m_IsCommandAction)
+            return false;
+
+        var (action, grid) = m_ActionQueue.Dequeue();
+        m_IsCommandAction = true;
+
+        // CommandAction으로 즉시 전환
+        SwitchToNextStateAction(action);
+
+        // CommandAction은 항상 목표 Grid를 들고 최초 1회 실행
+        TrySwitchByResult(m_CurrentAction.TakeAction(grid));
+
+        return true;
+    }
+
+    /// <summary>
+    /// 현재 Action의 일반 FSM Tick 처리
+    /// (Command가 없을 때만 실행됨)
+    /// </summary>
+    private void TickCurrentAction()
+    {
+        if (m_CurrentAction == null)
+            return;
+
+        TrySwitchByResult(m_CurrentAction.TakeAction());
+    }
+
+    /// <summary>
+    /// Action의 실행 결과로 반환된 다음 Action이 유효할 경우
+    /// 상태를 전환한다.
+    /// </summary>
+    private void TrySwitchByResult(BaseAction next)
+    {
+        // null 이거나 같은 Action이면 전환하지 않음
+        if (next == null || next == m_CurrentAction)
+            return;
+
+        SwitchToNextStateAction(next);
+    }
+
     #endregion
 
-    #region Target Tendency
+    #region Target
 
     public bool IsEnemy(GameEntity target) => GetEnemyTeamIDs().Contains(target.m_TeamId);
     public bool IsAlly(GameEntity target) => GetAllyTeamIDs().Contains(target.m_TeamId);
@@ -508,6 +650,13 @@ public class GameEntity : MonoBehaviour,
 
         return allyTeams;
     }
+
+    public GameEntity m_Target { get; protected set; }
+    public void SetTarget(GameEntity target)
+    {
+        m_Target = target;
+    }
+
 
     #endregion
 
@@ -618,6 +767,7 @@ public class GameEntity : MonoBehaviour,
             combatAction.m_ThisTimeAttack = m_AttributeSystem.m_AttackPatterns.FirstOrDefault(attack => attack.ID == gdata.thisAttackPattern.id);
         }
 
+        // TODO 구조 변경
         BaseAction GetActionByEActionType(E_ActionType action)
         {
             if (action == E_ActionType.None)
@@ -645,17 +795,6 @@ public class GameEntity : MonoBehaviour,
         }
     }
 
-    public void Interact(Action onInteractionComplete)
-    {
-        throw new NotImplementedException();
-    }
-
     #endregion
-
-    public GameEntity m_Target { get; protected set; }
-    public void SetTarget(GameEntity target)
-    {
-        m_Target = target;
-    }
 
 }

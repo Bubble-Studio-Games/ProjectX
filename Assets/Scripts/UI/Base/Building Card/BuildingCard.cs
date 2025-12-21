@@ -46,7 +46,7 @@ public class BuildingCard : UI_Base,
         if (stat.sprite == null)
         {
             int RandomValue = Random.Range(1, 5);
-            m_objectImage.sprite = Managers.Resource.Load<Sprite>($"Art/UI/Card/Game Entity/Unreleased_{gameEntity.m_ObjectType.ToString()}_0{RandomValue}");
+            m_objectImage.sprite = Managers.Resource.Load<Sprite>($"Art/UI/Card/Game Entity/Unreleased_{gameEntity.m_EObjectType.ToString()}_0{RandomValue}");
         }
         else
         {
@@ -55,7 +55,7 @@ public class BuildingCard : UI_Base,
 
         cardName.text = stat.Name;
         m_SpawnCost.text = (stat as ControllableObjectStat).m_iSpawnCost.ToString();
-        m_Type.text = $"Type : {gameEntity.m_ObjectType.ToString()}";
+        m_Type.text = $"Type : {gameEntity.m_EObjectType.ToString()}";
         m_Atk.text = $"ATK : 0";
         m_Def.text = $"DEF : {stat.m_iPhysicalDefence.ToString()}";
     }

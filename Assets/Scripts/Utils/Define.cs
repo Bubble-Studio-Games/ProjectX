@@ -4,12 +4,13 @@ using UnityEngine;
 
 public partial class Define
 {
-    public enum E_StatModType
+    public enum RewardRarity
     {
-        Add,        // +10
-        Multiply,   // x1.2
+        Common,
+        Rare,
+        Epic,
+        Legendary
     }
-
 
     public enum E_AttackAnimationType
     {

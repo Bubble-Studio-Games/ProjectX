@@ -5,7 +5,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using static Define;
 
-public class CommandMoveAction : MoveAction
+public class CommandMoveAction : MoveAction, ICommandAction
 {
     CommandMoveAction()
     {
@@ -18,7 +18,7 @@ public class CommandMoveAction : MoveAction
         m_iGetActionValidRange = m_GameEntity.m_AttributeSystem.m_Stat.m_iCommandMoveRange;
     }
 
-    public override BaseAction TakeAction(GridPosition gridPosition, Action onActionComplete)
+    public override BaseAction TakeAction(GridPosition gridPosition)
     {
         if(gridPosition != default)
             DestGirdPosition = gridPosition;
@@ -54,7 +54,7 @@ public class CommandMoveAction : MoveAction
                 LevelGrid.Instance.SetGridPositionCellInfo(pathGridPositionList[0], E_GridCheckType.Reserve, m_GameEntity);
 
                 // Event
-                ActionStart(onActionComplete);
+                ActionStart();
             }
             else
             {

@@ -18,7 +18,6 @@ using static Table_Camera_Shake;
 3. 나중에 실시간으로 fps를 조정할 수 있게.
  */
 
-[RequireComponent(typeof(Animator))]
 [Serializable]
 public class GameEntityAnimator : MonoBehaviour
 {
@@ -55,16 +54,22 @@ public class GameEntityAnimator : MonoBehaviour
 
     protected virtual void Awake()
     {
-        m_GameEntity = GetComponentInParent<GameEntity>();
+        m_Animator = GetComponentInChildren<Animator>();
+        m_AttributeSystem = GetComponentInParent<AttributeSystem>();
 
-        m_Animator = GetComponent<Animator>();
-        if(m_Animator.runtimeAnimatorController != null)
+        if (m_Animator.runtimeAnimatorController != null)
             overrideController = new AnimatorOverrideController(m_Animator.runtimeAnimatorController);
 
+        // 애니메이션을 fps 설정에 따라 스텝 애니메이션으로 전부 변경
+        SettingManager.Instance.ReplaceAllAnimationClipArraysInObject(m_AttributeSystem.m_Stat.Name, this);
+
+        // 2. 변경된 애니메이션이 있는 컨트롤러 교체
+        m_Animator.runtimeAnimatorController = overrideController;
+
+        m_GameEntity = GetComponentInParent<GameEntity>();
         m_GameEntity.OnObjectSpawned += Spawned;
         m_GameEntity.OnObjectDespawned += DeSpawned;
 
-        m_AttributeSystem = GetComponentInParent<AttributeSystem>();
         m_AttributeSystem.OnDead += (s, e) => Dead();
         m_AttributeSystem.OnRevived += (s, e) => ChangeAnimationAtStart(E_GameEntityClipType.Revive.ToString(), m_ReviveAnimationClip);
         m_AttributeSystem.OnDamaged += Animation_Damaged;
@@ -83,8 +88,6 @@ public class GameEntityAnimator : MonoBehaviour
 
     protected virtual void Start()
     {
-        // 2. 변경된 애니메이션이 있는 컨트롤러 교체
-         m_Animator.runtimeAnimatorController = overrideController;
 
         // Event 등록
         if (m_GameEntity.GetAction<CombatAction>() != null)
@@ -98,9 +101,6 @@ public class GameEntityAnimator : MonoBehaviour
             move.OnStopMoving += MoveAction_OnStopMoving;
             move.OnChangedFloorsStarted += MoveAction_OnChangedFloorsStarted;
         }
-
-        // 애니메이션을 fps 설정에 따라 스텝 애니메이션으로 전부 변경
-        SettingManager.Instance.ReplaceAllAnimationClipArraysInObject(m_AttributeSystem.m_Stat.Name, this);
     }
 
     protected void OnEnable()
@@ -136,7 +136,7 @@ public class GameEntityAnimator : MonoBehaviour
 
     public void StepSoundPlay()
     {
-        m_GameEntity.GetSounderManager().StepSoundPlay();
+        m_GameEntity.m_Sounder.StepSoundPlay();
     }
 
     public void ChangeAnimationAtStart(string AnimationStateName, AnimationClip[] newClips, bool isImmediatelyStart = true)
@@ -277,7 +277,7 @@ public class GameEntityAnimator : MonoBehaviour
         else
         {
             // 사운드
-            m_GameEntity.GetSounderManager().AttackSoundPlay(combatAction.m_ThisTimeAttack);
+            m_GameEntity.m_Sounder.AttackSoundPlay(combatAction.m_ThisTimeAttack);
             combatAction.m_ThisTimeAttack.Attack(m_GameEntity, m_GameEntity.m_Target);
             
             // Reduce Mana

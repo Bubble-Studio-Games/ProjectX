@@ -14,8 +14,8 @@ public class MouseWorld : MonoBehaviour
     public static MouseWorld Instance { get; private set; }
     public event EventHandler<(GridPosition oldgp, GridPosition newgp)> OnMousePositionChanged;
 
-    public event Action<IInteractable> OnInteractableClicked;
-    public event Action<List<IInteractable>> OnDragSelection;
+    public event Action<ISelectable> OnInteractableClicked;
+    public event Action<List<ISelectable>> OnDragSelection;
     public event Action OnGroundClicked;
 
     private GridPosition m_GridPosition;
@@ -128,7 +128,7 @@ public class MouseWorld : MonoBehaviour
         // 클릭 이벤트
         if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),
             out RaycastHit hit, Managers.Layer.HitColLayerMask)
-            && hit.transform.parent.TryGetComponent<IInteractable>(out IInteractable unit))
+            && hit.transform.parent.TryGetComponent<ISelectable>(out ISelectable unit))
         {
             OnInteractableClicked?.Invoke(unit);
             return;
@@ -138,7 +138,7 @@ public class MouseWorld : MonoBehaviour
         OnGroundClicked?.Invoke();
     }
 
-    private void HandleUnitClicked(IInteractable obj)
+    private void HandleUnitClicked(ISelectable obj)
     {
         if (Keyboard.current.shiftKey.isPressed)
             Managers.Selection.Toggle(obj);
@@ -149,7 +149,7 @@ public class MouseWorld : MonoBehaviour
         }
     }
 
-    private void HandleDragSelection(List<IInteractable> units)
+    private void HandleDragSelection(List<ISelectable> units)
     {
         Managers.Selection.DeselectAll();
         foreach (var u in units)
@@ -170,16 +170,16 @@ public class MouseWorld : MonoBehaviour
         SelectionBox.anchoredPosition = startPosition + new Vector2(width / 2, height / 2);
         SelectionBox.sizeDelta = new Vector2(Mathf.Abs(width), Mathf.Abs(height));
 
-        List<IInteractable> selected = new();
+        List<ISelectable> selected = new();
 
         Bounds bounds = new Bounds(SelectionBox.anchoredPosition, SelectionBox.sizeDelta);
 
         var list = Managers.Object.GetObjectList()
-                    .Where(obj => obj.GetComponent<IInteractable>() != null);
+                    .Where(obj => obj.GetComponent<ISelectable>() != null);
 
         foreach (var obj in list)
             if (ObjectIsInSelectionBox(Camera.main.WorldToScreenPoint(obj.transform.position), bounds))
-                selected.Add(obj.GetComponent<IInteractable>());
+                selected.Add(obj.GetComponent<ISelectable>());
 
         OnDragSelection?.Invoke(selected);
 
@@ -242,7 +242,7 @@ public class MouseWorld : MonoBehaviour
 
                     Cursor.SetCursor(AttackCursor, hotspot, CursorMode.Auto);
                 }
-                else if (result.m_ObjectType == E_ObjectType.Interact)
+                else if (result.m_EObjectType == E_ObjectType.Interact)
                 {
                     Cursor.SetCursor(InteractCursor, hotspot, CursorMode.Auto);
 

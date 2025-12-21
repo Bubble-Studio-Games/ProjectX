@@ -23,7 +23,7 @@ public class ChaseAction : MoveAction
         m_iGetActionValidRange = m_GameEntity.m_AttributeSystem.m_Stat.m_iChaseRange;
     }
 
-    public override BaseAction TakeAction(GridPosition gridPosition, Action onActionComplete)
+    public override BaseAction TakeAction(GridPosition gridPosition)
     {
         if (m_GameEntity.m_AttributeSystem.m_CanMoveableGameEntity)
         {
@@ -44,16 +44,8 @@ public class ChaseAction : MoveAction
                 return this;
 
             // 탐지된 적들을 경로거리 기반으로 정렬
-            var unitPos = m_GameEntity.GetGridPosition();
-
             // 가까운 위치 순으로 정렬
-            serchTargetPosList = serchTargetPosList
-                .OrderBy(pos =>
-                {
-                    int length = Pathfinding.Instance.GetPathLength(unitPos, pos);
-                    return length == 0 ? int.MaxValue : length; // 경로 없으면 맨 뒤로
-                })
-                .ToList();
+            serchTargetPosList = Pathfinding.Instance.GetGridPositionByOrderPathLength(m_GameEntity.GetGridPosition(), serchTargetPosList).ToList();
 
             // 가장 가까운 적들부터 현재 공격 가능한 위치가 있는지 체크
             foreach (var serchTargetPos in serchTargetPosList)
@@ -89,7 +81,6 @@ public class ChaseAction : MoveAction
                     //Util.DrawDebugPositions(best.canAttackPosition);
 #endif
                     m_GameEntity.SetTarget(serachTareget);
-                    ActionStart(onActionComplete);
                     return m_GameEntity.GetAction<CombatAction>();
                 }
 
@@ -126,7 +117,7 @@ public class ChaseAction : MoveAction
                     //Util.DrawDebugPositions(best.canAttackPosition);
 #endif
                     m_GameEntity.SetTarget(serachTareget);
-                    ActionStart(onActionComplete);
+                    ActionStart();
                     return this;
                     // 이동해서 공격 가능한 후보가 있음 -> 이동 행동 리턴
                     // distList.First().canAttackPosition 중 하나로 이동
@@ -147,7 +138,7 @@ public class ChaseAction : MoveAction
 
         // 모든 적들에 대한, 모든 공격 패턴으로 공격 가능한 위치가 없거나, 해당 위치로의 이동이 불가능하다면 대기
         return this;
-    }
+    }   
 
     public override List<GridPosition> GetValidActionGridPositionList()
     {

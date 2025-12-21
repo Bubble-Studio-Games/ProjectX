@@ -1,0 +1,8 @@
+Model Information:
+* title:	Zombie
+* source:	https://sketchfab.com/3d-models/zombie-2310b4a58eb54833a9f50d96dcac2482
+* author:	L. (https://sketchfab.com/A2555)
+
+Model License:
+* license type:	SKETCHFAB Standard (https://sketchfab.com/licenses)
+* requirements:	Under basic restrictions, use worldwide, on all types of media, commercially or not, and in all types of derivative works

@@ -19,7 +19,7 @@ public class PatrolAction : BaseAction
         throw new NotImplementedException();
     }
 
-    public override BaseAction TakeAction(GridPosition gridPosition = default, Action onActionComplete = null)
+    public override BaseAction TakeAction(GridPosition gridPosition = default)
     {
         throw new NotImplementedException();
     }

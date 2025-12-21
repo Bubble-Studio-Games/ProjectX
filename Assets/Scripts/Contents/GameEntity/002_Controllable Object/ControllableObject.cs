@@ -12,6 +12,7 @@ using static Util;
 [RequireComponent(typeof(SetupAnimation), typeof(Poolable))]
 public class ControllableObject : GameEntity
 {
+    // TODO 인터페이스로 뺴기
     public event EventHandler<OnChangeGradeEventArgs> OnChangeGrade;
     public class OnChangeGradeEventArgs: EventArgs
     {
@@ -21,18 +22,12 @@ public class ControllableObject : GameEntity
         public bool isSuccessGrade;
     }
 
-    [Header("Action")]
-    [SerializeField] public BaseAction m_CommandAction;
-
     [Header("Grade")]
     public E_ObjectGrade m_originalEObjectGrade; //원래 등급
     public E_ObjectGrade m_EObjectGrade; //조정된 등급
     public OnChangeGradeEventArgs m_OnChangeGradeEventArgs; // 조정 수치
     [SerializeField] [Range(0, 100)] private float m_fEnhanceChance;
     [SerializeField] private List<E_ObjectEnhanceType> n_EnhanceTypeList;
-
-    private GridPosition commandGrid;
-
 
     protected override void Awake()
     {
@@ -52,94 +47,18 @@ public class ControllableObject : GameEntity
         }
     }
 
-
-    protected override void Update()
-    {
-        base.Update();
-
-        if (m_IsSetuping)
-            return;
-
-        //UpdateGridPosition();
-    }
-
     #region Action
-
-    // UnitActionSystem에서 관리
-    protected override void ExecuteAction(object sender, EventArgs args)
-    {
-        if (m_AttributeSystem.m_IsDead)
-            return;
-
-        // 커맨드 명령이 들어왔을 때 최초 1회 실행 이후로는 else 문에서 반복 실행.
-        if (m_CommandAction != null)
-        {
-            m_CurrentAction.ClearAction();
-            SwitchToNextStateAction(m_CommandAction);
-            m_CommandAction = null;
-
-            m_CurrentAction?.TakeAction(commandGrid);
-            commandGrid = default;
-        }
-        else
-        {
-            m_NextAction = m_CurrentAction?.TakeAction();
-
-            if (m_NextAction is not null && m_NextAction != m_CurrentAction)
-            {
-                m_CurrentAction.ClearAction();
-                SwitchToNextStateAction(m_NextAction);
-            }
-        }
-    }
 
     public void DirectCommand<TAction>
         (TAction toChangeAction,
-        GridPosition destGridPosition = default,
-        Action<ControllableObject, TAction> onActionComplete = null) 
+        GridPosition destGridPosition = default) 
         where TAction : BaseAction
     {
         m_BeforeAction = m_CurrentAction;
-        m_CommandAction = toChangeAction;
 
-        // ★ Action에게 gridPosition 전달
-        commandGrid = destGridPosition;
-
-        // ★ 액션 완료 이벤트 처리
-        toChangeAction.SetActionComlete(() =>
-        {
-            onActionComplete?.Invoke(this, toChangeAction);
-        });
+        // 순서 대기
+        m_ActionQueue.Enqueue((toChangeAction, destGridPosition));
     }
-
-    #endregion
-
-    #region Battle
-
-    public AttackPattern GetAttackBaseByID(int id)
-    {
-        return m_AttributeSystem.m_AttackPatterns.Where(x => x.ID == id).FirstOrDefault();
-    }
-
-    public List<AttackPattern> GetAttacksBaseByIDs(int[] ids)
-    {
-        // LINQ 쿼리 한 줄로 끝!
-        // m_StatSystem.m_Stat.attackPatterns 중에서
-        // attack의 ID가 ids 배열에 포함되어 있는 것들만 골라서 리스트로 만들어줘!
-        return m_AttributeSystem.m_AttackPatterns
-            .Where(attack => ids.Contains(attack.ID))
-            .ToList();
-    }
-
-    public List<AttackPattern> GetAttacksBaseByIDs(AttackPattern[] patterns)
-    {
-        // 비교용 ID 배열 추출
-        var ids = patterns.Select(p => p.ID).ToArray();
-
-        return GetAttacksBaseByIDs(ids);
-    }
-
-
     #endregion
 
     #region Grade

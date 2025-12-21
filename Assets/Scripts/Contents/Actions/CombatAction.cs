@@ -154,7 +154,7 @@ public class CombatAction : BaseAction
         }
     }
 
-    public override BaseAction TakeAction(GridPosition gridPosition = default, Action onActionComplete = null)
+    public override BaseAction TakeAction(GridPosition gridPosition = default)
     {
         if (m_bIsActive)
             return this;

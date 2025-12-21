@@ -86,7 +86,7 @@ public class GameEntityCombat : MonoBehaviour
         m_GameEntity.GetAnimationsManager()[0].AttackReadyFail();
 
         // Sound
-        m_GameEntity.GetSounderManager().AttackReadyFailSoundPlay();
+        m_GameEntity.m_Sounder.AttackReadyFailSoundPlay();
 
         foreach (var (obj, _) in m_AttackReadyItemObject)
             obj.Destroy();
