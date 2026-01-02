@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "com.boxqkrtm.ide.cursor": "https://github.com/boxqkrtm/com.unity.ide.cursor.git",
+    "com.shlifedev.ugs": "https://github.com/shlifedev/uni-google-sheets.git?path=src/",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
     "com.unity.2d.tilemap.extras": "3.1.3",

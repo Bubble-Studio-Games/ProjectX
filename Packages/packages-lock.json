@@ -7,14 +7,14 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
-    "com.boxqkrtm.ide.cursor": {
-      "version": "https://github.com/boxqkrtm/com.unity.ide.cursor.git",
+    "com.shlifedev.ugs": {
+      "version": "https://github.com/shlifedev/uni-google-sheets.git?path=src/",
       "depth": 0,
       "source": "git",
       "dependencies": {
-        "com.unity.test-framework": "1.1.9"
+        "com.unity.nuget.newtonsoft-json": "2.0.0"
       },
-      "hash": "38fecf55e4fd94ccfe58a92ed8ad1a529ba1694e"
+      "hash": "35d97f3719cf9aaafb4e4b30135e8edd478686fc"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
@@ -167,6 +167,13 @@
     },
     "com.unity.mathematics": {
       "version": "1.2.6",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
+    "com.unity.nuget.newtonsoft-json": {
+      "version": "3.2.1",
       "depth": 1,
       "source": "registry",
       "dependencies": {},

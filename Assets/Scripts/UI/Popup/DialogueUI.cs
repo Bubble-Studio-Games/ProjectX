@@ -1,54 +1,54 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+
+public static class DotTMPTextEx
+{
+    public static Tweener DOText(this TextMeshProUGUI target, string typingText,float duration)
+    {
+        target.text = typingText;
+        target.maxVisibleCharacters = 0;
+        return DOTween.To(x => target.maxVisibleCharacters = (int)x, 0, target.text.Length, duration);
+    }
+}
+
 
 /// <summary>
 /// NPC 대화 시스템 UI
 /// </summary>
 public class DialogueUI : UI_Popup
 {
-    private enum Images
-    {
-        NPCPortrait_Image,
-        PlayerPortrait_Image,
-    }
+    private enum Images { NPCPortrait_Image, PlayerPortrait_Image, }
 
-    private enum Texts
-    {
-        Dialogue_Text,
-    }
+    private enum Texts { Dialogue_Text, }
 
-    private enum Buttons
-    {
-        ContinueButton,
-        SkipButton,
-        CloseButton
-    }
+    private enum GameObjs { Choice, }
 
-    [Header("테스트용")]
-    [SerializeField] private List<string> _testDummyDialogueTexts;
-
-    [Header("Dialogue Settings")]
-    [SerializeField] private float _typingSpeed = 0.05f;        // 타이핑 속도 (초당 글자 수)
-    [SerializeField] private float _autoContinueDelay = 2f;     // 자동 진행 대기 시간
+    private const string PLAYER = "Player";
+    
+    private float _dialogueTypingSpeed => GlobalSettings.Instance.Dialogue.TypingText;
+    private float _activeSpeakerAlpha => GlobalSettings.Instance.Dialogue.ActiveSpeakerAlpha;
+    private float _inactiveSpeakerAlpha => GlobalSettings.Instance.Dialogue.InactiveSpeakerAlpha;
+    private float _portraitFadeDuration => GlobalSettings.Instance.Dialogue.PortraitFadeDuration;
+    private float _uiAnimDuration => GlobalSettings.Instance.Dialogue.DialogueUIAnimDuration;
 
     private TextMeshProUGUI _dialogueText;
     private Image _npcPortrait;
     private Image _playerPortrait;
-    private Button _continueButton;
-    private Button _skipButton;
+    private GameObject _choice;
 
     private string _fullDialogueText;
-    private int _currentCharIndex = 0;
-    private bool _isTyping = false;
-    private Coroutine _typingCoroutine;
-    private Coroutine _autoContinueCoroutine;
 
-    private NPC _currentNPC;
-    private int _currentDialogueIndex = 0;  // 테스트용 더미 데이터 인덱스
+    private Tweener _typingTweener;
+    private CanvasGroup _canvasGroup;
+
+    private List<ChoiceBoxUI> _choiceItems = new();
+    private Action<Dialogue.Data> _onChoiceSelected;
 
     public override bool Init()
     {
@@ -57,197 +57,141 @@ public class DialogueUI : UI_Popup
 
         BindImage(typeof(Images));
         BindText(typeof(Texts));
-        BindButton(typeof(Buttons));
+        BindObject(typeof(GameObjs));
 
         _dialogueText = GetText((int)Texts.Dialogue_Text);
         _npcPortrait = GetImage((int)Images.NPCPortrait_Image);
         _playerPortrait = GetImage((int)Images.PlayerPortrait_Image);
-        _continueButton = GetButton((int)Buttons.ContinueButton);
-        _skipButton = GetButton((int)Buttons.SkipButton);
+        _choice = GetObject((int)GameObjs.Choice);
 
-        // GetButton((int)Buttons.ContinueButton).onClick.AddListener(OnContinueButtonClicked);
-        // GetButton((int)Buttons.SkipButton).onClick.AddListener(OnSkipButtonClicked);
-        // GetButton((int)Buttons.CloseButton).onClick.AddListener(CloseDialogue);
+        // 기본값 설정
+        _playerPortrait.color = new Color(1f, 1f, 1f, _inactiveSpeakerAlpha);
+        _npcPortrait.color = new Color(1f, 1f, 1f, _inactiveSpeakerAlpha);
+        _dialogueText.text = string.Empty;
 
-        // 초기 상태 설정
-        SetDialogueState(false);
+        _canvasGroup = this.gameObject.GetOrAddComponent<CanvasGroup>();
         return true;
     }
 
-    public void StartDialogue(NPC npc)
+    protected override void OnDestroy()
     {
-        Init();
-
-        _currentNPC = npc;
-        _fullDialogueText = _testDummyDialogueTexts[_currentDialogueIndex];
-
-        SetDialogueState(true);
-        StartTypingEffect();
+        _dialogueText?.DOKill();
+        _typingTweener?.Kill();
+        _playerPortrait?.DOKill();
+        _npcPortrait?.DOKill();
+        _canvasGroup?.DOKill();
+        base.OnDestroy();
     }
 
-    private void SetDialogueState(bool isActive)
+    public void UpdateDialogueData(Dialogue.Data dialogueData)
     {
-        if (isActive)
-            Managers.Game.PauseGame();
-        else
-            Managers.Game.ResumeGame();
-    }
+        _npcPortrait.sprite = Managers.Resource.Load<Sprite>(ResourceKeys.PORTRAIT_PATH + dialogueData.Right_Portrait);
+        _playerPortrait.sprite = Managers.Resource.Load<Sprite>(ResourceKeys.PORTRAIT_PATH + dialogueData.Left_Portrait);
+        _fullDialogueText = dialogueData.Dialogue_Text;
 
-    /// <summary>
-    /// 타이핑 효과 시작
-    /// </summary>
-    private void StartTypingEffect()
-    {
-        if (_typingCoroutine != null)
-            StopCoroutine(_typingCoroutine);
-
-        _isTyping = true;
-        _currentCharIndex = 0;
-        _dialogueText.text = "";
-
-        _typingCoroutine = StartCoroutine(TypingCoroutine());
-
-        // 버튼 상태 업데이트
-        UpdateButtonStates();
+        UpdatePortraitAlpha(dialogueData.Speaker_Type);
     }
 
     /// <summary>
-    /// 타이핑 코루틴
+    /// 화자에 따른 포트레이트 투명도 조절
     /// </summary>
-    private IEnumerator TypingCoroutine()
+    private void UpdatePortraitAlpha(string speakerType)
     {
-        while (_currentCharIndex < _fullDialogueText.Length)
+        bool isPlayerSpeaking = speakerType.Equals(PLAYER, StringComparison.OrdinalIgnoreCase);
+
+        float playerAlpha = isPlayerSpeaking ? _activeSpeakerAlpha : _inactiveSpeakerAlpha;
+        float npcAlpha = isPlayerSpeaking ? _inactiveSpeakerAlpha : _activeSpeakerAlpha;
+
+        _playerPortrait.DOKill();
+        _npcPortrait.DOKill();
+
+        _playerPortrait.DOFade(playerAlpha, _portraitFadeDuration).SetUpdate(true);
+        _npcPortrait.DOFade(npcAlpha, _portraitFadeDuration).SetUpdate(true);
+    }
+
+    public void TypingText(Action onComplete = default)
+    {
+        _dialogueText.text = string.Empty;
+
+        _typingTweener?.Kill();
+        _dialogueText?.DOKill();
+        _typingTweener = _dialogueText.DOText(_fullDialogueText, _dialogueTypingSpeed)
+            .SetUpdate(true)
+            .SetEase(Ease.Linear)
+            .OnComplete(() =>
+            {
+                onComplete?.Invoke();
+            });
+    }
+
+    public void SkipTyping()
+    {
+        _typingTweener?.Complete();
+    }
+
+    public void ShowAnimation(Action onComplete = default)
+    {
+        _canvasGroup.DOKill();
+        _canvasGroup.alpha = 0f;
+
+        _canvasGroup.DOFade(1f, _uiAnimDuration)
+            .SetUpdate(true)
+            .SetEase(Ease.OutQuad)
+            .OnComplete(() => onComplete?.Invoke());
+    }
+
+    public void HideAnimation(Action onComplete = default)
+    {
+        _canvasGroup.DOKill();
+
+        _canvasGroup.DOFade(0f, _uiAnimDuration)
+            .SetUpdate(true)
+            .SetEase(Ease.InQuad)
+            .OnComplete(() => onComplete?.Invoke());
+    }
+
+    /// <summary>
+    /// 선택지 표시
+    /// </summary>
+    public void ShowChoices(List<Dialogue.Data> choices, Action<Dialogue.Data> onChoiceSelected)
+    {
+        ClearChoices();
+
+        _onChoiceSelected = onChoiceSelected;
+        _choice.SetActive(true);
+
+        foreach (var choiceData in choices)
         {
-            _currentCharIndex++;
-            _dialogueText.text = _fullDialogueText.Substring(0, _currentCharIndex);
-
-            yield return new WaitForSecondsRealtime(_typingSpeed);
-        }
-
-        _isTyping = false;
-        UpdateButtonStates();
-
-        // 타이핑 완료 후 자동 진행 대기
-        if (_autoContinueCoroutine != null)
-            StopCoroutine(_autoContinueCoroutine);
-
-        _autoContinueCoroutine = StartCoroutine(AutoContinueCoroutine());
-    }
-
-    /// <summary>
-    /// 자동 진행 코루틴
-    /// </summary>
-    private IEnumerator AutoContinueCoroutine()
-    {
-        yield return new WaitForSecondsRealtime(_autoContinueDelay);
-
-        if (_isTyping == false)
-            OnContinueButtonClicked();
-    }
-
-    /// <summary>
-    /// 계속 버튼 클릭 처리
-    /// </summary>
-    private void OnContinueButtonClicked()
-    {
-        // 타이핑 중이면 즉시 완료
-        if (_isTyping)
-            CompleteTyping();
-        else
-            EndDialogue();
-    }
-
-    /// <summary>
-    /// 건너뛰기 버튼 클릭 처리
-    /// </summary>
-    private void OnSkipButtonClicked()
-    {
-        if (_isTyping)
-        {
-            CompleteTyping();
-        }
-        else
-        {
-            EndDialogue();
+            var choiceItem = Managers.Resource.Instantiate(ResourceKeys.CHOICE_BOX_UI, _choice.transform);
+            var choiceItemComponent = choiceItem.GetOrAddComponent<ChoiceBoxUI>();
+            choiceItemComponent.SetUp(choiceData, OnChoiceItemClicked);
+            _choiceItems.Add(choiceItemComponent);
         }
     }
 
     /// <summary>
-    /// 타이핑 완료 처리
+    /// 선택지 숨기기
     /// </summary>
-    private void CompleteTyping()
+    public void HideChoices()
     {
-        if (_typingCoroutine != null)
-            StopCoroutine(_typingCoroutine);
-
-        _isTyping = false;
-        _dialogueText.text = _fullDialogueText;
-        _currentCharIndex = _fullDialogueText.Length;
-
-        UpdateButtonStates();
-
-        // 자동 진행 코루틴 시작
-        if (_autoContinueCoroutine != null)
-            StopCoroutine(_autoContinueCoroutine);
-
-        _autoContinueCoroutine = StartCoroutine(AutoContinueCoroutine());
+        ClearChoices();
+        _choice.SetActive(false);
     }
 
-    /// <summary>
-    /// 버튼 상태 업데이트
-    /// </summary>
-    private void UpdateButtonStates()
+    private void ClearChoices()
     {
-        if (_continueButton != null)
-            _continueButton.interactable = !_isTyping;
-
-        if (_skipButton != null)
-            _skipButton.interactable = true;  // 항상 사용 가능
-    }
-
-    /// <summary>
-    /// 대화 종료
-    /// </summary>
-    private void EndDialogue()
-    {
-        SetDialogueState(false);
-
-        // 다음 대사가 있으면 계속, 없으면 종료
-        if (HasNextDialogue())
+        foreach (var item in _choiceItems)
         {
-            _currentDialogueIndex++;
-
-            if (_currentNPC != null)
-                StartDialogue(_currentNPC);
-            else
-                StartDialogue(null);
+            if (item != null && item.gameObject != null)
+                Managers.Resource.Destroy(item.gameObject);
         }
-        else
-        {
-            CloseDialogue();
-        }
+        _choiceItems.Clear();
     }
 
-    /// <summary>
-    /// 다음 대사가 있는지 확인
-    /// </summary>
-    private bool HasNextDialogue()
+    private void OnChoiceItemClicked(Dialogue.Data choiceData)
     {
-        if (_testDummyDialogueTexts != null && _testDummyDialogueTexts.Count > 0)
-        {
-            return _currentDialogueIndex < _testDummyDialogueTexts.Count;
-        }
-
-        return false;
+        HideChoices();
+        _onChoiceSelected?.Invoke(choiceData);
     }
 
-    /// <summary>
-    /// 대화창 닫기
-    /// </summary>
-    private void CloseDialogue()
-    {
-        SetDialogueState(false);
-        _currentDialogueIndex = 0;
-        ClosePopupUI();
-    }
 }

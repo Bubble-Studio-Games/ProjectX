@@ -17,6 +17,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Camp.unity
     guid: b97294d76002f464a8a66d77d4157600
+  - enabled: 1
+    path: Assets/Scenes/Dev/LMGameScene.unity
+    guid: c7139cded6abd8d4eb4589e295e47dcd
   m_configObjects:
     com.unity.addressableassets: {fileID: 11400000, guid: 309ce67af3398f042b4fd4f6fbaafdc7, type: 2}
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 9d1019b9386084c4195f4ed6af4ad143, type: 3}

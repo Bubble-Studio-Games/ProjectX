@@ -15,7 +15,7 @@ public class SaveSlotItem : UI_Base
     public TextMeshProUGUI m_CreateTimeText;
     public TextMeshProUGUI m_PlayTimeText;
 
-    public MenuUI m_MenuUI;
+    private SaveSlotPanel _saveSlotPanel;
     public bool m_havingData => m_SaveImage != null;
 
     [Header("Sounds")]
@@ -26,6 +26,8 @@ public class SaveSlotItem : UI_Base
         if (base.Init() == false)
             return false;
 
+        _saveSlotPanel = GetComponentInParent<SaveSlotPanel>();
+
         m_SaveBGImage.gameObject.BindEvent(() => Click());
         m_SaveImage.gameObject.BindEvent(() => Click());
 
@@ -35,17 +37,20 @@ public class SaveSlotItem : UI_Base
 
     private async void Click()
     {
+        if (_saveSlotPanel == null)
+            return;
+
         // 복붙 기능이 켜져 있음. 원하는 슬롯을 클릭하면 복붙을 함.
-        if(m_MenuUI.m_IsCopying)
+        if (_saveSlotPanel.IsCopying)
         {
-            await Managers.Save.CopySlotAsync(m_MenuUI.m_iselectSlotID, slotID);
-            m_MenuUI.RefreshUI(); // 슬롯 데이터 갱신
-            m_MenuUI.CopyComplete();
+            await Managers.Save.CopySlotAsync(_saveSlotPanel.SelectedSlotID, slotID);
+            _saveSlotPanel.RefreshUI();
+            _saveSlotPanel.CopyComplete();
         }
 
-        m_MenuUI.SlotsClickCancel();
-        m_MenuUI.IsClickingSlot(m_havingData);
-        m_MenuUI.m_iselectSlotID = slotID;
+        _saveSlotPanel.CancelAllSlotSelection();
+        _saveSlotPanel.UpdateSlotButtons(m_havingData);
+        _saveSlotPanel.SetSelectedSlot(slotID);
 
         m_SaveBGImage.color = Color.red;
 
