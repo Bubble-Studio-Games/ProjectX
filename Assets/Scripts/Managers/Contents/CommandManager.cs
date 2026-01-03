@@ -5,12 +5,10 @@ using static UnitActionSystem;
 using System.Linq;
 using System.Collections.Generic;
 
-
-
 public class CommandManager
 {
-    public event EventHandler<OnCommandActionEventArgs> OnSelectedActionChanged;
-    public event EventHandler<OnCommandActionEventArgs> OnCommandAction;
+    public event Action<OnCommandActionEventArgs> OnSelectedActionChanged;
+    public event Action<OnCommandActionEventArgs> OnCommandAction;
     public class OnCommandActionEventArgs : EventArgs
     {
         public GridPosition GridPosition;
@@ -60,12 +58,12 @@ public class CommandManager
             obj = null;
 
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),
-                                out RaycastHit hit, Managers.Layer.PlayerInteractableLayerMask))
+                                out RaycastHit hit, GameConfig.Layer.PlayerInteractableLayerMask))
             {
                 obj = hit.collider.GetComponentInParent<GameEntity>();
             }
 
-            gp = MouseWorld.Instance.GetGridPosition();
+            gp = Managers.SceneServices.Cursor.GetMouseWorldGridPosition(); 
             return true;
         }
     }
@@ -77,13 +75,13 @@ public class CommandManager
 
     public void CommandAttack(GameEntity target)
     {
-        var pos = target.m_GridPosition;
+        var pos = target.GetGridPosition();
         ExecuteCommand<CommandAttackAction>(pos);
     }
 
     public void CommandInteract(GameEntity target)
     {
-        var pos = target.m_GridPosition;
+        var pos = target.GetGridPosition();
         Debug.Log($"{target.name} 상호작용 시작");
         ExecuteCommand<CommandInteractAction>(pos);
     }
@@ -115,7 +113,7 @@ public class CommandManager
         // ✔ 하나라도 실행된 경우에만 이벤트 보내기
         if (executedAny)
         {
-            OnCommandAction?.Invoke(this, new OnCommandActionEventArgs
+            OnCommandAction?.Invoke(new OnCommandActionEventArgs
             {
                 action = typeof(TAction),
                 GridPosition = gridPosition,
@@ -140,7 +138,7 @@ public class CommandManager
     {
         m_SelectAction = baseAction;
 
-        OnSelectedActionChanged?.Invoke(this, new OnCommandActionEventArgs
+        OnSelectedActionChanged?.Invoke(new OnCommandActionEventArgs
         {
             action = baseAction.GetType()
         });

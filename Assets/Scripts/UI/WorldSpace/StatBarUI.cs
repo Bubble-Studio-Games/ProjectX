@@ -20,24 +20,15 @@ public class StatBarUI : MonoBehaviour
     private void Awake()
     {
         m_GameEntity = GetComponentInParent<GameEntity>();
-        m_GameEntity.OnObjectSpawned += (s, e) => Init();
-        m_GameEntity.OnSpawnObjectSelected += (s, e) => SetActiveFalseBars();
-
         StatSystem = GetComponentInParent<AttributeSystem>();
+    }
 
-        // Event
-        StatSystem.OnUpdateStat += (s, e) => UpdateHealthBar();
-        StatSystem.OnUpdateStat += (s, e) => UpdateManaBar();
-
-        StatSystem.OnDead += (s, e) => SetActiveFalseBars();
-        StatSystem.OnRevived += (s, e) => Init();
-
-
-        if (m_GameEntity is ControllableObject cobj)
+    private void Start()
+    {
+        if (m_GameEntity is IUpgradeble cobj)
         {
-
             ObjectNameText.text = StatSystem.m_Stat.Name;
-            switch (cobj.m_originalEObjectGrade)
+            switch (cobj.m_EObjectGrade)
             {
                 case E_ObjectGrade.Normal:
                     ObjectNameText.gameObject.SetActive(true);
@@ -58,13 +49,41 @@ public class StatBarUI : MonoBehaviour
             cobj.OnChangeGrade += UpdateGrade;
         }
 
+        if (!m_GameEntity.m_IsSetuping)
+            Init();
+    }
+
+    private void OnEnable()
+    {
+        if (m_GameEntity is IUpgradeble cobj)
+            cobj.OnChangeGrade += UpdateGrade;
+
+        m_GameEntity.OnObjectSpawnStart += Init;
+        m_GameEntity.OnSpawnObjectSelected += SetActiveFalseBars;
+
+        // Event
+        StatSystem.OnUpdateStat += UpdateHealthBar;
+        StatSystem.OnUpdateStat += UpdateManaBar;
+
+        StatSystem.OnDead += SetActiveFalseBars;
+        StatSystem.OnRevived += Init;
 
     }
 
-    private void Start()
+    private void OnDisable()
     {
-        if (!m_GameEntity.m_IsSetuping)
-            Init();
+        if (m_GameEntity is IUpgradeble cobj)
+            cobj.OnChangeGrade -= UpdateGrade;
+
+        m_GameEntity.OnObjectSpawnStart -= Init;
+        m_GameEntity.OnSpawnObjectSelected -= SetActiveFalseBars;
+
+        // Event
+        StatSystem.OnUpdateStat -= UpdateHealthBar;
+        StatSystem.OnUpdateStat -= UpdateManaBar;
+
+        StatSystem.OnDead -= SetActiveFalseBars;
+        StatSystem.OnRevived -= Init;
     }
 
     public void Init()
@@ -92,6 +111,13 @@ public class StatBarUI : MonoBehaviour
         ManaBarImage.fillAmount = StatSystem.GetManaNormalized();
     }
 
+    private void SetActiveFalseBars(OnAttackInfoEventArgs e)
+    {
+        ManaBar.SetActive(false); 
+        healthBar.SetActive(false);
+        ObjectNameText.gameObject.SetActive(false);
+    }
+
     private void SetActiveFalseBars()
     {
         ManaBar.SetActive(false); 
@@ -99,7 +125,7 @@ public class StatBarUI : MonoBehaviour
         ObjectNameText.gameObject.SetActive(false);
     }
 
-    private void UpdateGrade(object sender, ControllableObject.OnChangeGradeEventArgs args)
+    private void UpdateGrade(OnChangeGradeEventArgs args)
     {
         if (ObjectNameText == null)
             return;

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Define;
-using UnityEngine;
 
 public class IdleAction : BaseAction
 {
@@ -27,9 +26,12 @@ public class IdleAction : BaseAction
             // 몬스터의 경우 추가 설정
             if (m_GameEntity.m_TeamId == E_TeamId.Monster && m_GameEntity.m_IsTowardDungeonCore)
             {
-                if (DungeonCore.instance != null && !DungeonCore.instance.m_AttributeSystem.m_IsDead)
+                var cores = Managers.SceneServices.DungeonCores.Cores;
+                for (int i = 0; i < cores.Count; i++)
                 {
-                    serchTargetPosList.Add(DungeonCore.instance.GetGridPosition());
+                    var core = cores[i];
+                    if (core != null && !core.IsDead)
+                        serchTargetPosList.Add(core.GetGridPosition());
                 }
             }
 
@@ -44,7 +46,7 @@ public class IdleAction : BaseAction
             serchTargetPosList = serchTargetPosList
                 .OrderBy(pos =>
                 {
-                    int length = Pathfinding.Instance.GetPathLength(unitPos, pos);
+                    int length = Managers.SceneServices.Pathfinder.GetPathLength(unitPos, pos);
                     return length == 0 ? int.MaxValue : length; // 경로 없으면 맨 뒤로
                 })
                 .ToList();
@@ -52,7 +54,7 @@ public class IdleAction : BaseAction
             // 가장 가까운 적들부터 현재 공격 가능한 위치가 있는지 체크
             foreach (var serchTargetPos in serchTargetPosList)
             {
-                var serachTareget = LevelGrid.Instance.GetObjectAtGridPosition(serchTargetPos);
+                var serachTareget = Managers.SceneServices.Grid.GetCellEntity(serchTargetPos);
 
                 // 현재 특정 조건을 만족하는 공격 후보들을 가져오기
                 // 쿨타임, 거리, 바로 사용 가능.
@@ -144,7 +146,7 @@ public class IdleAction : BaseAction
                     GridPosition offsetGridPosition = new GridPosition(x, z, floor);
                     GridPosition testGridPosition = unitGridPosition + offsetGridPosition;
 
-                    if (!LevelGrid.Instance.IsValidGridPosition(testGridPosition))
+                    if (!Managers.SceneServices.Grid.IsValidGridPosition(testGridPosition))
                     {
                         continue;
                     }
@@ -155,13 +157,15 @@ public class IdleAction : BaseAction
                         continue;
                     }
 
-                    // Detect Object
-                    if (!LevelGrid.Instance.HasEnemyAtGridPosition(m_GameEntity.GetGridPosition(), testGridPosition))
+                    // 오브젝트가 적인가?
+                    var target = Managers.SceneServices.Grid.GetCellEntity(testGridPosition);
+                    if (m_GameEntity.IsEnemy(target) == false)
                         continue;
+
 
                     // 너무 멀면 패스
                     //int pathfindingDistanceMultiplier = 10;
-                    //if (Pathfinding.Instance.GetPathLength(unitGridPosition, testGridPosition) > 
+                    //if (Managers.SceneServices.Pathfinder.GetPathLength(unitGridPosition, testGridPosition) > 
                     //    m_iDetectRange * pathfindingDistanceMultiplier)
                     //{
                     //    // Path length is too long

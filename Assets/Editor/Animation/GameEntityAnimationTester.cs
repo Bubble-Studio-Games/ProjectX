@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System;
 using static Define;
-using static UnityEngine.Rendering.DebugUI;
 
 /// <summary>
 /// 🎬 GameEntity 애니메이션 및 사운드 테스트 전용 에디터 윈도우
@@ -17,8 +16,8 @@ public partial class CustomToolWindow : EditorWindow
 {
     private Vector2 GameEntityAnimationTester_scrollPos;
     private GameEntity activeEntity;
-    private List<GameEntityAnimator> animators = new();
-    private List<AttackPattern> attackPatterns = new();
+    private GameEntityAnimator animator = new();
+    private List<AttackData> attackPatterns = new();
     private Dictionary<string, bool> listFoldout = new();
 
     private bool isEventRegistered = false;
@@ -28,12 +27,11 @@ public partial class CustomToolWindow : EditorWindow
         // 최초 또는 다시 열릴 때 한 번만 이벤트 등록
         if (!isEventRegistered)
         {
-            EditorApplication.update += EditorAutoRefresh;
-            Sound_Test.OnActiveEntityChanged += RefreshActiveEntity;
+            // ✅ Sound_Test 대신 Selection 이벤트 사용
+            Selection.selectionChanged += RefreshActiveEntity;
             isEventRegistered = true;
 
             RefreshActiveEntity();
-            //Debug.Log("[AnimationTester] 이벤트 등록 완료");
         }
     }
 
@@ -42,48 +40,51 @@ public partial class CustomToolWindow : EditorWindow
         // 창이 닫힐 때 이벤트 해제
         if (isEventRegistered)
         {
-            EditorApplication.update -= EditorAutoRefresh;
-            Sound_Test.OnActiveEntityChanged -= RefreshActiveEntity;
+            Selection.selectionChanged -= RefreshActiveEntity;
             isEventRegistered = false;
-
-            //Debug.Log("[AnimationTester] 이벤트 해제 완료");
         }
     }
 
-
-    private void EditorAutoRefresh()
-    {
-        // Sound_Test 존재 여부 체크만
-        var soundTest = FindObjectOfType<Sound_Test>();
-        if (soundTest == null) return;
-    }
 
     //────────────────────────────────────────────
     // 🔹 현재 활성 GameEntity 갱신
     //────────────────────────────────────────────
     private void RefreshActiveEntity()
     {
-        var soundTest = FindObjectOfType<Sound_Test>();
-        if (soundTest == null)
+        activeEntity = null;
+        animator = null;
+        attackPatterns.Clear();
+
+        // ✅ 선택된 오브젝트를 기준으로 GameEntity 찾기
+        var go = Selection.activeGameObject;
+        if (go == null)
         {
-            activeEntity = null;
-            animators.Clear();
             Repaint();
             return;
         }
 
-        // 활성화 GameEntity 긁어오기
-        var field = typeof(Sound_Test).GetField("activeEntity", BindingFlags.NonPublic | BindingFlags.Instance);
-        activeEntity = field?.GetValue(soundTest) as GameEntity;
+        // 선택한 오브젝트가 본체가 아닐 수 있으니 parent까지 포함해서 탐색
+        activeEntity = go.GetComponentInParent<GameEntity>();
+        if (activeEntity == null)
+        {
+            Repaint();
+            return;
+        }
+
 
         if (activeEntity != null)
         {
-            animators = activeEntity.GetComponentsInChildren<GameEntityAnimator>(true).ToList();
+            // Animator 수집
+            animator = activeEntity.GetComponentInChildren<GameEntityAnimator>();
+
+            // AttackPattern 수집
             attackPatterns = activeEntity.GetComponent<AttributeSystem>().m_AttackPatterns.ToList();
+            activeEntity.m_DisableDespawnFlowForAnimTest = true;
         }
         else
         {
-            animators.Clear();
+            activeEntity.m_DisableDespawnFlowForAnimTest = false;
+            animator = null;
             attackPatterns.Clear();
         }
 
@@ -95,8 +96,6 @@ public partial class CustomToolWindow : EditorWindow
     //────────────────────────────────────────────
     private void Handle_DrawGameEntityAnimation()
     {
-        DrawLine();
-        EditorGUILayout.LabelField("키보드 화살표 <- ->를 이용하여 오브젝트를 활성화 시킵니다.", EditorStyles.boldLabel);
         DrawLine();
 
         EditorGUILayout.Space(5);
@@ -122,17 +121,18 @@ public partial class CustomToolWindow : EditorWindow
 
         // ───── 기본 애니메이션 ─────
         DrawSectionTitle("💡 기본 행동 애니메이션");
-        if (animators.Count == 0)
+        DrawAnimatorSection(animator);
+        if (animator == null)
             EditorGUILayout.HelpBox("GameEntityAnimator가 없습니다.", MessageType.Warning);
         else
-            animators.ForEach(DrawAnimatorSection);
+            DrawAnimatorSection(animator);
 
         // ───── 공격 패턴 애니메이션 ─────
         DrawSectionTitle("⚔ 공격 패턴 애니메이션");
         if (attackPatterns.Count == 0)
             EditorGUILayout.HelpBox("Attack Pattern이 없습니다.", MessageType.Warning);
         else
-            attackPatterns.ForEach(a => DrawAttackPatternSection(a, animators));
+            attackPatterns.ForEach(a => DrawAttackPatternSection(a, animator));
 
         EditorGUILayout.EndScrollView();
     }
@@ -168,7 +168,7 @@ public partial class CustomToolWindow : EditorWindow
     //────────────────────────────────────────────
     // ⚔ 공격 패턴 섹션
     //────────────────────────────────────────────
-    private void DrawAttackPatternSection(AttackPattern attack, List<GameEntityAnimator> animators)
+    private void DrawAttackPatternSection(AttackData attack, GameEntityAnimator animator)
     {
         if (attack == null)
         {
@@ -242,10 +242,10 @@ public partial class CustomToolWindow : EditorWindow
                 EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button($"┣ 공격 애니메이션 ▶ {clipName}", GUILayout.Height(22)))
                 {
-                    if (clip != null && animators.Count > 0 && animators[0] != null)
+                    if (clip != null && animator != null)
                     {
                         SetCombatActionAttack(attack);
-                        PlayClipAttackAnimation(animators[0], clip);
+                        PlayClipAttackAnimation(animator, clip);
                     }
                     else
                     {
@@ -271,10 +271,10 @@ public partial class CustomToolWindow : EditorWindow
                 EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button($"┗ 공격 실패 애니메이션 ▶ {failName}", GUILayout.Height(22)))
                 {
-                    if (failClip != null && animators.Count > 0 && animators[0] != null)
+                    if (failClip != null && animator != null)
                     {
                         SetCombatActionAttack(attack);
-                        PlayClipAttackAnimation(animators[0], failClip, true);
+                        PlayClipAttackAnimation(animator, failClip, true);
                     }
                     else
                     {
@@ -286,9 +286,9 @@ public partial class CustomToolWindow : EditorWindow
                     var failSoundField = attack.GetType().GetField("m_AttackFailAudioClip", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                     var failSound = failSoundField?.GetValue(attack) as AudioClip;
 
-                    if (failSound != null && animators.Count > 0 && animators[0] != null)
+                    if (failSound != null && animator != null)
                     {
-                        DrawSoundLine(animators[0], failSound, E_GameEntityClipType.AttackReadyFail);
+                        DrawSoundLine(animator, failSound, E_GameEntityClipType.AttackReadyFail);
                     }
 
                     EditorGUILayout.EndHorizontal();
@@ -349,8 +349,8 @@ public partial class CustomToolWindow : EditorWindow
                     }
 
                     // 그리고 플레이 버튼/라벨도 같이 보여주고 싶다면
-                    if (currentClip != null && animators.Count > 0 && animators[0] != null)
-                        DrawSoundLine(animators[0], currentClip, E_GameEntityClipType.Attack);
+                    if (currentClip != null && animator != null)
+                        DrawSoundLine(animator, currentClip, E_GameEntityClipType.Attack);
                 }
 
                 // 공격 미스 리스트 (배열)
@@ -621,7 +621,7 @@ public partial class CustomToolWindow : EditorWindow
                 SetMoveType(controllable, E_MoveType.Run);
 
 
-            var sounder = controllable.m_Sounder;
+            var sounder = controllable.GetComponentInChildren<GameEntitySounder>();    
             if (sounder != null)
             {
                 // 애니메이션 이름 기반으로 자동 사운드 연동
@@ -699,7 +699,7 @@ public partial class CustomToolWindow : EditorWindow
     //────────────────────────────────────────────
     // ⚔ CombatAction의 m_ThisTimeAttack 설정
     //────────────────────────────────────────────
-    private void SetCombatActionAttack(AttackPattern pattern)
+    private void SetCombatActionAttack(AttackData pattern)
     {
         if (activeEntity == null) return;
 

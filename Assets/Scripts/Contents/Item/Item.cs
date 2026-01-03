@@ -8,15 +8,14 @@ using static Define;
 [RequireComponent(typeof(AudioSource))]
 public class Item : MonoBehaviour, ISaveable, IGuidObject
 {
+
+
     [Header("Ref")]
     protected Transform spawnTransform;
-    protected GameEntity m_Owner;
+    public GameEntity m_Owner { get; protected set; }
 
     public string _guid { get; private set; } = string.Empty; // private field로 변경하고 프로퍼티로 접근
     public string guid => _guid;
-
-    [Header("Destroy")]
-    private bool _isDestroying;
 
     public void SetGUID(string inputGuid)
     {

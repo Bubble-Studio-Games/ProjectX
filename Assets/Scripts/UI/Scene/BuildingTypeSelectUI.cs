@@ -7,10 +7,8 @@ using Unity.VisualScripting;
 using UnityEngine;
 using static Define;
 
-public class BuildingTypeSelectUI : MonoBehaviour, ISaveable
+public class BuildingTypeSelectUI : MonoBehaviour, ISaveable, IBuildingCardUI
 {
-    public static BuildingTypeSelectUI Instance;
-
     public RectTransform m_CanvaseRect;
     public Canvas m_Canvas;
     public RectTransform m_RectTransform;
@@ -27,19 +25,28 @@ public class BuildingTypeSelectUI : MonoBehaviour, ISaveable
     private float m_fXLastOffset => m_fXInteraval * (m_iMaxHaveCard - 1) + m_fXStartOffset; // 마지막 10번째 위치
 
     public BuildingCard m_ActiveBuildingCard;
-    public bool m_IsDrawing => m_ActiveBuildingCard != null;
+
+    public RectTransform RectTransform => m_RectTransform;
+    public BuildingCard ActiveCard { get => m_ActiveBuildingCard; set => m_ActiveBuildingCard = value; }
+    public bool IsDrawing => m_ActiveBuildingCard != null;
 
     [Header("Move Animation")]
     [SerializeField] private float m_fXMoveTime = 3f;
 
     private void Awake()
     {
-        Instance = this;
         m_RectTransform = GetComponent<RectTransform>();
 
         m_CanvaseRect = transform.parent.GetComponentInParent<RectTransform>();
         m_Canvas = GetComponentInParent<Canvas>();
         //Debug.Log("Canvas Size : " + m_CanvaseRect);
+
+        m_RectTransform = GetComponent<RectTransform>();
+        m_CanvaseRect = transform.parent.GetComponentInParent<RectTransform>();
+        m_Canvas = GetComponentInParent<Canvas>();
+
+        // ✅ 서비스 등록
+        Managers.SceneServices.Register<IBuildingCardUI>(this);
     }
 
     private void Start()
@@ -102,7 +109,7 @@ public class BuildingTypeSelectUI : MonoBehaviour, ISaveable
         card.m_RectTransform.DOMove(new Vector3(xinterval, m_fYOffset, 0), m_fXMoveTime);
         card.ResetTransform(new Vector2(xinterval, m_fYOffset));
 
-        card.Init(addUnit);
+        card.Init(addUnit, this);
 
         ShowGameEntityCard.Add(card);
     }
@@ -126,13 +133,12 @@ public class BuildingTypeSelectUI : MonoBehaviour, ISaveable
         }
     }
 
-
     /// <summary>
     /// 소환 시도: 성공/실패 여부를 여기서 결정
     /// </summary>
     public void TrySummonEntity(BuildingCard card, GameEntity entity, Vector2 originalPos)
     {
-        bool isSusccess = GridBuildingSystem.Instance.SetUpGridObject();
+        bool isSusccess = Managers.SceneServices.BuildPlacementService.TryPlace();
 
         // TODO 금화
 
@@ -163,7 +169,7 @@ public class BuildingTypeSelectUI : MonoBehaviour, ISaveable
     {
         card.m_RectTransform.anchoredPosition = originalPos;
 
-        GridBuildingSystem.Instance.ChangePlaceObject(null);
+        Managers.SceneServices.GridVisualUpdateSource.DrawGridVisual();
     }
 
     #region Data Save & Load
@@ -200,7 +206,7 @@ public class BuildingTypeSelectUI : MonoBehaviour, ISaveable
             Debug.Log($"{card.name} 카드의 위치 : {xinterval} {m_fYOffset}");
 
             GameEntity addUnit = Managers.Object.GetPrefabByName(data.gameEntitySaveData.prefabName).GetComponent<GameEntity>();
-            card.Init(addUnit);
+            card.Init(addUnit, this);
 
             ShowGameEntityCard.Add(card);
         }

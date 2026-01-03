@@ -1,182 +1,115 @@
-using CodeMonkey.Utils;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.iOS;
 using static Define;
+using System.Collections.Generic;
+using System;
+using UnityEngine;
 
-public class GridBuildingSystem : MonoBehaviour
+/*
+역할: “건설 모드 상태(무엇을 짓는 중인지) + 배치 가능 검사 + 배치 이벤트 발행”
+
+IBuildPlacementService 구현체로서 “현재 배치 대상(Current)”을 관리한다. 
+ChangeSelection()에서 건설 대상 변경/취소를 처리하고 OnSelectedChanged/OnCanceled 이벤트를 발행한다. 
+TryPlace()에서:
+ICursor.GetMouseGridPosition()으로 기준 위치를 얻고
+대상의 footprint 셀들을 구해서
+IGridQuery로 유효/Walkable인지 검사 후 성공하면 OnPlaced를 발행한다. 
+RotateSelectObject()로 회전 입력을 처리하고 OnRotated 이벤트를 발행한다. 
+
+결론: **“배치 가능하냐/확정하냐”**를 판단하는 게임플레이 로직 담당.
+ */
+
+public class GridBuildingSystem : MonoBehaviour, IBuildPlacementService
 {
-    public static GridBuildingSystem Instance { get; private set; }
-
-    public event EventHandler<E_SetupObjectOffsetChange> OnSelectedChanged;
-    public event EventHandler<OnPlacedEventArgs> OnObjectPlaced;
-    public class OnPlacedEventArgs : EventArgs
-    {
-        public GridPosition PivotGridPosition;
-    }
-
-    public event EventHandler<E_SetupObjectOffsetChange> OnRotateObject;
-    public event EventHandler OnObjectPlacedCancel;
+    public event Action<E_SetupObjectOffsetChange> OnSelectedChanged;
+    public event Action<BuildPlacedEventArgs> OnPlaced;
+    public event Action OnCanceled;
+    public event Action<E_SetupObjectOffsetChange> OnRotated;
 
     [SerializeField] private List<GameEntity> placedObjectList;
-    public GameEntity m_PlacedObject { get; private set; }
-    private GameEntity beforePlacedObject;
+
+    public GameEntity Current { get; private set; }
+
+    private IGridQuery _grid;
+    private ICursor _cursor;
 
     private void Awake()
     {
-        if (Instance != null)
-        {
-            Debug.LogError($"There's more than one {name!}");
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
+        // 서비스 등록 (Generic SceneServices 전제)
+        Managers.SceneServices.Register<IBuildPlacementService>(this);
     }
 
     private void Start()
     {
-        OnObjectPlacedCancel += (s, e) => GridSystemVisual.Instance.HideAllGridPosition();
-        OnObjectPlaced += (s, e) => GridSystemVisual.Instance.HideAllGridPosition();
-
-        // 최적화 필요
-        OnSelectedChanged += (s, e) => GridSystemVisual.Instance.UpdateGridPositionPlace();
-        OnRotateObject += (s, e) => GridSystemVisual.Instance.UpdateGridPositionPlace();
+        _grid = Managers.SceneServices.Grid;
+        _cursor = Managers.SceneServices.Cursor;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void ChangeSelection(GameEntity toChangeObject, bool isInputNumberPad = false)
     {
-        //DeleteObject();
+        var before = Current;
+        Current = toChangeObject;
 
-        RotateSelectObject();
-    }
+        if (before == Current) return;
 
-    // 오브젝트 설치 준비
-    public bool SetUpGridObject()
-    {
-        if (m_PlacedObject == null)
-            return false;
-
-        GridPosition pivotGridPos = MouseWorld.Instance.GetGridPosition();
-        List<GridPosition> gridPositions = m_PlacedObject.GetGridPositionListAtSelectPosition(pivotGridPos);
-        Vector3 baseWorldPos = LevelGrid.Instance.GetWorldPosition(pivotGridPos);
-
-        // 조건 검사
-        foreach (GridPosition gp in gridPositions)
+        if (toChangeObject == null)
         {
-            if (!LevelGrid.Instance.IsValidGridPosition(gp) ||
-                !LevelGrid.Instance.IsGridPositionCheckType(gp, E_GridCheckType.Walkable))
-            {
-                //UtilsClass.CreateWorldTextPopup("Cannot building here!", baseWorldPos, tempSize);
-                return false;
-            }
+            OnCanceled?.Invoke();
+            return;
         }
 
-        OnObjectPlaced?.Invoke(this, new OnPlacedEventArgs 
-        { PivotGridPosition = pivotGridPos });
+        
+        var state = E_SetupObjectOffsetChange.All;
+        if (isInputNumberPad)
+        {
+            if (before != null)
+            {
+                if (before.GetGridPositionListAtCurrentDir() != Current.GetGridPositionListAtCurrentDir())
+                {
+                    state = (before.GetGridPositionYOffset() != Current.GetGridPositionYOffset())
+                        ? E_SetupObjectOffsetChange.All
+                        : E_SetupObjectOffsetChange.XZOffset;
+                }
+                else state = E_SetupObjectOffsetChange.None;
+            }
+            else state = E_SetupObjectOffsetChange.All;
+        }
 
-        m_PlacedObject = null;
+        OnSelectedChanged?.Invoke(state);
+    }
 
+    public bool TryPlace()
+    {
+        if (Current == null) return false;
+
+        GridPosition pivot = _cursor.GetMouseWorldGridPosition();
+        var cells = Current.GetGridPositionListAtSelectPosition(pivot);
+
+        foreach (var gp in cells)
+        {
+            if (!_grid.IsValidGridPosition(gp) || !_grid.IsGridPositionCheckType(gp, E_GridCheckType.Walkable))
+                return false;
+        }
+
+        OnPlaced?.Invoke(new BuildPlacedEventArgs { PivotGridPosition = pivot });
+        Current = null;
         return true;
     }
 
-    private void RotateSelectObject()
+    public Quaternion CurrentRotation =>
+        (Current != null) ? Quaternion.Euler(0, Current.GetRotationAngle(), 0) : Quaternion.identity;
+
+    public void RotateSelectObject()
     {
-        if (m_PlacedObject == null)
-            return;
+        if (Current == null) return;
 
         if (Input.GetKeyDown(KeyCode.R))
         {
-            m_PlacedObject.m_CurrentEDir = m_PlacedObject.GetNextDir();
-            //UtilsClass.CreateWorldTextPopup("" + m_PlacedObject.m_CurrentEDir, UtilsClass.GetMouseWorldPositionByRaycast(1 << LayerMask.NameToLayer("MousePlane")), tempSize);
-            
-            if(m_PlacedObject.m_IsRotateSymmetry)
-                OnRotateObject?.Invoke(this, E_SetupObjectOffsetChange.None);
-            else
-                OnRotateObject?.Invoke(this, E_SetupObjectOffsetChange.XZOffset);
+            Current.m_CurrentEDir = Current.GetNextDir();
+
+            var e = Current.m_IsRotateSymmetry
+                ? E_SetupObjectOffsetChange.None
+                : E_SetupObjectOffsetChange.XZOffset;
+
+            OnRotated?.Invoke(e);
         }
     }
-
-    public void ChangePlaceObject(GameEntity toChangeObject, bool isInputNumberPad = false)
-    {
-        beforePlacedObject = m_PlacedObject;
-        m_PlacedObject = toChangeObject;
-
-        if (beforePlacedObject == m_PlacedObject)
-            return;
-
-        // 취소 했을 때는 x
-        if (toChangeObject == null)
-        {
-            OnObjectPlacedCancel?.Invoke(this, null);
-            return;
-        }
-
-        E_SetupObjectOffsetChange state = E_SetupObjectOffsetChange.All;
-
-        if(isInputNumberPad)
-        {
-            if (beforePlacedObject != null)
-            {
-                if (beforePlacedObject.GetGridPositionListAtCurrentDir() != m_PlacedObject.GetGridPositionListAtCurrentDir())
-                {
-                    if (beforePlacedObject.GetGridPositionYOffset() != m_PlacedObject.GetGridPositionYOffset())
-                        state = E_SetupObjectOffsetChange.All;
-                    else
-                        state = E_SetupObjectOffsetChange.XZOffset;
-                }
-                else
-                    state = E_SetupObjectOffsetChange.None;
-            }
-            else
-            {
-                // 제일 처음 가져 왔을 때
-                state = E_SetupObjectOffsetChange.All;
-            }
-        }
-
-        OnSelectedChanged?.Invoke(this, state);
-    }
-
-    public Quaternion GetPlacedObjectRotation()
-    {
-        if (m_PlacedObject != null)
-        {
-            return Quaternion.Euler(0, m_PlacedObject.GetRotationAngle(), 0);
-        }
-        else
-        {
-            return Quaternion.identity;
-        }
-    }
-
-    public Vector3 GetMouseWorldSnappedPosition()
-    {
-        Vector3 mousePlanePos = UtilsClass.GetMouseWorldPositionByRaycast(Managers.Layer.mousePlaneLayerMask);
-        if (LevelGrid.Instance.IsValidGridPosition(mousePlanePos) == false)
-            return mousePlanePos;
-
-        Vector3 baseWorldPos = LevelGrid.Instance.GetWorldPositionNormalize(mousePlanePos);
-        
-        if (m_PlacedObject != null)
-        {
-            return baseWorldPos;
-        }
-        else
-        {
-            return mousePlanePos;
-        }
-    }
-
-
-    public GameEntity GetPlacedObject()
-    {
-        return m_PlacedObject;
-    }
-
-
-
 }

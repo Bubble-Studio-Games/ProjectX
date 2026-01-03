@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eddaeb928e403cd4ba7fbbc26bc8941b, type: 3}
+  m_Name: TreasureChest
+  m_EditorClassIdentifier: 
+  guaranteedRewards: []
+  randomRewards:
+  - rid: 7108756644917411868
+  - rid: 7108756644917411869
+  - rid: 7108756644917411870
+  - rid: 7108756644917411871
+  dropOnlyOne: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: 7108756644917411868
+      type: {class: RewardDownJam, ns: , asm: Assembly-CSharp}
+      data:
+        Weight: 17.9
+        Rarity: 0
+        downJamMin: 10
+        downJamMax: 100
+    - rid: 7108756644917411869
+      type: {class: RewardCard, ns: , asm: Assembly-CSharp}
+      data:
+        Weight: 1
+        Rarity: 0
+        m_GameEntity: {fileID: 0}
+    - rid: 7108756644917411870
+      type: {class: RewardBuff, ns: , asm: Assembly-CSharp}
+      data:
+        Weight: 1
+        Rarity: 0
+        buffId: 0
+    - rid: 7108756644917411871
+      type: {class: RewardEffect, ns: , asm: Assembly-CSharp}
+      data:
+        Weight: 1
+        Rarity: 0
+        effectId: 0

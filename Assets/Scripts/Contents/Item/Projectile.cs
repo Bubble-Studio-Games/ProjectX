@@ -5,17 +5,22 @@ using UnityEngine;
 [RequireComponent(typeof(Poolable), typeof(Rigidbody))]
 public class Projectile : Item
 {
-    public AudioSource m_AudioSource { get; private set; }
+    // --- 이번 변경 핵심: kinematic + MovePosition 방식 ---
+    // * Rigidbody는 항상 kinematic
+    // * 런처 코루틴이 FixedUpdate마다 MovePosition으로 이동
+    // * 관통 방지를 위해 런처가 Sweep(SphereCast)로 먼저 맞는지 검사
+    // * Sweep로 맞았을 땐 OnCollisionEnter가 호출되지 않을 수 있으므로 HandleHit를 직접 호출
+
+    private AudioSource m_AudioSource;
     public Rigidbody m_Rigidbody { get; private set; }
-    private Collider m_Collider;
+    public Collider m_Collider { get; private set; }
 
     [Header("Info")]
     public float m_fStraightSpeed = 10f;
     public float ParabolaSpeed = 5f;
-    public float m_DetectionHitRadius = 2f; // 유도형의 경우 필요
 
     [Header("Destroy")]
-    private AttackPattern m_AttackPattern;
+    private AttackData m_AttackPattern;
     public GameEntity m_Target { get; private set; }
 
     [Header("Fly")]
@@ -26,6 +31,10 @@ public class Projectile : Item
     [SerializeField] private GameObject m_AfterProjectileHitPrefab;
     public bool m_IsHit { get; private set; } = false;
 
+    private Vector3 _lastMoveDir = Vector3.forward;  // 마지막 프레임 이동 방향(박히는 방향 연출용)
+    private Vector3 _lastPos;
+    public float SweepRadius => 0.1f; // Sweep 반지름(투사체 크기에 맞춰 조절)
+
     public override void Awake()
     {
         base.Awake();
@@ -33,26 +42,35 @@ public class Projectile : Item
         m_AudioSource = GetComponent<AudioSource>();
         m_Rigidbody = GetComponent<Rigidbody>();
         m_Collider = GetComponent<Collider>();
+    }
 
+    private void Start()
+    {
         m_AudioSource.spatialBlend = 1f;
         m_AudioSource.maxDistance = 40f;
+
+        m_AudioSource.clip = null;
+        m_AudioSource.playOnAwake = false;
+
+        m_Rigidbody.isKinematic = true;     // 항상 true 고정
     }
 
     public override void OnEnable()
     {
         base.OnEnable();
 
-        m_AudioSource.clip = null;
-        m_AudioSource.playOnAwake = false;
+        m_Rigidbody.Sleep(); // 선택: 깔끔하게 물리 상태 정리
 
-        // Rigidbody 초기화 및  콜라이더 끄기
-        m_Rigidbody.isKinematic = true;
-        m_Rigidbody.velocity = Vector3.zero;
-        m_Rigidbody.angularVelocity = Vector3.zero;
-        m_Collider.enabled = false;
+        // ✅ 준비 상태: 손/시전 중에는 충돌 OFF
+        m_Collider.enabled = false;         
+        m_IsHit = false;
 
         foreach (Transform child in transform)
             child.gameObject.SetActive(true);
+
+
+        _lastPos = m_Rigidbody.position;
+        _lastMoveDir = transform.forward;
     }
 
     public override void OnDisable()
@@ -60,17 +78,54 @@ public class Projectile : Item
         base.OnDisable();
 
         foreach (Transform child in transform)
-        {
             child.gameObject.SetActive(true);
-        }
-        m_Rigidbody.velocity = Vector3.zero;
-        m_Rigidbody.angularVelocity = Vector3.zero;
-        m_Rigidbody.Sleep(); // 완전히 물리 시뮬레이션 중단
+
+        m_Collider.enabled = false;
         m_IsHit = false;
     }
 
-    public void AttackReady(GameEntity owner, AttackPattern attack, GameEntity target)
+    public void Prepare()
     {
+        // 준비(장전) 단계: 충돌 OFF
+        m_IsHit = false;
+        m_Collider.enabled = false;
+    }
+
+    public void Fire()
+    {
+        // 발사 단계: 충돌 ON
+        m_IsHit = false;
+        m_Collider.enabled = true;
+    }
+
+    public void StopOnHit()
+    {
+        // 히트 후: 중복 히트 방지 위해 충돌 OFF
+        m_IsHit = true;
+        m_Collider.enabled = false;
+    }
+
+
+    /// <summary>
+    /// 런처가 MovePosition을 호출하기 직전(또는 직후)마다 호출해서
+    /// '이 프레임에 실제로 이동한 방향'을 저장한다.
+    /// - kinematic 방식이라 rigidbody.velocity가 없으므로, 박히는 방향/회전용으로 필요
+    /// </summary>
+    public void NotifyMoved(Vector3 newPos)
+    {
+        Vector3 delta = newPos - _lastPos;
+        if (delta.sqrMagnitude > 0.000001f)
+            _lastMoveDir = delta.normalized;
+
+        _lastPos = newPos;
+    }
+
+    public Vector3 GetLastMoveDir() => _lastMoveDir;
+
+    public void AttackReady(GameEntity owner, AttackData attack, GameEntity target)
+    {
+        Prepare(); // ✅ 여기서 collider OFF 보장
+
         foreach (Transform child in transform)
             child.gameObject.SetActive(true);
 
@@ -78,9 +133,6 @@ public class Projectile : Item
         if (m_ProjectileFlyingAudioClip != null)
             m_AudioSource.PlayOneShot(m_ProjectileFlyingAudioClip);
 
-        // 콜라이더 켜기
-        m_Collider.enabled = true;
-        
         m_Owner = owner;
         m_AttackPattern = attack;
         m_Target = target;
@@ -97,65 +149,57 @@ public class Projectile : Item
             go.transform.position = hitPos;
             go.transform.rotation = Quaternion.identity;
         }
+    }
 
-        // Kinematic이 아닐 때만 velocity 설정
-        if (m_Rigidbody.isKinematic == false)
+    /// <summary>
+    /// Sweep(구간 캐스팅) 또는 실제 Collision 이벤트에서 공통으로 호출되는 "히트 처리".
+    /// - Sweep로 맞으면 OnCollisionEnter가 호출되지 않을 수 있으므로, 런처가 직접 호출한다.
+    /// </summary>
+    public void HandleHit(Collider hitCol, Vector3 hitPoint, Vector3 hitDir)
+    {
+        if (m_IsHit) return;
+
+        // 레이어 필터(투사체가 반응할 대상만)
+        int layerBit = 1 << hitCol.gameObject.layer;
+        bool isValidLayer =
+            ((layerBit & GameConfig.Layer.HitColLayerMask) != 0) ||
+            ((layerBit & GameConfig.Layer.m_StructLayer) != 0);
+
+        if (!isValidLayer) return;
+
+        // 데미지 대상 찾기
+        GameEntity target = hitCol.GetComponentInParent<GameEntity>();
+        if (target != null && m_Owner != null && m_Owner.IsEnemy(target))
         {
-            m_Rigidbody.velocity = Vector3.zero;
-            m_Rigidbody.angularVelocity = Vector3.zero;
+            target.m_AttributeSystem.Hit(m_AttackPattern, m_Owner);
         }
 
-        m_IsHit = true;
+        // 히트 연출(이펙트/사운드)
+        HitEffect(hitPoint);
+
+        // 박히기(시각적): 충돌 지점으로 고정 + 진행 방향으로 회전 + 부모 붙이기
+        transform.position = hitPoint;
+        if (hitDir.sqrMagnitude > 0.000001f)
+            transform.rotation = Quaternion.LookRotation(hitDir.normalized);
+
+        transform.SetParent(hitCol.transform, true);
+
+        StopOnHit();
+        Managers.Resource.Destroy(gameObject);
     }
 
     private void OnCollisionEnter(Collision col)
     {
-        int layerBit = 1 << col.gameObject.layer;
+        var go = col.gameObject.GetComponent<GameEntity>();
+        if (go != null || go.IsAlly(m_Owner) || go.m_IsSetuping) // 설치중이거나 아군이면 넘기기
+            return;
 
-        // 적에게 부딪혔거나 지형 지물에 부딪혔을 경우에 한하여
-        if ((layerBit & Managers.Layer.HitColLayerMask) != 0 ||
-            (layerBit & Managers.Layer.m_StructLayer) != 0)
-        {
-            GameEntity target = col.gameObject.GetComponentInParent<GameEntity>();
-
-            // 충돌 지점을 알 수 있습니다.
-            Vector3 hitPoint = col.contacts[0].point;
-
-            // 충돌 순간의 속도 방향을 계산합니다. (화살이 박힐 방향)
-            // m_Rigidbody.velocity를 바로 사용하는 것이 가장 정확합니다.
-            Vector3 impactDirection = m_Rigidbody.velocity.normalized;
-
-            // 🎯 타겟 유닛 충돌 처리
-            if (target != null && m_Owner.IsEnemy(target))
-            {
-                // 타격 처리
-                target.m_AttributeSystem.Hit(m_AttackPattern, m_Owner);
-                HitEffect(hitPoint);
-
-                // -------------------- ★ 화살이 박히는 로직 추가/수정 ★ --------------------
-                // 1. 화살의 위치를 충돌 지점으로 이동 (화살이 타겟을 뚫는 문제 방지)
-                transform.position = hitPoint;
-
-                // 2. 화살의 회전을 충돌 방향으로 맞춥니다.
-                if(impactDirection  != Vector3.zero)
-                    transform.rotation = Quaternion.LookRotation(impactDirection);
-
-                // 3. 타겟에 자식으로 붙여서 (월드 위치 유지) 타겟이 움직일 때 같이 움직이게 함.
-                transform.SetParent(col.transform, true);
-
-                // 4. 물리 연산 중지 (필수)
-                m_Rigidbody.isKinematic = true;
-
-                //Debug.Log($"오브젝트 충돌!! {target.name}");
-                Destroy();
-            }
-        }
+        // ✅ 혹시 Sweep가 아닌 실제 충돌이 들어왔을 때도 HandleHit로 통일
+        Vector3 hitPoint = col.contacts[0].point;
+        Vector3 dir = GetLastMoveDir();
+        HandleHit(col.collider, hitPoint, dir);
     }
 
-    public void Launch()
-    {
-        m_Rigidbody.isKinematic = false; // 더 이상 물리 영향 안 받게
-    }
 
     #region Data Save & Load
 
@@ -170,8 +214,6 @@ public class Projectile : Item
             spawnRotation = spawnTransform.rotation,
             position = transform.position,
             rotation = transform.rotation,
-            velocity = m_Rigidbody.velocity,
-            angularVelocity = m_Rigidbody.angularVelocity,
             guid = _guid,
             targetGuid = m_Target != null ? m_Target._guid : string.Empty,
             onwerGuid = iData.onwerGuid,
@@ -186,14 +228,6 @@ public class Projectile : Item
         base.RestoreSaveData(baseData);
 
         ProjectileData data = baseData as ProjectileData;
-
-        m_Rigidbody = GetComponent<Rigidbody>();    
-
-        if (m_Rigidbody != null)
-        {
-            m_Rigidbody.velocity = data.velocity;
-            m_Rigidbody.angularVelocity = data.angularVelocity;
-        }
 
         if (!string.IsNullOrEmpty(data.targetGuid))
         {

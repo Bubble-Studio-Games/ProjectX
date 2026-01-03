@@ -1,4 +1,3 @@
-#if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
@@ -9,38 +8,25 @@ using System.Reflection;
 using UnityEngine.EventSystems;
 using System;
 using Unity.VisualScripting;
+using static ProPixelizer.Tools.SteppedAnimation;
 
-[ExecuteInEditMode]
-public class SettingManager : MonoBehaviour
+public class SettingManager
 {
-    public static SettingManager Instance { get; private set; }
-
-    [Header("UI")]
-    public AudioClip m_UIButtonClickAudioClip;
-
-    [Range(0.1f, 120f)]
-    public float fps = 12f;
-    public SteppedAnimation.StepMode mode = SteppedAnimation.StepMode.FixedRate;
-
     [Tooltip("Stepped 애니메이션이 저장될 최상위 폴더 경로 (예: Assets/SteppedClips)")]
     public string baseSaveFolder = "Assets/Resources/Data/Animation/SteppedClips";
     private const string CACHE_FILE_NAME = "SteppedCache.json";
 
-    private void Awake()
+    private int fps;
+    private StepMode mode;
+
+    public void Init()
     {
-        if (Instance == null)
-            Instance = this;
+        fps = GameConfig.AnimationStepFps;
+        mode = GameConfig.AnimationStepMode;
     }
 
-    private void OnApplicationQuit()
-    {
-        Debug.Log("💾 애니메이션 캐시 저장 중...");
 
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-    }
-
-    public void ReplaceAnimationClipsInAttackPattern(string ownerName, AttackPattern pattern)
+    public void ReplaceAnimationClipsInAttackPattern(string ownerName, AttackData pattern)
     {
         if (pattern == null) return;
 
@@ -254,6 +240,11 @@ public class SettingManager : MonoBehaviour
         EditorUtility.CopySerialized(sourceClip, steppedClip);
 
         var sampleTimes = GetKeyframeTimes(sourceClip);
+        if (sampleTimes == null || sampleTimes.Count == 0)
+        {
+            Debug.LogError($"No sample times: {sourceClip.name}");
+            return null;
+        }
 
         foreach (var binding in AnimationUtility.GetCurveBindings(sourceClip))
         {
@@ -262,7 +253,8 @@ public class SettingManager : MonoBehaviour
                 continue; // 빈 커브는 무시
 
             // Keyframe 배열을 한 번에 생성 (AddKey 반복 대신)
-            Keyframe[] keys = new Keyframe[sampleTimes.Count];
+            var keys = new Keyframe[sampleTimes.Count];
+
             for (int i = 0; i < sampleTimes.Count; i++)
             {
                 float t = Mathf.Clamp(sampleTimes[i], 0, sourceClip.length);
@@ -278,15 +270,12 @@ public class SettingManager : MonoBehaviour
                 );
             }
 
-            var newCurve = new AnimationCurve(keys);
-            AnimationUtility.SetEditorCurve(steppedClip, binding, newCurve);
+            AnimationUtility.SetEditorCurve(steppedClip, binding, new AnimationCurve(keys));
         }
 
         // Asset 생성/갱신
         if (AssetDatabase.LoadAssetAtPath<AnimationClip>(outputPath) != null)
-        {
             AssetDatabase.DeleteAsset(outputPath);
-        }
 
         AssetDatabase.CreateAsset(steppedClip, outputPath);
         AssetDatabase.ImportAsset(outputPath);
@@ -297,6 +286,66 @@ public class SettingManager : MonoBehaviour
     }
 
     private List<float> GetKeyframeTimes(AnimationClip clip)
+    {
+        var times = new List<float>(256);
+
+        if (fps <= 0)
+        {
+            Debug.LogError($"Invalid fps({fps}). Check GameConfig.AnimationStepFps.");
+            return times;
+        }
+
+        switch (mode)
+        {
+            case SteppedAnimation.StepMode.FixedRate:
+                {
+                    int frameCount = Mathf.CeilToInt(clip.length * fps);
+
+                    for (int i = 0; i <= frameCount; i++)
+                        times.Add(i / (float)fps); // ✅ 핵심: float 나눗셈
+
+                    break;
+                }
+
+            case SteppedAnimation.StepMode.FixedTimeDelay:
+                {
+                    float delay = 1f / fps;
+                    int count = Mathf.CeilToInt(clip.length / delay);
+
+                    for (int i = 0; i <= count; i++)
+                        times.Add(i * delay);
+
+                    break;
+                }
+
+            case SteppedAnimation.StepMode.Manual:
+                Debug.LogWarning("Manual 모드는 현재 지원되지 않습니다.");
+                break;
+        }
+
+        // ✅ 안전장치: 0~length로 클램프 후 정렬 + 중복 제거
+        for (int i = 0; i < times.Count; i++)
+            times[i] = Mathf.Clamp(times[i], 0f, clip.length);
+
+        times.Sort();
+
+        // 중복 제거(아주 작은 오차도 고려)
+        const float eps = 0.000001f;
+        for (int i = times.Count - 2; i >= 0; i--)
+        {
+            if (Mathf.Abs(times[i + 1] - times[i]) <= eps)
+                times.RemoveAt(i + 1);
+        }
+
+        // 마지막에 clip.length 보장(원하면)
+        if (times.Count == 0 || Mathf.Abs(times[times.Count - 1] - clip.length) > eps)
+            times.Add(clip.length);
+
+        return times;
+    }
+
+
+    private List<float> GetKeyframeTimes2(AnimationClip clip)
     {
         List<float> times = new();
 
@@ -419,4 +468,3 @@ public class SteppedCacheData
 {
     public List<SteppedCacheEntry> stepped_cache = new();
 }
-#endif

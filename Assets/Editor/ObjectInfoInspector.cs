@@ -28,7 +28,7 @@ public class ObjectInfoInspector : Editor
 
             foreach (var pattern in unit.m_AttributeSystem.m_AttackPatterns)
             {
-                EditorGUILayout.LabelField($"- {pattern.AttackName} | 쿨타임: {pattern.m_iCoolTime} | 현재 남은 쿨타임: {Time.time - pattern.m_fLastCooltime}");
+                EditorGUILayout.LabelField($"- {pattern.AttackName} | 쿨타임: {pattern.CoolTime} | 현재 남은 쿨타임: {Time.time - pattern.m_fLastCooltime}");
             }
         }
     }

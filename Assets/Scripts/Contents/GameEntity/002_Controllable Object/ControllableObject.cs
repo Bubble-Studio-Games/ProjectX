@@ -2,29 +2,19 @@ using Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using static Define;
 using static Util;
 
 
 [RequireComponent(typeof(SetupAnimation), typeof(Poolable))]
-public class ControllableObject : GameEntity
+public class ControllableObject : GameEntity, IUpgradeble
 {
-    // TODO 인터페이스로 뺴기
-    public event EventHandler<OnChangeGradeEventArgs> OnChangeGrade;
-    public class OnChangeGradeEventArgs: EventArgs
-    {
-        public E_ObjectGrade objGrade;
-        public E_ObjectEnhanceType gradeEnhanceType;
-        public float enhanceValue;
-        public bool isSuccessGrade;
-    }
+    public event Action<OnChangeGradeEventArgs> OnChangeGrade;
 
     [Header("Grade")]
-    public E_ObjectGrade m_originalEObjectGrade; //원래 등급
-    public E_ObjectGrade m_EObjectGrade; //조정된 등급
+    [SerializeField] private E_ObjectGrade m_originalEObjectGrade; //원래 등급
+    public E_ObjectGrade m_EObjectGrade { get; set; } //조정된 등급
     public OnChangeGradeEventArgs m_OnChangeGradeEventArgs; // 조정 수치
     [SerializeField] [Range(0, 100)] private float m_fEnhanceChance;
     [SerializeField] private List<E_ObjectEnhanceType> n_EnhanceTypeList;
@@ -43,7 +33,7 @@ public class ControllableObject : GameEntity
 
         if(m_originalEObjectGrade != m_EObjectGrade)
         {
-            OnChangeGrade?.Invoke(this, m_OnChangeGradeEventArgs);
+            OnChangeGrade?.Invoke(m_OnChangeGradeEventArgs);
         }
     }
 
@@ -94,11 +84,11 @@ public class ControllableObject : GameEntity
         };
 
         // 업그레이드 실행
-        OnChangeGrade?.Invoke(this, m_OnChangeGradeEventArgs);
+        OnChangeGrade?.Invoke(m_OnChangeGradeEventArgs);
     }
 
     // 등급 변화에 따른 변화
-    private void ChangeMaterialOfGrade(object sender, OnChangeGradeEventArgs args)
+    private void ChangeMaterialOfGrade(OnChangeGradeEventArgs args)
     {
         switch (args.objGrade)
         {
@@ -149,13 +139,14 @@ public class ControllableObject : GameEntity
             attackReadyItemData =
                 m_CombatManager?.m_AttackReadyItemObject.Select(item => item.obj.CaptureSaveData()).ToList(),
 
-            readyAttackPatternData =
-               m_CombatManager?.m_ReadyAttackPattern != null
-                   ? m_CombatManager.m_ReadyAttackPattern
-                       .Select(attack => attack?.CaptureSaveData())
-                       .Where(data => data != null)
-                       .ToHashSet()
-                   : new HashSet<AttackPatternData>(),
+            // TODO
+            //readyAttackPatternData =
+            //   m_CombatManager?.m_ReadyAttackPattern != null
+            //       ? m_CombatManager.m_ReadyAttackPattern
+            //           .Select(attack => attack?.CaptureSaveData())
+            //           .Where(data => data != null)
+            //           .ToHashSet()
+            //       : new HashSet<AttackPatternData>(),
 
             targetGuid = m_Target?.guid
         };
@@ -172,8 +163,8 @@ public class ControllableObject : GameEntity
         {
             m_CombatManager.m_ReadyAttackPattern =
                 m_AttributeSystem.m_AttackPatterns
-                    .Where(a => cData.readyAttackPatternData.Any(b => a.ID == b.id))
-                    .OfType<AttackPattern_Ready>() // 타입 안전 변환
+                    .Where(a => cData.readyAttackPatternData.Any(b => a.Id == b.id))
+                    .OfType<AttackData_Ready>() // 타입 안전 변환
                     .ToHashSet();
         }
 

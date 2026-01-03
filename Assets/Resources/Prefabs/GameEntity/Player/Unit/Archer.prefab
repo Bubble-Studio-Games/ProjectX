@@ -221,7 +221,7 @@ PrefabInstance:
       objectReference: {fileID: 3060610079319413300, guid: 2b05ef3b03109a44fa043de7a5bd6e1f, type: 3}
     - target: {fileID: 4240241666425742064, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 8
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 4240241666425742064, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
       propertyPath: m_LocalPosition.y
@@ -229,7 +229,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4240241666425742064, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 2
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 4240241666425742064, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
       propertyPath: m_LocalRotation.w
@@ -265,16 +265,24 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: cff4671cca4e65840995d751b9e590c5, type: 2}
     - target: {fileID: 4586506984712063788, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
       propertyPath: m_originalAttackPatterns.Array.size
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 4586506984712063788, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
       propertyPath: m_originalAttackPatterns.Array.data[0]
       value: 
-      objectReference: {fileID: 11400000, guid: 1ef4771bde04aec4a8a75b4aa6d59b1c, type: 2}
+      objectReference: {fileID: 11400000, guid: 4473d3c84544fe44897429ddf891ceb1, type: 2}
     - target: {fileID: 4586506984712063788, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
       propertyPath: m_originalAttackPatterns.Array.data[1]
       value: 
-      objectReference: {fileID: 11400000, guid: 4473d3c84544fe44897429ddf891ceb1, type: 2}
+      objectReference: {fileID: 11400000, guid: 44f7347769d6a474080517f79cade5ce, type: 2}
+    - target: {fileID: 4586506984712063788, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
+      propertyPath: m_originalAttackPatterns.Array.data[2]
+      value: 
+      objectReference: {fileID: 11400000, guid: 2a3be519b8409c848b6e77f33bc0f0f1, type: 2}
+    - target: {fileID: 4586506984712063788, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
+      propertyPath: m_originalAttackPatterns.Array.data[3]
+      value: 
+      objectReference: {fileID: 11400000, guid: 1ef4771bde04aec4a8a75b4aa6d59b1c, type: 2}
     - target: {fileID: 4653230813160875877, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
       propertyPath: solver.root
       value: 
@@ -651,6 +659,10 @@ PrefabInstance:
       propertyPath: m_ObjectType
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6777265710116208625, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
+      propertyPath: m_EObjectType
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7709677584830135504, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
       propertyPath: m_Name
       value: Archer
@@ -697,8 +709,74 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8680445681012793763, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5466717002896355437}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7709677584830135504, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7737970223457875283}
+    - targetCorrespondingSourceObject: {fileID: 7709677584830135504, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3978834827227781764}
+    - targetCorrespondingSourceObject: {fileID: 2057873622401978876, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5422434895935702740}
   m_SourcePrefab: {fileID: 100100000, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
+--- !u!1 &1423666664972344632 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2057873622401978876, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
+  m_PrefabInstance: {fileID: 1103074466287013060}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &5422434895935702740
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1423666664972344632}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: 1b2bf9276785cbb4cb7539f8580b6b38, type: 3}
+  m_Controller: {fileID: 9100000, guid: 6b0ba605306e9e14dbb9d4359eb8da31, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!1 &7327548508091723796 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7709677584830135504, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
+  m_PrefabInstance: {fileID: 1103074466287013060}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7737970223457875283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7327548508091723796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dbc0a75ba7d3cb4f911501509edf9df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_CurrentHandLeftWeapon: {fileID: 2875052664891916629, guid: 7ffccd76046a25047a8d9ae79154a14d, type: 3}
+  m_CurrentHandRightWeapon: {fileID: 0}
+--- !u!114 &3978834827227781764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7327548508091723796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c78131397e1c9b4fa6eb8acc510b8aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &8591121218030021991 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8680445681012793763, guid: 19d5c0d92153848468d3ee7a7f24e13b, type: 3}
@@ -784,7 +862,8 @@ PrefabInstance:
       propertyPath: m_ApplyRootMotion
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5866666021909216657, guid: 1b2bf9276785cbb4cb7539f8580b6b38, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 366175167995203695, guid: 1b2bf9276785cbb4cb7539f8580b6b38, type: 3}
@@ -1307,7 +1386,7 @@ CharacterJoint:
   m_Anchor: {x: 0, y: 0, z: 0}
   m_Axis: {x: 0, y: 0, z: -1}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: -0.1515199, y: 0.30082646, z: -0.045867834}
+  m_ConnectedAnchor: {x: -0.15151894, y: 0.30082646, z: -0.045867834}
   serializedVersion: 2
   m_SwingAxis: {x: 1, y: 0, z: 0}
   m_TwistLimitSpring:
@@ -1792,7 +1871,7 @@ CharacterJoint:
   m_Anchor: {x: 0, y: 0, z: 0}
   m_Axis: {x: -1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: 0.000000723172, y: 0.44362193, z: -0.0000007310882}
+  m_ConnectedAnchor: {x: -0.00000023050234, y: 0.44362193, z: -0.0000007310882}
   serializedVersion: 2
   m_SwingAxis: {x: 0, y: 0, z: 1}
   m_TwistLimitSpring:
@@ -1893,7 +1972,7 @@ CharacterJoint:
   m_Anchor: {x: 0, y: 0, z: 0}
   m_Axis: {x: -1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: -0.082106076, y: -0.06748394, z: -0.015994301}
+  m_ConnectedAnchor: {x: -0.08210512, y: -0.06748394, z: -0.015994301}
   serializedVersion: 2
   m_SwingAxis: {x: 0, y: 0, z: 1}
   m_TwistLimitSpring:
@@ -2009,7 +2088,7 @@ CharacterJoint:
   m_Anchor: {x: 0, y: 0, z: 0}
   m_Axis: {x: 1, y: 0, z: 0}
   m_AutoConfigureConnectedAnchor: 1
-  m_ConnectedAnchor: {x: 0.00000090152025, y: 0.27839753, z: 0.00000010058284}
+  m_ConnectedAnchor: {x: 0.0000009164214, y: 0.27839848, z: 0.00000009778887}
   serializedVersion: 2
   m_SwingAxis: {x: 0, y: 0, z: -1}
   m_TwistLimitSpring:

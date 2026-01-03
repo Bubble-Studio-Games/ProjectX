@@ -1,6 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using Unity.Android.Types;
 using UnityEngine;
 using static Define;
 
@@ -26,7 +25,6 @@ public partial class AttributeSystem : MonoBehaviour
     // 데이터 로드 후 원본 복사를 2번 하는 것을 방지하기 위해서
     bool m_isStatInstantiate;
 
-
     [Header("Flag")]
     [SerializeField] bool m_isInitWithFullHealth = true;
     [SerializeField] bool m_isInitWithFullMana = true;
@@ -37,7 +35,6 @@ public partial class AttributeSystem : MonoBehaviour
 
     public StatValue health { get => m_Stat.m_iCurrentHp; set { m_Stat.m_iCurrentHp = value; } }
     public StatValue healthMax { get => m_Stat.m_iMaxHP; set { m_Stat.m_iMaxHP = value; } }
-
 
     public StatValue mp { get => m_Stat.m_iCurrentMP; set { m_Stat.m_iCurrentMP = value; } }
     public StatValue mpMax { get => m_Stat.m_iMaxMP; set { m_Stat.m_iMaxMP = value; } }
@@ -59,6 +56,7 @@ public partial class AttributeSystem : MonoBehaviour
             m_Stat = m_originalStat;
 
         m_isStatInstantiate = true;
+        Init();
     }
 
     public void ReStoreStat()
@@ -69,7 +67,7 @@ public partial class AttributeSystem : MonoBehaviour
     }
 
     // Tick 당 이뤄지는 함수
-    private void UpdateTickStat(object sender, EventArgs args)
+    private void UpdateTickStat()
     {
         if (m_IsDead)
             return;
@@ -106,7 +104,7 @@ public partial class AttributeSystem : MonoBehaviour
 
     #region Caculate
 
-    public void Hit(AttackPattern attack, GameEntity attacker)
+    public void Hit(AttackData attack, GameEntity attacker)
     {
         // 사망시 타격 판정 불가
         if (m_IsDead)
@@ -142,7 +140,7 @@ public partial class AttributeSystem : MonoBehaviour
         ApplyDamage(attack, hitDecision, attacker);
     }
 
-    public void ApplyDamage(AttackPattern attack, E_HitDecisionType hitDecision, GameEntity attacker)
+    private void ApplyDamage(AttackData attack, E_HitDecisionType hitDecision, GameEntity attacker)
     {
         int finalDamage;
 
@@ -190,6 +188,18 @@ public partial class AttributeSystem : MonoBehaviour
 
         }
 
+        OnStatDelta?.Invoke(new OnStatDeltaEventArgs
+        {
+            Kind = E_StatDeltaKind.HP,
+            Amount = finalDamage,
+            Sign = finalDamage > 0 ? E_StatDeltaSign.Minus : E_StatDeltaSign.Zero,
+            Cause = E_StatDeltaCause.Damage,
+            Source = attacker,
+            Target = m_GameEntity,
+            HitDecision = hitDecision,
+            AttackPattern = attack,
+        });
+
         // 체력 감소
         ReduceHP(finalDamage);
 
@@ -205,25 +215,31 @@ public partial class AttributeSystem : MonoBehaviour
         if (health == 0)
         {
             // 사망 처리
-            OnDead?.Invoke(this, info);
+            OnDead?.Invoke(info);
         }
         else if (health > 0)
         {
             // 데미지 이벤트 호출
-            OnDamaged?.Invoke(this, info);
+            OnDamaged?.Invoke(info);
         }
     }
 
-    public void EventOnDamaged(AttackPattern pattern, E_HitDecisionType type, GameEntity attacker)
+    private void EventOnDamaged(AttackData pattern, E_HitDecisionType type, GameEntity attacker)
     {
-        OnDamaged?.Invoke(this, new OnAttackInfoEventArgs { AttackPattern = pattern, EHitDeCisionType = type, Attacker = attacker });
+        OnDamaged?.Invoke(new OnAttackInfoEventArgs 
+        { 
+            AttackPattern = pattern, 
+            EHitDeCisionType = type, 
+            Attacker = attacker,
+            Victim = m_GameEntity,
+        });
     }
 
     public void AddHP(StatValue addHp)
     {
         health = Math.Clamp(health + addHp, 0, healthMax);
 
-        OnUpdateStat?.Invoke(this, EventArgs.Empty);
+        OnUpdateStat?.Invoke();
     }
 
     public void Heal(StatValue healAmount, E_HealType healType, GameEntity healer = null)
@@ -235,16 +251,22 @@ public partial class AttributeSystem : MonoBehaviour
         health = Math.Clamp(health + healAmount, 0, healthMax);
         int actualHeal = (int)health - beforeHP;
 
+        OnStatDelta?.Invoke(new OnStatDeltaEventArgs
+        {
+            Kind = E_StatDeltaKind.HP,
+            Amount = actualHeal,
+            Sign = E_StatDeltaSign.Plus,
+            Cause = (healType == E_HealType.LifeSteal) ? E_StatDeltaCause.LifeSteal : E_StatDeltaCause.Heal,
+            Source = healer ?? m_GameEntity,
+            Target = m_GameEntity,
+            HealType = healType,
+        });
+
+
         if (actualHeal > 0)
         {
-            OnHealed?.Invoke(this, new OnHealEventArgs
-            {
-                HealAmount = actualHeal,
-                HealType = healType,
-                Healer = healer ?? m_GameEntity
-            });
 
-            OnUpdateStat?.Invoke(this, EventArgs.Empty);
+            OnUpdateStat?.Invoke();
         }
     }
 
@@ -252,39 +274,38 @@ public partial class AttributeSystem : MonoBehaviour
     {
         health = Math.Clamp(health - addHp, 0, healthMax);
 
-        OnUpdateStat?.Invoke(this, EventArgs.Empty);
+        OnUpdateStat?.Invoke();
     }
 
     public void AddMP(int addMP)
     {
         mp = Math.Clamp(mp + addMP, 0, mpMax);
 
-        OnUpdateStat?.Invoke(this, EventArgs.Empty);
+        OnUpdateStat?.Invoke();
     }
 
     public void ReduceMP(int addMP)
     {
         mp = Math.Clamp(mp - addMP, 0, mpMax);
 
-        OnUpdateStat?.Invoke(this, EventArgs.Empty);
+        OnUpdateStat?.Invoke();
     }
 
     #endregion
 
     #region Move
 
-    public void UpdateMoveState()
+    private void UpdateMoveState(Type actionType)
     {
         m_EMoveType = E_MoveType.Idle;
 
-        if (m_GameEntity.m_CurrentAction is ChaseAction || m_GameEntity.m_CurrentAction is CommandMoveAction)
+        if (typeof(MoveAction).IsAssignableFrom(actionType))
         {
             if (m_GameEntity.m_TeamId == E_TeamId.Monster)
             {
-                if (m_GameEntity.m_Target == DungeonCore.instance)
-                    m_EMoveType = E_MoveType.Walk;
-                else
-                    m_EMoveType = E_MoveType.Run;
+                bool targetIsCore = Managers.SceneServices.DungeonCores.IsCore(m_GameEntity.m_Target);
+
+                m_EMoveType = targetIsCore ? E_MoveType.Walk : E_MoveType.Run;
             }
             else
                 m_EMoveType = E_MoveType.Run;

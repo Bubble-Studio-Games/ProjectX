@@ -28,12 +28,12 @@ public class PlayerSoundManager : MonoBehaviour
         Managers.Command.OnSelectedActionChanged += PlaySound_SelectAction;
     }
 
-    public void PlaySound_SelectUnit(object sender, EventArgs e)
+    public void PlaySound_SelectUnit()
     {
         Managers.Sound.Play(m_SelectUnitAudioClip);
     }
 
-    public void PlaySound_SelectAction(object sender, CommandManager.OnCommandActionEventArgs e)
+    public void PlaySound_SelectAction(CommandManager.OnCommandActionEventArgs e)
     {
         // CommandMove, CommandAttack은 별도 선택이 없다.
         if(e.action == typeof(CommandMoveAction))
@@ -47,7 +47,7 @@ public class PlayerSoundManager : MonoBehaviour
         }
     }
 
-    public void PlaySound_CommandAction(object sender, CommandManager.OnCommandActionEventArgs e)
+    public void PlaySound_CommandAction(CommandManager.OnCommandActionEventArgs e)
     {
         if(e.action == typeof(CommandMoveAction))
         {

@@ -44,6 +44,10 @@ PrefabInstance:
       propertyPath: m_ObjectType
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 1075397605445030751, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
+      propertyPath: m_EObjectType
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 1682568708250915358, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       propertyPath: m_Name
       value: Wagon
@@ -86,7 +90,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: ff4d4203de4dcde4a91a9e6757bbcdf7, type: 2}
     - target: {fileID: 5152035430160485438, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 42
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5152035430160485438, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       propertyPath: m_LocalPosition.y
@@ -94,7 +98,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5152035430160485438, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 4
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5152035430160485438, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       propertyPath: m_LocalRotation.w
@@ -102,15 +106,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5152035430160485438, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5152035430160485438, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5152035430160485438, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5152035430160485438, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

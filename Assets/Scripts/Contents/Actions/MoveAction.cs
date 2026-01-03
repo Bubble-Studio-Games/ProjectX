@@ -1,25 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TMPro;
 using UnityEngine;
 using static Define;
 
 public class MoveAction : BaseAction
 {
-    public event EventHandler OnStartMoving;
-    public event EventHandler OnStopMoving;
-    public event EventHandler OnUpdateGrid;
+    public event Action OnStartMoving;
+    public event Action OnStopMoving;
+    public event Action OnUpdateGrid;
 
-    public event EventHandler<OnChangeFloorsStartedEventArgs> OnChangedFloorsStarted;
-    public class OnChangeFloorsStartedEventArgs : EventArgs
-    {
-        public GridPosition unitGridPosition;
-        public GridPosition targetGridPosition;
-    }
-
+    public event Action<OnChangeFloorsStartedEventArgs> OnChangedFloorsStarted;
 
     protected Vector3 forwardPosition;
 
@@ -32,17 +22,25 @@ public class MoveAction : BaseAction
     protected int m_iPathMaxCount = 2;
     protected int m_iPathCurrentCount = 0;
 
-    protected override void Start()
+    private void OnEnable()
     {
-        base.Start();
-
         if (m_GameEntity.m_TeamId == E_TeamId.Player)
-        {
-            OnUpdateGrid += (s, e) => GridSystemVisual.Instance.UpdateGridVisual_Event(s, m_GameEntity);
-        }
+            OnUpdateGrid += DrawGridVisual;
 
-        // Event
-        OnUpdateGrid += (s, e) => m_GameEntity.UpdateGridPosition();
+        OnUpdateGrid += UpdateGridEntity;
+    }
+
+    private void OnDisable()
+    {
+        if (m_GameEntity.m_TeamId == E_TeamId.Player)
+            OnUpdateGrid -= DrawGridVisual;
+
+        OnUpdateGrid -= UpdateGridEntity;
+    }
+
+    private void UpdateGridEntity()
+    {
+        m_GameEntity.UpdateGridPosition();
     }
 
     protected override void Update()
@@ -101,7 +99,7 @@ public class MoveAction : BaseAction
         if (Vector3.Distance(m_GameEntity.transform.position, targetPosition) < stoppingDistance)
         {
             forwardPosition = default;
-            OnUpdateGrid?.Invoke(this, EventArgs.Empty);
+            OnUpdateGrid?.Invoke();
             m_bIsActive = false;
 
             // 최종 목적지에 도착했는지 여부 따지기
@@ -130,14 +128,14 @@ public class MoveAction : BaseAction
     public override void ActionStart()
     {
         base.ActionStart();
-        OnStartMoving?.Invoke(this, EventArgs.Empty);
+        OnStartMoving?.Invoke();
     }
 
     protected override void ActionComplete()
     {
         base.ActionComplete();
 
-        OnStopMoving?.Invoke(this, EventArgs.Empty);
+        OnStopMoving?.Invoke();
         m_iPathCurrentCount = 0;
     }
 
@@ -147,7 +145,8 @@ public class MoveAction : BaseAction
 
         if (forwardPosition != default)
         {
-            LevelGrid.Instance.SetGridPositionCellInfo(LevelGrid.Instance.GetGridPosition(forwardPosition), E_GridCheckType.Walkable);
+            Managers.SceneServices.GridMut.SetCellType(Managers.SceneServices.Grid.GetGridPosition(forwardPosition), E_GridCheckType.Walkable);
+            Managers.SceneServices.GridMut.SetCellType(Managers.SceneServices.Grid.GetGridPosition(forwardPosition), E_GridCheckType.Walkable);
             forwardPosition = default;
             m_iPathCurrentCount = 0;
         }

@@ -1,35 +1,45 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Cinemachine;
-using static Table_Camera_Shake;
 using System;
+using static Define;
 
-public class CameraController : MonoBehaviour
+public class CameraController : MonoBehaviour, ICameraRig, ICameraInfoProvider, ICameraShakeSettings
 {
-    public EventHandler<bool> OnChangeLookFloor;
+    private Define.ICameraInput _cameraInput;
+    private IInputQuery _input;
 
-    public static CameraController Instance { get; private set; }
+    public Action<int> OnChangeLookFloor;
 
     private CinemachineCamera m_CM;
     public Transform m_Follow;
     private Vector3 targetFollowOffset;
 
-    public int m_CurrentLookFloor { get; private set; } = 0;
-
     public Camera m_UICamera;
 
     [Header("Main Cinemachine")]
-    private CinemachineOrbitalFollow m_CMOrbitalFollow;
     private CinemachineRotationComposer m_CMRotationComposer;
     private CinemachineInputAxisController m_CMInputAxisController;
-    public CinemachineImpulseListener m_CMImpulseListener;
+    private CinemachineImpulseListener m_CMImpulseListener;
+    private event Action<int> _onChangeLookFloor;
+
+    event Action<int> ICameraRig.OnChangeLookFloor
+    {
+        add { _onChangeLookFloor += value; }
+        remove { _onChangeLookFloor -= value; }
+    }
+
+    private void ChangeFloor(int floor)
+    {
+        _onChangeLookFloor?.Invoke(floor);
+    }
 
     private void Awake()
     {
-        Instance = this;
+        Managers.SceneServices.Register<ICameraRig>(this);
+        Managers.SceneServices.Register<ICameraInfoProvider>(this);
+        Managers.SceneServices.Register<ICameraShakeSettings>(this);
+
         m_CM =  GetComponentInChildren<CinemachineCamera>();
-        m_CMOrbitalFollow =  GetComponentInChildren<CinemachineOrbitalFollow>();
         m_CMRotationComposer =  GetComponentInChildren<CinemachineRotationComposer>();
         m_CMInputAxisController =  GetComponentInChildren<CinemachineInputAxisController>();
         m_CMImpulseListener =  GetComponentInChildren<CinemachineImpulseListener>();
@@ -38,6 +48,9 @@ public class CameraController : MonoBehaviour
     private void Start()
     {
         targetFollowOffset = m_CM.Target.TrackingTarget.transform.position;
+
+        _cameraInput = Managers.SceneServices.CameraInput;
+        _input = Managers.SceneServices.InputQuery;
     }
 
     private void Update()
@@ -48,9 +61,7 @@ public class CameraController : MonoBehaviour
 
     private void HandleMovement()
     {
-        if (InputManager.Instance == null) return;
-
-        Vector2 inputMoveDir = InputManager.Instance.GetCameraMoveVector();
+        Vector2 inputMoveDir = _cameraInput.GetCameraMoveVector();
 
         float moveSpeed = 10f;
 
@@ -72,9 +83,9 @@ public class CameraController : MonoBehaviour
     // 마우스 우클릭 시에만 작동하게
     private void HandleEnableCMController()
     {
-        if(InputManager.Instance == null) return;
+        bool rightHold = _input.IsActive(E_InputEvent.RightHold);
 
-        if(InputManager.Instance.mouse_R_Hold)
+        if (rightHold)
         {
             m_CMInputAxisController.Controllers[0].Enabled = true; // X
             m_CMInputAxisController.Controllers[1].Enabled = true; // Y
@@ -86,10 +97,22 @@ public class CameraController : MonoBehaviour
         }
     }
 
-
     public float GetCameraHeight()
     {
         return targetFollowOffset.y;
     }
 
+    public void SetPositionAndRotation(Vector3 position, Quaternion rotation) => m_Follow.transform.SetPositionAndRotation(position, rotation);
+
+    public Vector3 Position => m_Follow.transform.position;
+    public Quaternion Rotation => m_Follow.transform.rotation;
+
+    // TODO
+    public int CurrentLookFloor => 0;
+
+    public void SetImpulseReactionDuration(float duration)
+    {
+        if (m_CMImpulseListener != null)
+            m_CMImpulseListener.ReactionSettings.Duration = duration;
+    }
 }

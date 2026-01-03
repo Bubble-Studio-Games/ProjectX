@@ -17,7 +17,7 @@ public class ASM_GameEntity : StateMachineBehaviour
         if (stateInfo.IsName("Attack"))
         {
             m_GameEntity.GetAction<CombatAction>().OnEndAttackEventInvoke();
-            m_GameEntity.GetAnimationsManager().ForEach(manager => manager.AnimatonSpeedRestoreOriginalSpeed());
+            m_GameEntity.m_GameEntityAnimator.AnimatonSpeedRestoreOriginalSpeed();
         }
         else if (stateInfo.IsName("AttackReadyFail"))
         {

@@ -24,7 +24,7 @@ public class PathfindingGridDebugObject : GridDebugObject
         gCostText.text = pathNode.GetGCost().ToString();
         hCostText.text = pathNode.GetHCost().ToString();
         fCostText.text = pathNode.GetFCost().ToString();
-        isWalkableSpriteRenderer.color = LevelGrid.Instance.IsGridPositionCheckType(pathNode.GetGridPosition(), Define.E_GridCheckType.Walkable) ? Color.green : Color.red;
+        isWalkableSpriteRenderer.color = Managers.SceneServices.Grid.IsGridPositionCheckType(pathNode.GetGridPosition(), Define.E_GridCheckType.Walkable) ? Color.green : Color.red;
     }
     
 }

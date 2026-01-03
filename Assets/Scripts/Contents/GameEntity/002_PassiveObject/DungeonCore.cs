@@ -4,20 +4,21 @@ using DG.Tweening;
 using System.Collections.Generic;
 using System;
 using Unity.Cinemachine;
+using static Define;
 
-public class DungeonCore : PassiveObject
+public class DungeonCore : PassiveObject, IDungeonCore
 {
-    public static DungeonCore instance;
+    public bool IsDead => m_AttributeSystem.m_IsDead;
+    public float HealthNormalized => m_AttributeSystem.GetHealthNormalized();
 
-    public EventHandler OnHit;
+    public Vector3 Position => transform.position;
+    public Quaternion Rotation => transform.rotation;
 
     [Header("Hit Effect Settings")]
     public float m_HitStunDuration = 1f;
     public Color m_HitColor = Color.red;
     public ParticleSystem m_HitParticles;
-    public AudioClip m_HitSound;
 
-    private AudioSource m_AudioSource;
     private Dictionary<Material, Color> m_CoreMaterial = new();
 
     [Header("Hit Effect - CameraShake")]
@@ -28,18 +29,14 @@ public class DungeonCore : PassiveObject
 
     private CinemachineImpulseSource m_CMImpulseSource;
 
-
     protected override void Awake()
     {
         base.Awake();
 
-        instance = this;
-
         // Hit 효과에 관하여 (석상 색상 변화 + Volume + Camera Shake)
-        m_AttributeSystem.OnDamaged += (s, e) => Hit();
-        m_AttributeSystem.OnDead += (s, e) => HeartZero();
+        m_AttributeSystem.OnDamaged += Hit;
+        m_AttributeSystem.OnDead += HeartZero;
 
-        m_AudioSource = GetComponent<AudioSource>();
 
         // 하위 렌더러까지 색상 데이터 저장
         foreach (var render in GetComponentsInChildren<Renderer>())
@@ -52,10 +49,9 @@ public class DungeonCore : PassiveObject
         }
 
         m_CMImpulseSource = GetComponent<CinemachineImpulseSource>();
-
     }
 
-    private void Hit()
+    private void Hit(OnAttackInfoEventArgs e)
     {
         foreach (var kvp in m_CoreMaterial)
         {
@@ -70,8 +66,6 @@ public class DungeonCore : PassiveObject
         // 파티클 & 사운드
         if (m_HitParticles != null)
             m_HitParticles.Play();
-        if (m_AudioSource != null && m_HitSound != null)
-            m_AudioSource.PlayOneShot(m_HitSound);
 
         // Camera Shake
         // ShakeCamera 호출 부분
@@ -84,20 +78,23 @@ public class DungeonCore : PassiveObject
         ShakeCamera(forceintensity, timeintensity);
     }
 
-
-    private void HeartZero()
+    protected override void OnDestroy()
     {
-        // 게임 종료 처리
-        Managers.Game.DungeonExplosionFail();
+        base.OnDestroy();
+        Managers.SceneServices.DungeonCores.Unregister(this);
     }
 
-    public override void DeSpawnComplete()
+    private void HeartZero(OnAttackInfoEventArgs e)
     {
+        // “즉시 실패”가 아니라 registry 정책에 따라 실패 판단
+        if (Managers.SceneServices.DungeonCores.IsStageFailed)
+            Managers.Game.DungeonExplosionFail();
     }
 
     public void ShakeCamera(float force = 1, float duration = 0.5f)
     {
-        CameraController.Instance.m_CMImpulseListener.ReactionSettings.Duration = duration;
-        m_CMImpulseSource.GenerateImpulse(force);
+        Managers.SceneServices.CameraShakeSettings.SetImpulseReactionDuration(duration);
+
+        m_CMImpulseSource?.GenerateImpulse(force);
     }
 }

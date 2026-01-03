@@ -3,11 +3,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Define;
 using Random = UnityEngine.Random;
 
 public class UnitRagdoll : MonoBehaviour
 {
     Animator m_Animator;
+    private bool _useRagdoll;
 
     [SerializeField] float explosionForce = 300f;
     [SerializeField] float explosionRange = 10f;
@@ -41,16 +43,42 @@ public class UnitRagdoll : MonoBehaviour
         cachedVelocities = new Vector3[ragdollRigidbodies.Length];
         cachedAngularVelocities = new Vector3[ragdollRigidbodies.Length];
 
-        stepInterval = 1 / SettingManager.Instance.fps;
+        stepInterval = 1 / GameConfig.AnimationStepFps;
 
         CacheOriginalPose();
         SetRagdollState(false);
 
         // Event
-        GetComponentInParent<GameEntity>().OnObjectSpawned += DisableRagdollAndRestorePose;
         m_StatSystem = GetComponentInParent<AttributeSystem>();
-        m_StatSystem.OnDead += EnableRagdoll;
+
+        // “기능 사용 여부”만 결정
+        _useRagdoll =
+            GetComponent<GameEntityAnimator>().m_DeathAnimationClip.Length == 0;
+
+        if (_useRagdoll)
+        {
+            CacheOriginalPose();
+            SetRagdollState(false);
+        }
     }
+
+    private void OnEnable()
+    {
+        if (!_useRagdoll || m_StatSystem == null)
+            return;
+
+        m_StatSystem.OnDead += EnableRagdoll;
+        DisableRagdollAndRestorePose();
+    }
+
+    private void OnDisable()
+    {
+        if (!_useRagdoll || m_StatSystem == null)
+            return;
+
+        m_StatSystem.OnDead -= EnableRagdoll;
+    }
+
 
     private void CacheOriginalPose()
     {
@@ -60,7 +88,7 @@ public class UnitRagdoll : MonoBehaviour
     }
 
     // 레그돌 활성화
-    public void EnableRagdoll(object sender, AttributeSystem.OnAttackInfoEventArgs e)
+    public void EnableRagdoll(OnAttackInfoEventArgs e)
     {
         // 애니메이터 끄기
         //m_Animator.enabled = false;
@@ -117,7 +145,7 @@ public class UnitRagdoll : MonoBehaviour
     }
 
     // 복원 로직 (레그돌 → 애니메이션 복귀)
-    public void DisableRagdollAndRestorePose(object sender, EventArgs e)
+    public void DisableRagdollAndRestorePose()
     {
         foreach (var t in originalPoseMap.Keys)
         {
@@ -134,7 +162,8 @@ public class UnitRagdoll : MonoBehaviour
         SetRagdollState(false);
 
         //m_Animator.enabled = true;
-        m_Animator.speed = 1;
+        if(m_Animator != null)
+            m_Animator.speed = 1;
         isRagdollActive = false;
     }
 

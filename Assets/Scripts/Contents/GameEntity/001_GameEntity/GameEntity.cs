@@ -6,7 +6,6 @@ using Unity.Collections;
 using UnityEngine;
 using static Define;
 using Material = UnityEngine.Material;
-using Type = System.Type;
 
 [RequireComponent(typeof(AttributeSystem))]
 public class GameEntity : MonoBehaviour,
@@ -16,13 +15,43 @@ public class GameEntity : MonoBehaviour,
 {
     #region Field
 
-    // Event
-    public event EventHandler OnSpawnObjectSelected; // 오브젝트를 배치하려고 할 때
-    public event EventHandler OnObjectSpawned; // 씬에 생성되거나 활성화될 때
-    public event EventHandler OnObjectDespawned; // 파괴되거나 비활성화될 때
-    public event EventHandler OnSelectedEvent;
-    public event EventHandler OnDeselectedEvent;
-    public event EventHandler OnChangeBaseActionEvent;
+    private IGridQuery _grid;
+    private IUnitGridManager _unitGrid;
+    private IUnitActionTickService _tick;
+    private IGridVisualUpdateSource _gridVisualSource;
+
+    // Spawn & DeSpawn
+    public event Action OnSpawnObjectSelected; // 오브젝트를 배치하려고 할 때
+    public event Action OnObjectSpawnStart; // 씬에 생성되거나 활성화될 때
+    public event Action OnSpawnCompleted; // 씬에 생성되거나 활성화될 때
+    public event Action OnObjectDespawned; // 파괴되거나 비활성화될 때
+
+    // Select
+    public event Action OnSelectedEvent;
+    public event Action OnDeselectedEvent;
+
+    // Attribute
+    public event Action<OnAttackInfoEventArgs> OnDamaged;
+    public event Action<OnAttackInfoEventArgs> OnDead;
+    public event Action OnRevived;
+
+    // Action
+    public event Action<Type> OnActionChanged;
+
+    // Battle
+    public event Action<AttackData> OnStartAttack;
+    public event Action<AttackData> OnAttackPoint;
+    public event Action<AttackData> OnAttackReadyFailed;
+    public event Action OnPhaseChange;
+    //public event Action OnLeftArmEmptyRequested;
+    //public event Action<RightHandIKTarget, LeftHandIKTarget, bool> OnTwoHandIKRequested;
+
+    // Move
+    public event Action OnStartMoving;
+    public event Action OnStopMoving;
+    public event Action OnStep;
+    public event Action<OnChangeFloorsStartedEventArgs> OnChangedFloorsStarted;
+
 
     public string _guid { get; private set; } = string.Empty; // private field로 변경하고 프로퍼티로 접근
     public string guid => _guid;
@@ -32,20 +61,18 @@ public class GameEntity : MonoBehaviour,
         _guid = inputGuid;
     }
 
-    // Ref
-    [Header("Ref")]
-    protected List<GameEntityAnimator> m_AnimatorManagers;
-    public GameEntitySounder m_Sounder { get; protected set; }
+    public GameEntityAnimator m_GameEntityAnimator { get; private set; }
     public AttributeSystem m_AttributeSystem { get; private set; }
     public Collider m_HitCollider { get; protected set; }
-    public SetupAnimation m_SetupAnimation { get; private set; }
-    public GameEntityCombat m_CombatManager { get; private set; }    
+    private SetupAnimation m_SetupAnimation;
+    public GameEntityCombat m_CombatManager { get; private set; }
+    public ProjectileSpawnProvider m_ProjectileSpawnProvider { get; private set; }
 
-    protected HashSet<(Material mat, GameObject obj)> m_ModelMaterials = new();
+    private HashSet<(Material mat, GameObject obj)> m_ModelMaterials = new();
 
     [Header("Info")]
     public GridPosition[] m_GridPositionOffsets;
-    public GridPosition m_GridPosition { get; protected set; }
+    private GridPosition m_GridPosition;
     public E_ObjectType m_EObjectType;
     public E_Dir m_CurrentEDir = E_Dir.South;
     public E_TeamId m_TeamId;
@@ -60,6 +87,9 @@ public class GameEntity : MonoBehaviour,
     protected BaseAction m_NextAction;
     protected BaseAction m_BeforeAction;
 
+    private CombatAction _combatAction;
+    private MoveAction[] _moveActions;
+
     protected Dictionary<Type, BaseAction> baseActionDict = new Dictionary<Type, BaseAction>();
 
     [Tooltip("현재 객체에 할당된 Action 큐")]
@@ -72,13 +102,22 @@ public class GameEntity : MonoBehaviour,
     [Header("Flag")]
     public bool m_IsDirectDesawnAtDeath = true; // 사망 후 바로 디스폰 처리 하는가?
     public bool m_IsSetuping { get; protected set; } = false; // 카드에서 뽑아 소환 중인가?
+    private bool _isSpawnRegistered = false;
+
+    [Header("Debug/Test")]
+    public bool m_DisableDespawnFlowForAnimTest = false;
+
 
     [Tooltip("체크 되어 있을 경우 무조건 던전 코어를 향해 이동 (몬스터 전용)")]
-    public bool m_IsTowardDungeonCore = false;
+    [HideInInspector] public bool m_IsTowardDungeonCore = false;
 
     // 전역 캐시 (Prefab 단위)
     private static Dictionary<string, bool> s_RotateSymmetryCache = new();
     public bool m_IsRotateSymmetry { get; private set; }
+
+    // Getter
+    public E_MoveType CurrentMoveType => m_AttributeSystem.m_EMoveType;
+    public string AnimKeyName => m_AttributeSystem.m_Stat.Name;
 
     #endregion
 
@@ -86,27 +125,37 @@ public class GameEntity : MonoBehaviour,
 
     protected virtual void Awake()
     {
-        // 씬에 배치된 오브젝트인 경우, GUID가 없으면 새로 생성
-        if (string.IsNullOrEmpty(_guid))
-        {
-            _guid = Guid.NewGuid().ToString(); // System.Guid를 사용하여 새 GUID 생성
-        }
-
         m_AttributeSystem = GetComponent<AttributeSystem>();
-
-        if(m_AnimatorManagers == null)
-            m_AnimatorManagers = GetComponentsInChildren<GameEntityAnimator>().ToList();
-        if(m_Sounder == null)
-            m_Sounder = GetComponent<GameEntitySounder>();
-        if (m_CombatManager == null)
-            m_CombatManager = GetComponent<GameEntityCombat>();
-
+        m_GameEntityAnimator = GetComponentInChildren<GameEntityAnimator>();
+        m_CombatManager = GetComponent<GameEntityCombat>();
         m_SetupAnimation = GetComponent<SetupAnimation>();
+        m_ProjectileSpawnProvider = GetComponent<ProjectileSpawnProvider>();
 
         foreach (var action in GetComponentsInChildren<BaseAction>())
             baseActionDict[action.GetType()] = action;
 
-        m_AttributeSystem.OnDead += (s, e) => ClearAction();
+        var ss = Managers.SceneServices;
+        _grid = ss.Grid;
+        _unitGrid = ss.UnitGrid;
+        _tick = ss.UnitActionTick;
+        _gridVisualSource = ss.GridVisualUpdateSource;
+
+        m_HitCollider = GetChildColliders().FirstOrDefault();
+    }
+
+    protected virtual void Start()
+    {
+        // 해당 조건은 몬스터 전용이다.
+        if (m_TeamId != E_TeamId.Monster && m_IsTowardDungeonCore)
+        {
+            m_IsTowardDungeonCore = false;
+            Debug.Log($"{name}의 팀 타입이 변경됩니다. 해당 조건은 팀 타입이 몬스터일 때에만 허용됩니다.");
+        }
+
+        // 씬에 배치된 오브젝트인 경우, GUID가 없으면 새로 생성
+        if (string.IsNullOrEmpty(_guid))
+            _guid = Guid.NewGuid().ToString(); // System.Guid를 사용하여 새 GUID 생성
+
 
         // 현재 Command Action에만 지정 명령 종료를 지정함.
         GetActions()
@@ -114,53 +163,100 @@ public class GameEntity : MonoBehaviour,
             .ToList()
             .ForEach(a =>
             {
-                a.OnActionCompleted += (s, e) =>
+                a.OnActionCompleted += () =>
                 {
                     m_IsCommandAction = false;
                     //Debug.Log($"{a.m_actionName}의 실행 종료");
                 };
             });
 
-    }
-
-    protected virtual void Start()
-    {
         CheckRotateSymmetry();
 
         if (m_IsSetuping)
             return;
 
         // 맵에 그냥 배치되어 있을 경우
-        InitSpawn();
+        SpawnRegister();   
         SpawnComplete();
     }
 
-    protected void OnEnable()
+    protected virtual void OnEnable()
     {
-        // 이미 월드 내에 배치되어 있는 경우
-        // 오브젝트를 배치하지 않은 상태에서 삭제한 경우를 대비하여
+        if (baseActionDict.Count > 0)
+            Managers.SceneServices.UnitActionTick.OnUpdateActionTick += ExecuteAction;
+
         m_IsSetuping = false;
-    }
 
-    public virtual void OnDestroy()
-    {
-        if (UnitActionSystem.Instance != null)
-            UnitActionSystem.Instance.OnUpdateActionTick -= ExecuteAction;
-    }
-
-    protected virtual void Update()
-    {
-
-    }
-
-    protected void OnValidate()
-    {
-        // 해당 조건은 몬스터 전용이다.
-        if (m_TeamId != E_TeamId.Monster && m_IsTowardDungeonCore)
+        if (m_GameEntityAnimator != null)
         {
-            m_IsTowardDungeonCore = false;
-            Debug.Log("해당 조건은 팀 타입이 몬스터일 때에만 허용됩니다.");
+            m_GameEntityAnimator.OnSpawnAnimFinished += SpawnComplete;
+            m_GameEntityAnimator.OnDespawnAnimFinished += DeSpawnComplete;
+            m_GameEntityAnimator.OnStep += HandleStep;
+            m_GameEntityAnimator.OnAttackPoint += HandleAttackPoint;
         }
+
+        //m_AttributeSystem.OnDead += ClearAction;
+        m_AttributeSystem.OnDamaged += HandleDamaged;
+        m_AttributeSystem.OnDead += HandleDead;
+        m_AttributeSystem.OnRevived += HandleRevived;
+
+        // CombatAction
+        _combatAction = GetAction<CombatAction>();
+        if (_combatAction != null)
+        {
+            _combatAction.OnStartAttack += HandleStartAttack;
+            _combatAction.OnPhaseChange += HandlePhaseChange;
+        }
+
+        // MoveAction
+        _moveActions = GetComponentsInChildren<MoveAction>(true);
+        foreach (var move in _moveActions)
+        {
+            move.OnStartMoving += HandleStartMoving;
+            move.OnStopMoving += HandleStopMoving;
+            move.OnChangedFloorsStarted += HandleChangedFloorsStarted;
+        }
+    }
+
+    protected virtual void OnDisable()
+    {
+        if (baseActionDict.Count > 0)
+            _tick.OnUpdateActionTick -= ExecuteAction;
+
+        if (m_GameEntityAnimator != null)
+        {
+            m_GameEntityAnimator.OnSpawnAnimFinished -= SpawnComplete;
+            m_GameEntityAnimator.OnDespawnAnimFinished -= DeSpawnComplete;
+            m_GameEntityAnimator.OnStep -= HandleStep;
+            m_GameEntityAnimator.OnAttackPoint -= HandleAttackPoint;
+        }
+
+        // ✅ Forwarding 해제
+        //m_AttributeSystem.OnDead -= ClearAction;
+        m_AttributeSystem.OnDamaged -= HandleDamaged;
+        m_AttributeSystem.OnDead -= HandleDead;
+        m_AttributeSystem.OnRevived -= HandleRevived;
+
+
+        if (_combatAction != null)
+        {
+            _combatAction.OnStartAttack -= HandleStartAttack;
+            _combatAction.OnPhaseChange -= HandlePhaseChange;
+        }
+
+        if (_moveActions != null)
+        {
+            foreach (var move in _moveActions)
+            {
+                move.OnStartMoving -= HandleStartMoving;
+                move.OnStopMoving -= HandleStopMoving;
+                move.OnChangedFloorsStarted -= HandleChangedFloorsStarted;
+            }
+        }
+    }
+
+    protected virtual void OnDestroy()
+    {
     }
 
     #endregion
@@ -169,18 +265,11 @@ public class GameEntity : MonoBehaviour,
     {
         if (m_ModelMaterials == null || m_ModelMaterials.Count == 0)
         {
-            // 렌더러 리스트를 먼저 구해서 즉시 평가
-            var renderers = GetComponentsInChildren<Transform>()
-                .Where(t => t != null)
-                .SelectMany(t => t.GetComponentsInChildren<Renderer>(true))
-                .ToArray(); // ✅ ToArray()로 즉시 평가 (지연 실행 방지)
-
-            // 이제 renderer.materials로 개별 인스턴스 생성
-            m_ModelMaterials = Enumerable.ToHashSet( renderers
-                .SelectMany(r => r.materials   // ✅ 인스턴스화 발생
+            m_ModelMaterials = GetComponentsInChildren<Renderer>(true)
+                .SelectMany(r => r.materials
                     .Where(m => m != null)
                     .Select(m => (mat: m, obj: r.gameObject)))
-                );
+                .ToHashSet();
         }
 
         return m_ModelMaterials;
@@ -193,7 +282,7 @@ public class GameEntity : MonoBehaviour,
         // root 포함 모든 자식 탐색
         foreach (Transform child in GetComponentsInChildren<Transform>(true))
         {
-            if (((1 << child.gameObject.layer) & Managers.Layer.HitColLayerMask) != 0)
+            if (((1 << child.gameObject.layer) & GameConfig.Layer.HitColLayerMask) != 0)
             {
                 Collider col = child.GetComponent<Collider>();
                 if (col != null)
@@ -208,7 +297,7 @@ public class GameEntity : MonoBehaviour,
 
     public void UpdateGridPosition()
     {
-        GridPosition newGridPosition = LevelGrid.Instance.GetGridPosition(transform.position);
+        GridPosition newGridPosition = _grid.GetGridPosition(transform.position);
 
         if (newGridPosition != m_GridPosition)
         {
@@ -217,37 +306,24 @@ public class GameEntity : MonoBehaviour,
             m_GridPosition = newGridPosition;
             List<GridPosition> newGridPositions = GetGridPositionListAtCurrentDir();
 
-            LevelGrid.Instance.UnitMovedGridPosition(this, oldGridPositions, newGridPositions);
+            _unitGrid.MoveUnit(this, oldGridPositions, newGridPositions);
         }
     }
 
-    public GridPosition GetGridPosition()
-    {
-        return m_GridPosition;
-    }
-
-    public Vector3 GetWorldPosition()
-    {
-        return transform.position;
-    }
-
-    public List<GameEntityAnimator> GetAnimationsManager()
-    {
-        return m_AnimatorManagers;
-    }
+    public GridPosition GetGridPosition() => m_GridPosition;
 
     #region Select
 
     public void OnDeselected()
     {
         //Debug.Log($"{name} DeSelect");
-        OnDeselectedEvent?.Invoke(this, EventArgs.Empty);
+        OnDeselectedEvent?.Invoke();
     }
 
     public void OnSelected()
     {
         //Debug.Log($"{name} Select");
-        OnSelectedEvent?.Invoke(this, EventArgs.Empty);
+        OnSelectedEvent?.Invoke();
     }
 
     #endregion
@@ -280,7 +356,7 @@ public class GameEntity : MonoBehaviour,
         var result = new List<GridPosition> { pivot };
 
         // m_GridPositionOffsets의 오프셋들을 pivot 기준으로 회전 적용
-        result.AddRange(LevelGrid.Instance.ToGridPosition(this, pivot));
+        result.AddRange(Util.ToGridPosition(this, pivot));
 
         return result;
     }
@@ -302,41 +378,43 @@ public class GameEntity : MonoBehaviour,
 
     #region Setup & Spawn
 
-    // 몬스터의 경우 몬스터 스포너에서 소환
-    // 플레이어의 경우 카드 선택 -> 드로우 소환
-    public virtual void SpawnStart()
+
+    // 플레이어가 오브젝트를 배치중일 때
+    public void SelectSpawnObject()
     {
-        InitSpawn();
-
-        m_IsSetuping = true;
-
-        OnObjectSpawned?.Invoke(this, EventArgs.Empty);
-    }
-
-    protected virtual void InitSpawn()
-    {
-        Managers.Object.Add(gameObject);
-
-        //Level grid 
-        m_GridPosition = LevelGrid.Instance.GetGridPosition(transform.position);
-        LevelGrid.Instance.SetGridPositionCellInfo(GetGridPositionListAtCurrentDir(), E_GridCheckType.Walkable);
-        LevelGrid.Instance.AddUnitAtGridPosition(GetGridPositionListAtCurrentDir(), this);
-
-        // 타격 콜라이더 켜기
-
+        // 타격 콜라이더 끄기
         // Find Hit Collider
         if (m_HitCollider == null)
-        {
             m_HitCollider = GetChildColliders().FirstOrDefault();
-            m_HitCollider.enabled = true;
-        }
+
+        m_HitCollider.enabled = false;
+        m_IsSetuping = true;
+
+
+
+        OnSpawnObjectSelected?.Invoke();
     }
 
-    // 조작 가능해짐
-    public virtual void SpawnComplete()
+    // 배치 완료 되었을 때 실행됨
+    public void SpawnStart()
     {
+        // 지금부터 공격 당할 수 있음.
+        m_HitCollider.enabled = true;
+
+        // ✅ 등록은 여기서(배치 시작 시점부터 맞을 수 있어야 하니까)
+        SpawnRegister();
+
+        OnObjectSpawnStart?.Invoke();
+    }
+
+
+    // 소환 완료 후
+    public void SpawnComplete()
+    {
+        // ✅ 씬 배치(Start에서 SpawnComplete만 호출) 같은 경우 대비
+        SpawnRegister();
+
         m_IsSetuping = false;
-        m_AnimatorManagers.ToList().ForEach(animator => animator.AnimationPlay());
 
         // Base Action
         if (m_CurrentAction == null && baseActionDict.Count > 0)
@@ -344,64 +422,70 @@ public class GameEntity : MonoBehaviour,
             var action = baseActionDict.First().Value;
             if (action != null)
                 SwitchToNextStateAction(action);
-
         }
-        if (baseActionDict.Count > 0)
-            UnitActionSystem.Instance.OnUpdateActionTick += ExecuteAction;
 
-        LevelGrid.Instance.AddUnitAtGridPosition(GetGridPositionListAtCurrentDir(), this);
+        m_HitCollider.enabled = true;
+        OnSpawnCompleted?.Invoke();
     }
+
+
+    private void SpawnRegister()
+    {
+        if (_isSpawnRegistered) return;
+        _isSpawnRegistered = true;
+
+        // 월드에 "존재" 등록
+        Managers.Object.Add(gameObject);
+
+        // 그리드 점유 등록
+        m_GridPosition = _grid.GetGridPosition(transform.position);
+        _unitGrid.AddUnitAtGridPositions(GetGridPositionListAtCurrentDir(), this);
+
+        // 그리드 비쥬얼 업데이트
+        _gridVisualSource.DrawGridVisual();
+    }
+
+    private void SpawnUnregister()
+    {
+        if (!_isSpawnRegistered) return;
+        _isSpawnRegistered = false;
+
+        _unitGrid.RemoveUnitAtGridPositions(GetGridPositionListAtCurrentDir(), this);
+        Managers.Object.Remove(gameObject);
+
+        _gridVisualSource.DrawGridVisual();
+    }
+
 
     // 보통은 디스폰을 사망 애니메이션이 끝나면 바로 호출.
     public void DeSpawnStart()
     {
-        OnObjectDespawned?.Invoke(this, EventArgs.Empty);
+        if (m_DisableDespawnFlowForAnimTest)
+            return;
+
+        OnObjectDespawned?.Invoke();
     }
 
     // 디스폰 후 호출되는 함수.
     public virtual void DeSpawnComplete()
     {
-        LevelGrid.Instance.RemoveUnitAtGridPosition(GetGridPositionListAtCurrentDir(), this);
-
-        Managers.Object.Remove(gameObject);
+        SpawnUnregister();
 
         Managers.Resource.Destroy(gameObject);
-
         Managers.Selection.Deselect(this);
     }
 
-    // 플레이어가 카드에서 오브젝트를 드래그 해서 선택 중일 때
-    public void SelectSpawnObject()
-    {
-        // 타격 콜라이더 끄기
-        // Find Hit Collider
-        if (m_HitCollider == null)
-        {
-            m_HitCollider = GetChildColliders().FirstOrDefault();
-        }
 
-        m_HitCollider.enabled = false;
+    #endregion
 
-        m_IsSetuping = true;
 
-        // 고스트 메테리얼은 buildingGhost에서
-
-        OnSpawnObjectSelected?.Invoke(this, EventArgs.Empty);
-
-        if (m_AnimatorManagers == null)
-            m_AnimatorManagers = GetComponentsInChildren<GameEntityAnimator>().ToList();
-        if (m_Sounder == null)
-            m_Sounder = GetComponent<GameEntitySounder>();
-
-        m_AnimatorManagers.ToList().ForEach(a => a.AnimationStop());
-    }
 
     public (int Min, int Max) GetGridPositionYOffset()
     {
         int min = 0;
         int max = 0;
 
-        if(m_GridPositionOffsets.Length > 0)
+        if (m_GridPositionOffsets.Length > 0)
         {
             min = m_GridPositionOffsets.Min(offset => offset.floor);
             max = m_GridPositionOffsets.Max(offset => offset.floor);
@@ -418,7 +502,7 @@ public class GameEntity : MonoBehaviour,
         {
             // 실제 체크 로직 실행
             var dirs = new[] { E_Dir.West, E_Dir.South, E_Dir.North, E_Dir.East };
-            var results = dirs.Select(d => LevelGrid.Instance.ToGridPosition(this, d)).ToList();
+            var results = dirs.Select(d => Util.ToGridPosition(this, d)).ToList();
 
             bool isSymmetry = results.All(r => r == results[0]);
 
@@ -428,7 +512,6 @@ public class GameEntity : MonoBehaviour,
         m_IsRotateSymmetry = s_RotateSymmetryCache[prefabKey];
     }
 
-    #endregion
 
     #region Action
 
@@ -437,11 +520,11 @@ public class GameEntity : MonoBehaviour,
     /// 1. CommandQueue에 쌓인 명령을 우선 처리
     /// 2. Command가 없으면 FSM(Action) Tick 수행
     /// </summary>
-    protected void ExecuteAction(object sender, EventArgs args) 
+    protected void ExecuteAction() 
     {
         // 사망 상태면 모든 Action 중단
-        if (m_AttributeSystem.m_IsDead)
-            return;
+        //if (m_AttributeSystem.m_IsDead)
+        //    return;
 
         // Command는 FSM보다 우선 처리 (Tick당 1개)
         // Command가 소비되면 FSM Tick은 실행하지 않음
@@ -459,9 +542,11 @@ public class GameEntity : MonoBehaviour,
     public void SwitchToNextStateAction(BaseAction nextAction)
     {
         m_CurrentAction = nextAction;
+        var type = nextAction.GetType();
 
         // 디버그 / UI / 로그용 Action 변경 이벤트
-        OnChangeBaseActionEvent?.Invoke(this, EventArgs.Empty);
+        // TODO 2개 된 거 수정해야 됨.
+        OnActionChanged?.Invoke(type);
     }
 
     /// <summary>
@@ -602,61 +687,20 @@ public class GameEntity : MonoBehaviour,
 
     #endregion
 
-    #region Target
+    #region Team Service
 
-    public bool IsEnemy(GameEntity target) => GetEnemyTeamIDs().Contains(target.m_TeamId);
-    public bool IsAlly(GameEntity target) => GetAllyTeamIDs().Contains(target.m_TeamId);
+    public bool IsEnemy(GameEntity target)
+    => target != null && TeamRules.IsEnemy(m_TeamId, target.m_TeamId);
 
-    private List<E_TeamId> GetEnemyTeamIDs()
-    {
-        List<E_TeamId> enemyTeams = new();
-
-        switch (m_TeamId)
-        {
-            case E_TeamId.Player:
-            case E_TeamId.NPC:
-                enemyTeams.Add(E_TeamId.Monster);
-                break;
-
-            case E_TeamId.Monster:
-                enemyTeams.Add(E_TeamId.Player);
-                enemyTeams.Add(E_TeamId.NPC);
-                break;
-        }
-
-        return enemyTeams;
-    }
-
-    private List<E_TeamId> GetAllyTeamIDs()
-    {
-        List<E_TeamId> allyTeams = new();
-
-        switch (m_TeamId)
-        {
-            case E_TeamId.Player:
-                allyTeams.Add(E_TeamId.Player);
-                allyTeams.Add(E_TeamId.NPC); // 친구 NPC도 아군
-                break;
-
-            case E_TeamId.NPC:
-                allyTeams.Add(E_TeamId.Player);
-                allyTeams.Add(E_TeamId.NPC);
-                break;
-
-            case E_TeamId.Monster:
-                allyTeams.Add(E_TeamId.Monster);
-                break;
-        }
-
-        return allyTeams;
-    }
+    public bool IsAlly(GameEntity target)
+        => target != null && TeamRules.IsAlly(m_TeamId, target.m_TeamId);
 
     public GameEntity m_Target { get; protected set; }
+
     public void SetTarget(GameEntity target)
     {
         m_Target = target;
     }
-
 
     #endregion
 
@@ -664,137 +708,239 @@ public class GameEntity : MonoBehaviour,
 
     public virtual BaseData CaptureSaveData()
     {
-        var state = GetAnimationsManager().FirstOrDefault();
+        return default;
+        //var state = GetAnimationsManager().FirstOrDefault();
 
-        GameEntityAnimationData adata = null;
+        //GameEntityAnimationData adata = null;
         
-        if(state != null)
-        {
-            new GameEntityAnimationData()
-            {
-                stateNameHash = state.m_Animator.GetCurrentAnimatorStateInfo(0).fullPathHash,
-                normalizedTime = state.m_Animator.GetCurrentAnimatorStateInfo(0).normalizedTime,
-                speed = GetAnimationsManager().FirstOrDefault().m_Animator.speed,
-            };
-        }
+        //if(state != null)
+        //{
+        //    new GameEntityAnimationData()
+        //    {
+        //        stateNameHash = state.m_Animator.GetCurrentAnimatorStateInfo(0).fullPathHash,
+        //        normalizedTime = state.m_Animator.GetCurrentAnimatorStateInfo(0).normalizedTime,
+        //        speed = GetAnimationsManager().FirstOrDefault().m_Animator.speed,
+        //    };
+        //}
 
-        AttackPatternData attackData = null;
+        //AttackPatternData attackData = null;
 
-        if(m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
-        {
-            if(combatAction.m_ThisTimeAttack != null)
-            {
-                attackData = combatAction.m_ThisTimeAttack.CaptureSaveData() as AttackPatternData;
-            }
-        }
+        //if(m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
+        //{
+        //    if(combatAction.m_ThisTimeAttack != null)
+        //    {
+        //        attackData = combatAction.m_ThisTimeAttack.CaptureSaveData() as AttackPatternData;
+        //    }
+        //}
 
-        return new GameEntityData
-        {
-            prefabName = name,
-            position = transform.position,
-            rotation = transform.rotation,
-            guid = _guid,
-            attributeSystemData = m_AttributeSystem.CaptureSaveData(),
+        //return new GameEntityData
+        //{
+        //    prefabName = name,
+        //    position = transform.position,
+        //    rotation = transform.rotation,
+        //    guid = _guid,
+        //    attributeSystemData = m_AttributeSystem.CaptureSaveData(),
 
-            // Action type
-            CurrentActionType = GetEActionTypeByAction(m_CurrentAction),
-            BeforeActionType = GetEActionTypeByAction(m_BeforeAction),
-            NextActionType = GetEActionTypeByAction(m_NextAction),
+        //    // Action type
+        //    CurrentActionType = GetEActionTypeByAction(m_CurrentAction),
+        //    BeforeActionType = GetEActionTypeByAction(m_BeforeAction),
+        //    NextActionType = GetEActionTypeByAction(m_NextAction),
 
-            gameEntityAnimationData = adata,
+        //    gameEntityAnimationData = adata,
 
-            thisAttackPattern = attackData
-        };
+        //    thisAttackPattern = attackData
+        //};
 
-        E_ActionType GetEActionTypeByAction(BaseAction action)
-        {
-            if (action == null)
-                return E_ActionType.None;
 
-            if (action is IdleAction)
-                return E_ActionType.Idle;
-            else if (action is ChaseAction)
-                return E_ActionType.Chase;
-            else if (action is CombatAction)
-                return E_ActionType.Combat;
-            else if (action is PatrolAction)
-                return E_ActionType.Patrol;
-            else if (action is CommandAttackAction)
-                return E_ActionType.CommandAttack;
-            else if (action is CommandMoveAction)
-                return E_ActionType.CommandMove;
-            else 
-                return E_ActionType.None;
-        }
     }
+
+
 
     public virtual void RestoreSaveData(BaseData data)
     {
-        GameEntityData gdata = data as GameEntityData;
-        _guid = gdata.guid;
-        transform.position = gdata.position;
-        transform.rotation = gdata.rotation;
-        //m_AttributeSystem.RestoreSaveData(gdata.attributeSystemData);
-        m_CurrentAction = GetActionByEActionType(gdata.CurrentActionType);
-        m_BeforeAction = GetActionByEActionType(gdata.BeforeActionType);
-        m_NextAction = GetActionByEActionType(gdata.NextActionType);
+        //GameEntityData gdata = data as GameEntityData;
+        //_guid = gdata.guid;
+        //transform.position = gdata.position;
+        //transform.rotation = gdata.rotation;
+        ////m_AttributeSystem.RestoreSaveData(gdata.attributeSystemData);
+        //m_CurrentAction = GetActionByEActionType(gdata.CurrentActionType);
+        //m_BeforeAction = GetActionByEActionType(gdata.BeforeActionType);
+        //m_NextAction = GetActionByEActionType(gdata.NextActionType);
 
-        GameEntityAnimationData animData = gdata.gameEntityAnimationData;
-        if (animData != null)
-        {
-            var animManager = GetAnimationsManager().FirstOrDefault();
-            if (animManager != null)
-            {
-                var animator = animManager.GetComponent<Animator>();
+        //GameEntityAnimationData animData = gdata.gameEntityAnimationData;
+        //if (animData != null)
+        //{
+        //    var animManager = GetAnimationsManager().FirstOrDefault();
+        //    if (animManager != null)
+        //    {
+        //        var animator = animManager.GetComponent<Animator>();
 
-                if (animator != null)
-                {
+        //        if (animator != null)
+        //        {
 
-                    // 2. 저장된 스테이트와 진행 정도(Normalized Time)부터 재생 시작
-                    // Animator.Play(int stateNameHash, int layer, float normalizedTime) 사용
-                    animator.Play(animData.stateNameHash, 0, animData.normalizedTime);
+        //            // 2. 저장된 스테이트와 진행 정도(Normalized Time)부터 재생 시작
+        //            // Animator.Play(int stateNameHash, int layer, float normalizedTime) 사용
+        //            animator.Play(animData.stateNameHash, 0, animData.normalizedTime);
 
-                    animator.speed = animData.speed;
-                    // 로드 후 애니메이터가 멈춰 있을 수 있으므로 speed를 복구합니다.
-                    animManager.AnimationPlay();
+        //            animator.speed = animData.speed;
+        //            // 로드 후 애니메이터가 멈춰 있을 수 있으므로 speed를 복구합니다.
+        //            animManager.AnimationPlay();
 
-                }
-            }
-        }
+        //        }
+        //    }
+        //}
 
-        if(m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
-        {
-            combatAction.m_ThisTimeAttack = m_AttributeSystem.m_AttackPatterns.FirstOrDefault(attack => attack.ID == gdata.thisAttackPattern.id);
-        }
+        //if(m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
+        //{
+        //    combatAction.m_ThisTimeAttack = m_AttributeSystem.m_AttackPatterns.FirstOrDefault(attack => attack.ID == gdata.thisAttackPattern.id);
+        //}
 
-        // TODO 구조 변경
-        BaseAction GetActionByEActionType(E_ActionType action)
-        {
-            if (action == E_ActionType.None)
-                return null;
+        //// TODO 구조 변경
+        //BaseAction GetActionByEActionType(E_ActionType action)
+        //{
+        //    if (action == E_ActionType.None)
+        //        return null;
 
-            switch (action)
-            {
-                case E_ActionType.None:
-                    return null;
-                case E_ActionType.Idle:
-                    return GetAction<IdleAction>();
-                case E_ActionType.Chase:
-                    return GetAction<ChaseAction>();
-                case E_ActionType.Combat:
-                    return GetAction<CombatAction>();
-                case E_ActionType.Patrol:
-                    return GetAction<PatrolAction>();
-                case E_ActionType.CommandAttack:
-                    return GetAction<CommandAttackAction>();
-                case E_ActionType.CommandMove:
-                    return GetAction<CommandMoveAction>();
-                default:
-                    return null;
-            }
-        }
+        //    switch (action)
+        //    {
+        //        case E_ActionType.None:
+        //            return null;
+        //        case E_ActionType.Idle:
+        //            return GetAction<IdleAction>();
+        //        case E_ActionType.Chase:
+        //            return GetAction<ChaseAction>();
+        //        case E_ActionType.Combat:
+        //            return GetAction<CombatAction>();
+        //        case E_ActionType.Patrol:
+        //            return GetAction<PatrolAction>();
+        //        case E_ActionType.CommandAttack:
+        //            return GetAction<CommandAttackAction>();
+        //        case E_ActionType.CommandMove:
+        //            return GetAction<CommandMoveAction>();
+        //        default:
+        //            return null;
+        //    }
+        //}
     }
 
     #endregion
 
+    #region Handle Action
+
+    public void RaiseAttackReadyFailed(AttackData failAttack)
+    {
+        OnAttackReadyFailed?.Invoke(failAttack);
+    }
+
+    private void HandleDead(OnAttackInfoEventArgs e)
+    {
+        OnDead?.Invoke(e); // 기존 호환용
+        ClearAction();
+    }
+
+    private void HandleDamaged(OnAttackInfoEventArgs e)
+    {
+        OnDamaged?.Invoke(e);
+    }
+
+
+    private void HandleRevived()
+    {
+        OnRevived?.Invoke();
+    }
+
+    private void HandleStartAttack(AttackData e)
+    {
+        OnStartAttack?.Invoke(e);
+    }
+
+    private void HandlePhaseChange()
+    {
+        OnPhaseChange?.Invoke();
+    }
+
+    private void HandleStartMoving()
+    {
+        OnStartMoving?.Invoke();
+    }
+
+    private void HandleStopMoving()
+    {
+        OnStopMoving?.Invoke();
+    }
+
+    private void HandleChangedFloorsStarted(OnChangeFloorsStartedEventArgs e)
+    {
+        OnChangedFloorsStarted?.Invoke(e);
+    }
+
+    private void HandleStep()
+    {
+        OnStep?.Invoke();
+    }
+
+    private void HandleAttackPoint()
+    {
+        OnAttackPoint?.Invoke(_combatAction.m_ThisTimeAttack);
+    }
+
+    #endregion
+
+    public void PlayPlacedSpawnAnimation()
+    {
+        if (m_SetupAnimation == null)
+        {
+            // ? SpawnComplete?
+            SpawnComplete();
+            return;
+        }
+
+        StartCoroutine(m_SetupAnimation.PlacedSpawnAnimation());
+    }
+
 }
+
+public static class TeamRules
+{
+    static TeamRules()
+    {
+        if (Enemy.GetLength(0) != (int)E_TeamId.Count)
+            Debug.LogError("TeamRules matrix size mismatch with E_TeamId.Count");
+    }
+
+    // [A, B] : A 기준으로 B가 적인가?
+    private static readonly bool[,] Enemy =
+    {
+        //             Player   NPC     Monster  None
+        /* Player */  { false,  false,  true,    false },
+        /* NPC    */  { false,  false,  true,    false },
+        /* Monster*/  { true,   true,   false,   false },
+        /* None  */   { false,  false,  false,   false },
+    };
+
+    // [A, B] : A 기준으로 B가 아군인가?
+    private static readonly bool[,] Ally =
+    {
+        //             Player   NPC     Monster  None
+        /* Player */  { true,   true,   false,   false },
+        /* NPC    */  { true,   true,   false,   false },
+        /* Monster*/  { false,  false,  true,    false },
+        /* None  */   { false,  false,  false,   false },
+    };
+
+    public static bool IsEnemy(E_TeamId self, E_TeamId other)
+    {
+        if ((uint)self >= (uint)E_TeamId.Count || (uint)other >= (uint)E_TeamId.Count)
+            return false;
+        return Enemy[(int)self, (int)other];
+    }
+
+    public static bool IsAlly(E_TeamId self, E_TeamId other)
+    {
+        if ((uint)self >= (uint)E_TeamId.Count || (uint)other >= (uint)E_TeamId.Count)
+            return false;
+        return Ally[(int)self, (int)other];
+    }
+
+}
+

@@ -50,6 +50,4 @@ MonoBehaviour:
     _value: 0
   m_fKnockbackRegist:
     _value: 0
-  m_EDetectedType: 2
   m_iSpawnCost: 10
-  m_isChaseCore: 1

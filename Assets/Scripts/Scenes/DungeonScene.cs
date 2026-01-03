@@ -9,7 +9,7 @@ using static Define;
 
 public class DungeonScene : BaseScene
 {
-
+    IBuildingCardUI _buildingCardUI;
     DungeonScene()
     {
         SceneType = Scene.Dungeon;
@@ -21,6 +21,7 @@ public class DungeonScene : BaseScene
 
         // Sound
         Managers.Sound.Play(m_SceneMainTemaAudioclip, 1, Sound.Bgm);
+        _buildingCardUI = Managers.SceneServices.BuildingCardUI;
     }
 
     public override void Clear()
@@ -38,10 +39,11 @@ public class DungeonScene : BaseScene
         Managers.Load.ObjectInfoLoad(data.dungeondata.gameEntityDatas);
         Managers.Load.ObjectRestoreSaveData(data.dungeondata.gameEntityDatas);
 
-        BuildingTypeSelectUI.Instance.RestoreSaveDatas(data.dungeondata.buildingCardDatas);
-        Inventory.Instance.m_iDownJamAmount = data.dungeondata.downJam;
+        _buildingCardUI?.RestoreSaveDatas(data.dungeondata.buildingCardDatas);
 
-        CameraController.Instance.m_Follow.transform.SetPositionAndRotation(
+        Managers.SceneServices.InventoryWrite.AddDownJam(data.dungeondata.downJam);
+
+        Managers.SceneServices.CameraInfo.SetPositionAndRotation(
             data.dungeondata.cameraPos, data.dungeondata.cameraRot);
     }
 
@@ -49,16 +51,16 @@ public class DungeonScene : BaseScene
     {
         base.LoadNewGame();
 
-        var list = Inventory.Instance.GetEnableCardList();
+        var list = Managers.SceneServices.InventoryRead.EnabledCards;
 
         for (int i = 0; i < 5; i++)
-            BuildingTypeSelectUI.Instance.AddCard(list[Random.Range(0, list.Count)], default, true);
+            _buildingCardUI?.AddCard(list[Random.Range(0, list.Count)], default, true);
 
-        if (DungeonCore.instance != null)
+        if (Managers.SceneServices.DungeonCores.Cores.Count > 0)
         {
-            CameraController.Instance.m_Follow.transform.SetPositionAndRotation(
-                DungeonCore.instance.transform.position,
-                DungeonCore.instance.transform.rotation);
+            Managers.SceneServices.CameraInfo.SetPositionAndRotation
+                (Managers.SceneServices.DungeonCores.Cores.First().Position,
+                 Managers.SceneServices.DungeonCores.Cores.First().Rotation);
         }
     }
 

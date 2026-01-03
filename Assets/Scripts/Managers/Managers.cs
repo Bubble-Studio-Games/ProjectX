@@ -2,8 +2,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
+[DisallowMultipleComponent]
 public class Managers : MonoBehaviour
 {
     static Managers s_instance; // 유일성이 보장된다
@@ -13,16 +15,18 @@ public class Managers : MonoBehaviour
     ObjectManager _object = new ObjectManager();
     GameManager _game = new GameManager();
     GameUIManager _gameUI = new GameUIManager();
-    LayerManager _layer = new LayerManager();
     SelectionManager _selct = new SelectionManager();
     CommandManager _command = new CommandManager();
+    SceneServices _sceneServices = new SceneServices();
+    SettingManager _setting = new SettingManager();
 
     public static ObjectManager Object { get { return Instance._object; } }
     public static GameManager Game { get { return Instance._game; } }
     public static GameUIManager GameUI { get { return Instance._gameUI; } }
-    public static LayerManager Layer { get { return Instance._layer; } }
     public static SelectionManager Selection { get { return Instance._selct; } }
     public static CommandManager Command { get { return Instance._command; } }
+    public static SceneServices SceneServices => Instance._sceneServices;
+    public static SettingManager Setting { get { return Instance._setting; } }
 
     #endregion
 
@@ -72,7 +76,7 @@ public class Managers : MonoBehaviour
             s_instance._pool.Init();
             s_instance._sound.Init();
             s_instance._game.Init();
-            s_instance._layer.Init();
+            s_instance._setting.Init();
             //s_instance._table.Init();
 
             Application.targetFrameRate = 60;

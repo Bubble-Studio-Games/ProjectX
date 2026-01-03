@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using static CombatAction;
+using static Define;
 
 // 1. AttributeSystem의 "상태"만 담는 순수 데이터 클래스 (MonoBehaviour 상속 금지)
 [Serializable]
@@ -13,8 +15,12 @@ public class BaseActionData
 
 public abstract class BaseAction : MonoBehaviour
 {
-    public event EventHandler OnActionStarted;
-    public event EventHandler OnActionCompleted;
+    protected IGridVisualUpdateSource _gridUpdate;
+    protected IGridQuery _grid;
+    protected IDungeonCoreRegistry _dungeonCoreRegistry;
+
+    public event Action OnActionStarted;
+    public event Action OnActionCompleted;
 
     public class OnChangeMoveGridEventArgs : EventArgs
     {
@@ -37,8 +43,12 @@ public abstract class BaseAction : MonoBehaviour
 
     protected virtual void Start()
     {
-
+        _gridUpdate = Managers.SceneServices.GridVisualUpdateSource;
+        _grid = Managers.SceneServices.Grid;
+        _dungeonCoreRegistry = Managers.SceneServices.DungeonCores;
     }
+
+
 
     protected virtual void Update()
     {
@@ -58,13 +68,13 @@ public abstract class BaseAction : MonoBehaviour
     public virtual void ActionStart()
     {
         m_bIsActive = true;
-        OnActionStarted?.Invoke(this, EventArgs.Empty);
+        OnActionStarted?.Invoke();
     }
 
     protected virtual void ActionComplete()
     {
         m_bIsActive = false;
-        OnActionCompleted?.Invoke(this, EventArgs.Empty);
+        OnActionCompleted?.Invoke();
     }
 
     public EnemyAIAction GetBestEnemyAIAction()
@@ -96,5 +106,15 @@ public abstract class BaseAction : MonoBehaviour
     public virtual void ClearAction()
     {
 
+    }
+
+    protected void DrawGridVisual()
+    {
+        _gridUpdate.DrawGridVisual();
+    }
+
+    protected void OnStartAttack_DrawGrid(AttackData e)
+    {
+        _gridUpdate.DrawGridVisual();
     }
 }

@@ -9,10 +9,46 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using static Define;
 
-public class MouseWorld : MonoBehaviour
+/// <summary>
+/// MouseWorld
+/// ------------------------------------------------------------
+/// 역할:
+/// - 마우스 위치를 월드 좌표 / 그리드 좌표로 변환한다.
+/// - 마우스 클릭, 드래그 박스, 선택, 커서 변경을 처리한다.
+/// - "마우스로 월드와 상호작용하는 모든 규칙"을 담당한다.
+///
+/// 책임:
+/// - 레이캐스트를 통한 오브젝트 판별
+/// - 드래그 박스 선택
+/// - 커서 아이콘 변경
+/// - 선택/해제 규칙 적용
+///
+/// 제공 서비스(SceneServices):
+/// - ICursor        : 마우스 월드/그리드 좌표 조회
+/// - ICursorEvents : 마우스 위치 변경 이벤트
+/// - IMouseClickHandler : 마우스 Down / Up 진입점
+///
+/// 의존성 방향:
+/// InputBindings → IMouseClickHandler(MouseWorld)
+///
+/// ❗주의:
+/// - InputSystem(InputAction)을 직접 사용하지 않는다.
+/// - 키 입력, 단축키, 상태 관리는 InputRouter의 책임이다.
+/// </summary>
+
+[EditorShowInfo(
+@"MouseWorld
+
+• Converts mouse position to world/grid
+• Handles selection & drag box
+• Updates cursor visuals
+
+No InputSystem usage here."
+)]
+public class MouseWorld : MonoBehaviour, ICursor, ICursorEvents, IMouseClickHandler
 {
-    public static MouseWorld Instance { get; private set; }
-    public event EventHandler<(GridPosition oldgp, GridPosition newgp)> OnMousePositionChanged;
+    //public static MouseWorld Instance { get; private set; }
+    public event Action<(GridPosition oldgp, GridPosition newgp)> OnMousePositionChanged;
 
     public event Action<ISelectable> OnInteractableClicked;
     public event Action<List<ISelectable>> OnDragSelection;
@@ -34,26 +70,19 @@ public class MouseWorld : MonoBehaviour
     [SerializeField] Vector2 hotspot = Vector2.zero;
     private GameObject lastHoveredObject;
 
-    [Header("Click Effect")]
-    [SerializeField] Transform m_WorldUITransform;
-    [SerializeField] GameObject m_goCommandActionAtGridEffect;
-    GameObject m_goPoolableEffect;
-    [SerializeField] float m_Defaultheight = 2f;
-
     private void Awake()
     {
-        Instance = this;
+        Managers.SceneServices.Register<ICursor>(this);
+        Managers.SceneServices.Register<ICursorEvents>(this);
+        Managers.SceneServices.Register<IMouseClickHandler>(this);
+    }
+
+    private void Start()
+    {
         SelectionBox.gameObject.SetActive(false);
 
         // Cursor
         Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
-
-        // effect
-        Managers.Command.OnCommandAction += InstantiateMouseEffect;
-
-        OnInteractableClicked += HandleUnitClicked;
-        OnDragSelection += HandleDragSelection;
-        OnGroundClicked += HandleGroundClicked;
     }
 
     private void Update()
@@ -61,7 +90,6 @@ public class MouseWorld : MonoBehaviour
         if (Managers.Scene.CurrentScene.SceneType == Define.Scene.Dungeon ||
            Managers.Scene.CurrentScene.SceneType == Define.Scene.Camp)
         {
-
             MouseDrag();
             UpdateCursor();
 
@@ -69,11 +97,25 @@ public class MouseWorld : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        OnInteractableClicked += HandleUnitClicked;
+        OnDragSelection += HandleDragSelection;
+        OnGroundClicked += HandleGroundClicked;
+    }
+
+    private void OnDisable()
+    {
+        OnInteractableClicked -= HandleUnitClicked;
+        OnDragSelection -= HandleDragSelection;
+        OnGroundClicked -= HandleGroundClicked;
+    }
+
     void UpdateGridPosition()
     {
-        GridPosition newGridPosition = GetGridPosition();
+        GridPosition newGridPosition = GetMouseWorldGridPosition();
 
-        if (!LevelGrid.Instance.IsValidGridPosition(newGridPosition))
+        if (!Managers.SceneServices.Grid.IsValidGridPosition(newGridPosition))
             return;
 
         if (newGridPosition != m_GridPosition)
@@ -82,19 +124,21 @@ public class MouseWorld : MonoBehaviour
             var oldGridPosition = m_GridPosition;
             m_GridPosition = newGridPosition;
 
-            OnMousePositionChanged?.Invoke(this, (oldGridPosition, newGridPosition));
+            OnMousePositionChanged?.Invoke((oldGridPosition, newGridPosition));
         }
     }
 
-    public GridPosition GetGridPosition()
+    public GridPosition GetMouseWorldGridPosition() => Managers.SceneServices.Grid.GetGridPosition(GetMouseWorldPosition());
+    public Vector3 GetMouseWorldPosition()=>UtilsClass.GetMouseWorldPositionByRaycast(GameConfig.Layer.mousePlaneLayerMask);
+    public Vector3 GetSnappedWorld(IGridQuery grid)
     {
-        Vector3 mousePlanePos = UtilsClass.GetMouseWorldPositionByRaycast(Managers.Layer.mousePlaneLayerMask);
-        return LevelGrid.Instance.GetGridPosition(mousePlanePos);
+        var pos = GetMouseWorldPosition();
+        return grid.GetWorldPositionNormalize(pos);
     }
 
+    #region Click
 
-
-    public void MouseUp()
+    public void MouseUp(E_MouseClickType type)
     {
         m_isDragwing = false;
         SelectionBox.gameObject.SetActive(false);
@@ -107,12 +151,12 @@ public class MouseWorld : MonoBehaviour
 
         if ((MouseDownTime + DragDelay < Time.time))
         {
-            Debug.Log("마우스 클릭 왼쪽 드래그 중");
+            //Debug.Log("마우스 클릭 왼쪽 드래그 중");
             ResizeSelectionBox();
         }
     }
 
-    public void MouseDown()
+    public void MouseDown(E_MouseClickType type)
     {
         // 다른 UI에 손을 못대게
         if (EventSystem.current.IsPointerOverGameObject())
@@ -127,8 +171,8 @@ public class MouseWorld : MonoBehaviour
 
         // 클릭 이벤트
         if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),
-            out RaycastHit hit, Managers.Layer.HitColLayerMask)
-            && hit.transform.parent.TryGetComponent<ISelectable>(out ISelectable unit))
+            out RaycastHit hit, GameConfig.Layer.HitColLayerMask)
+            && hit.transform.parent.TryGetComponent(out ISelectable unit))
         {
             OnInteractableClicked?.Invoke(unit);
             return;
@@ -161,7 +205,6 @@ public class MouseWorld : MonoBehaviour
         Managers.Selection.DeselectAll();
     }
 
-
     private void ResizeSelectionBox()
     {
         float width = Input.mousePosition.x - startPosition.x;
@@ -190,35 +233,7 @@ public class MouseWorld : MonoBehaviour
         }
     }
 
-    // 마우스 클릭 이벤트
-    private void InstantiateMouseEffect(object sender, CommandManager.OnCommandActionEventArgs e)
-    {
-        float height = m_Defaultheight;
-
-        if (e.action == typeof(CommandAttackAction))
-        {
-            GameEntity target = LevelGrid.Instance.GetObjectAtGridPosition(e.GridPosition);
-            if (target == null)
-                return;
-            height += target.m_HitCollider.bounds.max.y;
-            // 해당 위치의 오브젝트의 선택 색상을 빨갛게 변화시키고,
-            // 화살표를 오브젝트의 콜라이더 위로 옮겨 버리기
-            // 너무 높은 것도 그냥 올려버림.
-        }
-
-        if(m_goPoolableEffect != null)
-            Managers.Resource.Destroy(m_goPoolableEffect);
-
-        // 해당 위치에 이펙트 생성
-        m_goPoolableEffect = Managers.Resource.Instantiate(m_goCommandActionAtGridEffect, m_WorldUITransform);
-        m_goPoolableEffect.transform.position = LevelGrid.Instance.GetWorldPosition(e.GridPosition) + new Vector3(0, height, 0);
-
-        FunctionTimer.Create(() =>
-        {
-            if (m_goPoolableEffect != null)
-                Managers.Resource.Destroy(m_goPoolableEffect.gameObject);
-        }, 5f);
-    }
+    #endregion
 
     #region Cursor
 
@@ -230,7 +245,7 @@ public class MouseWorld : MonoBehaviour
         lastHoveredObject = null;
 
         // Select Object
-        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, Managers.Layer.ControllableObjectLayerMask)
+        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, GameConfig.Layer.ControllableObjectLayerMask)
             && hit.collider.TryGetComponent<GameEntity>(out GameEntity result))
         {
             if (lastHoveredObject != result)
@@ -254,4 +269,6 @@ public class MouseWorld : MonoBehaviour
     }
 
     #endregion
+
+
 }

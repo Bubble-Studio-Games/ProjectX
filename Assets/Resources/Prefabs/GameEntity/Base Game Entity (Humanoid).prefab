@@ -52,6 +52,98 @@ PrefabInstance:
       propertyPath: m_ObjectType
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: m_AudiosTransform
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: RunClipList.Array.size
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: WalkClipList.Array.size
+      value: 8
+      objectReference: {fileID: 0}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: RunClipList.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: c87c3a812abe2fc4baa1fe54b4b77172, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: RunClipList.Array.data[1]
+      value: 
+      objectReference: {fileID: 8300000, guid: ee6a6c12e92b76347881600e494ea047, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: RunClipList.Array.data[2]
+      value: 
+      objectReference: {fileID: 8300000, guid: 06438add0bb42f846b7f1e2e0fcb78cb, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: RunClipList.Array.data[3]
+      value: 
+      objectReference: {fileID: 8300000, guid: 7dd1b75dd97f9af468c655f59ab900cc, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: RunClipList.Array.data[4]
+      value: 
+      objectReference: {fileID: 8300000, guid: 294e5ecef1c038f4eaaaad457cad5981, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: RunClipList.Array.data[5]
+      value: 
+      objectReference: {fileID: 8300000, guid: 0810c6bbffb6c0143984f3145f710f69, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: RunClipList.Array.data[6]
+      value: 
+      objectReference: {fileID: 8300000, guid: ebd381bfafa32b844a6954fc40a08c2e, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: RunClipList.Array.data[7]
+      value: 
+      objectReference: {fileID: 8300000, guid: 5c3c2c44515d6fe44a395faf0741edc0, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: DamagedClipList.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: WalkClipList.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: c87c3a812abe2fc4baa1fe54b4b77172, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: WalkClipList.Array.data[1]
+      value: 
+      objectReference: {fileID: 8300000, guid: ee6a6c12e92b76347881600e494ea047, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: WalkClipList.Array.data[2]
+      value: 
+      objectReference: {fileID: 8300000, guid: 06438add0bb42f846b7f1e2e0fcb78cb, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: WalkClipList.Array.data[3]
+      value: 
+      objectReference: {fileID: 8300000, guid: 7dd1b75dd97f9af468c655f59ab900cc, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: WalkClipList.Array.data[4]
+      value: 
+      objectReference: {fileID: 8300000, guid: 294e5ecef1c038f4eaaaad457cad5981, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: WalkClipList.Array.data[5]
+      value: 
+      objectReference: {fileID: 8300000, guid: 0810c6bbffb6c0143984f3145f710f69, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: WalkClipList.Array.data[6]
+      value: 
+      objectReference: {fileID: 8300000, guid: ebd381bfafa32b844a6954fc40a08c2e, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: WalkClipList.Array.data[7]
+      value: 
+      objectReference: {fileID: 8300000, guid: 5c3c2c44515d6fe44a395faf0741edc0, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: DamagedClipList.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: 90115a0fe3e8b4e098b1111cc014a9cc, type: 3}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: CriticalDamagedClipList.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6591080248724398949, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      propertyPath: CriticalDamagedClipList.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: 90115a0fe3e8b4e098b1111cc014a9cc, type: 3}
     - target: {fileID: 6777487445864269381, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -650,6 +742,7 @@ MonoBehaviour:
   m_IdleAnimationClip: []
   m_WalkAnimationClip: []
   m_RunAnimationClip: []
+  m_InteractAnimationClip: []
   m_AnimatorOriginalVale: 1
 --- !u!1 &7709677584830135504 stripped
 GameObject:
@@ -669,13 +762,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_GridPositionOffsets: []
-  m_ObjectType: 0
+  m_EObjectType: 0
   m_CurrentEDir: 4
   m_TeamId: 0
+  currentAction: {fileID: 0}
   m_IsDirectDesawnAtDeath: 1
-  m_CommandAction: {fileID: 0}
+  m_DisableDespawnFlowForAnimTest: 0
+  m_IsTowardDungeonCore: 0
   m_originalEObjectGrade: 0
-  m_EObjectGrade: 0
   m_fEnhanceChance: 0
   n_EnhanceTypeList: 
 --- !u!4 &8680445681012793763 stripped

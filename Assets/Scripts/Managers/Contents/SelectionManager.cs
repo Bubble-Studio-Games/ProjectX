@@ -11,7 +11,7 @@ public class SelectionManager
     public IReadOnlyCollection<ISelectable> SelectedUnits => _selectedUnits;
 
     // Selection UI가 갱신되도록 하기 위해 필요.
-    public event EventHandler OnSelectionChanged;
+    public event Action OnSelectionChanged;
 
     // 단일 선택
     public void Select(ISelectable obj)
@@ -27,7 +27,7 @@ public class SelectionManager
         if (_selectedUnits.Add(obj))
             obj.OnSelected();
 
-        OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+        OnSelectionChanged?.Invoke();
     }
 
     public void Deselect(ISelectable obj)
@@ -36,7 +36,7 @@ public class SelectionManager
         if (_selectedUnits.Remove(obj))
             obj.OnDeselected();
 
-        OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+        OnSelectionChanged?.Invoke();
     }
 
     // (전체 해제)
@@ -47,7 +47,7 @@ public class SelectionManager
 
         _selectedUnits.Clear();
 
-        OnSelectionChanged?.Invoke(this, EventArgs.Empty);
+        OnSelectionChanged?.Invoke();
     }
 
     // (CTRL+클릭 기능)

@@ -1,28 +1,25 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 using static Define;
-using static AttributeSystem;
-using Random = UnityEngine.Random;
 using Data;
 
 public partial class AttributeSystem : MonoBehaviour
 {
-    public event EventHandler OnRevived; // 	HP 회복 등으로 다시 살아날 때
-    public event EventHandler<OnAttackInfoEventArgs> OnDead; // HP 0일 때 죽는 순간
-    public event EventHandler<OnAttackInfoEventArgs> OnDamaged; // 데미지를 받았을 때
-    public event EventHandler<OnHealEventArgs> OnHealed; // 회복을 받았을 때 (흡혈, 스킬 등)
-    public event EventHandler OnUpdateStat;
+    private IUnitActionTickService _unitActionTickService;
 
-    public class OnHealEventArgs : EventArgs
-    {
-        public int HealAmount;
-        public E_HealType HealType;
-        public GameEntity Healer; // 흡혈의 경우 자기 자신
-    }
+    /*
+     * 
+    OnUpdateStat 하나로 HP바/패널 갱신
+    OnStatDelta 하나로 팝업 표시 (현재까지는 Damage Display UI 용도로만 사용중임)
+    OnDamaged/OnDead는 전투 로직용으로만 유지
+
+     */
+    public event Action OnRevived; // 	HP 회복 등으로 다시 살아날 때
+    public event Action<OnAttackInfoEventArgs> OnDead; // HP 0일 때 죽는 순간
+    public event Action<OnAttackInfoEventArgs> OnDamaged; // 데미지를 받았을 때
+    public event Action OnUpdateStat;
+    public event Action<OnStatDeltaEventArgs> OnStatDelta; 
 
     private GameEntity m_GameEntity;
 
@@ -46,19 +43,10 @@ public partial class AttributeSystem : MonoBehaviour
         return true;
     }
 
-    private void Awake()
+    protected void Awake()
     {
-        Validate();
-        
         m_GameEntity = GetComponent<GameEntity>();
-
-        // Event
-        OnDead += (s, e) => Reward();
-        m_GameEntity.OnChangeBaseActionEvent += (s, e) => UpdateMoveState();
-
-        // Stat을 Instantiate 한 후에 해야함.
-        if (m_GameEntity is ControllableObject cobj)
-            cobj.OnChangeGrade += UpdateStatOfGrade;
+        _unitActionTickService = Managers.SceneServices.UnitActionTick;
 
         StatInitInstantiate();
         AttackPatternInitInstantiate();
@@ -66,21 +54,34 @@ public partial class AttributeSystem : MonoBehaviour
 
     private void Start()
     {
-
-        UnitActionSystem.Instance.OnUpdateActionTick += UpdateTickStat;
+        Validate();
     }
 
-    private void OnDestroy()
+    protected void OnEnable()
     {
-        if (UnitActionSystem.Instance != null)
-            UnitActionSystem.Instance.OnUpdateActionTick -= UpdateTickStat;
+        OnDead += Reward;
+        m_GameEntity.OnActionChanged += UpdateMoveState;
+
+        if (m_GameEntity is IUpgradeble cobj)
+            cobj.OnChangeGrade += UpdateStatOfGrade;
+
+        _unitActionTickService.OnUpdateActionTick += UpdateTickStat;
+
+        // TODO
+        // 쿨타임 초기화
+        // 오브젝트가 죽고 살아날때마다 하는 거.
+        // attackPatterns.ForEach(a => a.Init());
     }
 
-    protected virtual void OnEnable()
+    protected void OnDisable()
     {
-        // 풀로 다시 소환할 때 체력 및 마나 리셋
-        // TODO 공격 쿨타임 등도 다 리셋 예정
-        Init();
+        OnDead -= Reward;
+        m_GameEntity.OnActionChanged -= UpdateMoveState;
+
+        if (m_GameEntity is IUpgradeble cobj)
+            cobj.OnChangeGrade -= UpdateStatOfGrade;
+
+        _unitActionTickService.OnUpdateActionTick -= UpdateTickStat;
     }
 
     public void Init()
@@ -93,22 +94,22 @@ public partial class AttributeSystem : MonoBehaviour
         if(m_isInitWithFullMana)
             mp = mpMax;
 
-        OnUpdateStat?.Invoke(this, EventArgs.Empty);
+        OnUpdateStat?.Invoke();
     }
 
     // 되살아남
     public void Revive()
     {
-        OnRevived?.Invoke(this, EventArgs.Empty);
+        OnRevived?.Invoke();
     }
 
-    private void UpdateStatOfGrade(object sender, ControllableObject.OnChangeGradeEventArgs args)
+    private void UpdateStatOfGrade(Define.OnChangeGradeEventArgs args)
     {
         // 값 원상복구
         if(args.isSuccessGrade == false)
         {
             ReStoreStat();
-            m_GameEntity.GetAnimationsManager().ForEach(a => a.AnimatonSpeedRestoreOriginalSpeed());
+            m_GameEntity.m_GameEntityAnimator.AnimatonSpeedRestoreOriginalSpeed();
             return;
         }
 
@@ -132,20 +133,20 @@ public partial class AttributeSystem : MonoBehaviour
 
                 attackPatterns.ForEach(attack =>
                 {
-                    if (attack.m_EAttackType == E_AttackType.Magic)
+                    if (attack.AttackType == E_AttackType.Magic)
                     {
                         attack.m_iMagicAttackDamage *= enhanveValue;
                         attack.m_fMagicalArmorPenetraion *= enhanveValue;
                         attack.m_iMagicFixedDamage *= enhanveValue;
-                        attack.m_iManaCost /= enhanveValue;
-                        attack.m_iCoolTime /= enhanveValue;
+                        attack.ManaCost /= enhanveValue;
+                        attack.CoolTime /= enhanveValue;
                     }
                 });
                 break;
             case E_ObjectEnhanceType.Physical:
                 attackPatterns.ForEach(attack =>
                 {
-                    if (attack.m_EAttackType == E_AttackType.Physical)
+                    if (attack.AttackType == E_AttackType.Physical)
                     {
                         // 물리 공격력 상승
                         attack.m_iPhysicalAttackDamage *= enhanveValue;
@@ -174,7 +175,7 @@ public partial class AttributeSystem : MonoBehaviour
                 attackPatterns.ForEach(attack => 
                 {
                     attack.m_fAttackSpeed *= enhanveValue * 2;
-                    attack.m_iCoolTime /= (enhanveValue * 2); // 쿨타임도 줄임
+                    attack.CoolTime /= (enhanveValue * 2); // 쿨타임도 줄임
                 });
 
                 break;
@@ -202,7 +203,7 @@ public partial class AttributeSystem : MonoBehaviour
     }
 
     // 보물 상자, 몬스터 처치 등으로 보상 수령 가능
-    public void Reward()
+    public void Reward(OnAttackInfoEventArgs e)
     {
         if (m_RewardTable == null)
             return;
@@ -216,8 +217,8 @@ public partial class AttributeSystem : MonoBehaviour
     {
         return new AttributeSystemData
         {
-            stat = m_Stat,
-            attackPatterns = m_AttackPatterns.Select(attack => attack.CaptureSaveData()).ToList(),
+            //stat = m_Stat,
+            //attackPatterns = m_AttackPatterns.Select(attack => attack.CaptureSaveData()).ToList(),
             //rewardData = m_Reward?.CaptureSaveData(),
         };
     }
@@ -226,20 +227,20 @@ public partial class AttributeSystem : MonoBehaviour
     {
         StatInitInstantiate();
 
-        if (m_Stat != null && data.stat != null)
-            m_Stat = data.stat;
+        //if (m_Stat != null && data.stat != null)
+            //m_Stat = data.stat;
 
         AttackPatternInitInstantiate();
 
         foreach (var attackData in data.attackPatterns)
         {
             var attack = m_AttackPatterns.ToList()
-                .Find(a => a.ID == attackData.id);
+                .Find(a => a.Id == attackData.id);
 
             // 이미 가지고 있는 스킬
             if (attack != null)
             {
-                attack.RestoreSaveData(attackData);
+                //attack.RestoreSaveData(attackData);
                 continue;
             }
         }
@@ -247,7 +248,7 @@ public partial class AttributeSystem : MonoBehaviour
         //m_Reward.RestoreSaveData(data.rewardData);
 
         // 3. 복원 후 이벤트 발생 (UI 갱신 등)
-        OnUpdateStat?.Invoke(this, EventArgs.Empty);
+        OnUpdateStat?.Invoke();
 
         Debug.Log("스탯 복원");
     }

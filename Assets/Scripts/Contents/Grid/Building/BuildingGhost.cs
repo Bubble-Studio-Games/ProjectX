@@ -1,85 +1,108 @@
-using CodeMonkey.Utils;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.Linq;
+using static Define;
 using UnityEngine;
-using static GridBuildingSystem;
-using static UnityEditor.Experimental.GraphView.GraphView;
+using System;
 
-public class BuildingGhost : MonoBehaviour 
+
+/// <summary>
+/// 건물 배치 프리뷰(고스트) 표시 + 확정 시 Reserve 처리
+/// 현재 선택된 배치 대상(Current) 을 보고, 프리뷰 오브젝트를 생성/파괴한다.
+/// 마우스 월드 위치/스냅 위치를 받아서 프리뷰를 부드럽게 따라가게(Lerp) 만든다.
+/// 배치 확정 이벤트(OnPlaced)가 오면:
+/// 프리뷰를 실제 오브젝트로 “확정”하고(부모 해제, 레이어 변경)
+/// IGridMutation.SetCellType(... Reserve ...)로 그 footprint를 예약 처리한다. 
+/// BuildingGhost
+/// 즉, 건설 로직을 판단하지 않고 “보여주기 + 확정 후 그리드 예약 반영”만 담당.
+// </summary>
+public class BuildingGhost : MonoBehaviour
 {
-    public static BuildingGhost Instance { get; private set; }
     private GameEntity visual;
-
-    public float floatingHeight = 1f;
-
+    [SerializeField] private float floatingHeight = 1f;
     public Vector3 m_PivotPosition { get; private set; }
 
-    private void Awake()
+    private IBuildPlacementService _build;
+
+    // 마우스 월드 위치/스냅 위치를 받아서 프리뷰를 부드럽게 따라가게(Lerp) 만든다.
+    private ICursor _cursor;
+    private IGridQuery _grid;
+    private IGridMutation _gridMut;
+
+    private void Start()
     {
-        Instance = this;
-    }
+        _build = Managers.SceneServices.BuildPlacementService;
+        _cursor = Managers.SceneServices.Cursor;
+        _grid = Managers.SceneServices.Grid;
+        _gridMut = Managers.SceneServices.GridMut;
 
-    private void Start() {
         RefreshVisual();
-
-        GridBuildingSystem.Instance.OnObjectPlacedCancel += (s, e) => RefreshVisual();
-        GridBuildingSystem.Instance.OnSelectedChanged += (s, e) => RefreshVisual();
-        GridBuildingSystem.Instance.OnObjectPlaced += ObjectPlaced;
-        //GridBuildingSystem.Instance.OnRotateObject += (s, e) => UpdateVisualObjectRotation();
+        _build.OnCanceled += HandleCanceled;
+        _build.OnSelectedChanged += HandleSelectedChanged;
+        _build.OnPlaced += ObjectPlaced;
     }
 
-    private void LateUpdate() {
-        if (visual == null)
-            return;
-
-        Vector3 targetPosition = GridBuildingSystem.Instance.GetMouseWorldSnappedPosition();
-        targetPosition.y += floatingHeight;
-        visual.transform.position = Vector3.Lerp(visual.transform.position, targetPosition, Time.deltaTime * 15f);
-        visual.transform.rotation = Quaternion.Lerp(visual.transform.rotation, GridBuildingSystem.Instance.GetPlacedObjectRotation(), Time.deltaTime * 15f);
+    private void OnDestroy()
+    {
+        if (_build == null) return;
+        _build.OnCanceled -= HandleCanceled;
+        _build.OnSelectedChanged -= HandleSelectedChanged;
+        _build.OnPlaced -= ObjectPlaced;
     }
 
-    private void RefreshVisual() {
-        if (visual != null) {
+    private void HandleCanceled() => RefreshVisual();
+    private void HandleSelectedChanged(E_SetupObjectOffsetChange e) => RefreshVisual();
+
+    private void LateUpdate()
+    {
+        if (visual == null) return;
+
+        Vector3 target = _cursor.GetSnappedWorld(_grid);
+        target.y += floatingHeight;
+
+        visual.transform.position = Vector3.Lerp(visual.transform.position, target, Time.deltaTime * 15f);
+        visual.transform.rotation = Quaternion.Lerp(visual.transform.rotation, _build.CurrentRotation, Time.deltaTime * 15f);
+    }
+
+    private void RefreshVisual()
+    {
+        if (visual != null)
+        {
             Managers.Game.GameEntityModelsSetLayer(visual, LayerMask.NameToLayer("Default"));
             Managers.Resource.Destroy(visual.gameObject);
             visual = null;
         }
 
-        GameEntity placedObject = GridBuildingSystem.Instance.GetPlacedObject();
+        var placedObject = _build.Current;
+        if (placedObject == null) return;
 
-        Vector3 mousePosition = UtilsClass.GetMouseWorldPositionByRaycast(Managers.Layer.mousePlaneLayerMask);
-        if (LevelGrid.Instance.IsValidGridPosition(mousePosition) == false)
-            return;
-        
-        m_PivotPosition = LevelGrid.Instance.GetWorldPositionNormalize(mousePosition);
+        var mouseWorld = _cursor.GetMouseWorldPosition();
+        if (!_grid.IsValidGridPosition(mouseWorld)) return;
 
-        if (placedObject != null) {
-            visual = Managers.Resource.Instantiate<GameEntity>(placedObject.gameObject, Vector3.zero, Quaternion.identity);
-            visual.transform.parent = transform;
-            visual.transform.localPosition = m_PivotPosition;
-            visual.transform.rotation = Quaternion.Euler(0, placedObject.GetRotationAngle(), 0);
-            visual.m_CurrentEDir = placedObject.m_CurrentEDir;
+        m_PivotPosition = _grid.GetWorldPositionNormalize(mouseWorld);
 
-            visual.SelectSpawnObject();
-            Managers.Game.GameEntityModelsSetLayer(visual, LayerMask.NameToLayer("Ghost"));
-        }
+        visual = Managers.Resource.Instantiate<GameEntity>(placedObject.gameObject, Vector3.zero, Quaternion.identity);
+        visual.transform.SetParent(transform);
+        visual.transform.localPosition = m_PivotPosition;
+        visual.transform.rotation = Quaternion.Euler(0, placedObject.GetRotationAngle(), 0);
+        visual.m_CurrentEDir = placedObject.m_CurrentEDir;
+
+        visual.SelectSpawnObject();
+        Managers.Game.GameEntityModelsSetLayer(visual, LayerMask.NameToLayer("Ghost"));
     }
 
-    private void ObjectPlaced(object s, GridBuildingSystem.OnPlacedEventArgs e)
+    // 오브젝트 배치 완료
+    private void ObjectPlaced(BuildPlacedEventArgs e)
     {
+        if (visual == null) return;
+
         visual.transform.SetParent(null);
         Managers.Game.GameEntityModelsSetLayer(visual, LayerMask.NameToLayer("Default"));
 
-        //Level grid Set Reserve
-        LevelGrid.Instance.SetGridPositionCellInfo(visual.GetGridPositionListAtSelectPosition(e.PivotGridPosition), Define.E_GridCheckType.Reserve, visual);
+        // Reserve 처리(그리드 쓰기)
+        _gridMut.SetCellType(
+            visual.GetGridPositionListAtSelectPosition(e.PivotGridPosition),
+            Define.E_GridCheckType.Reserve,
+            visual);
 
-        StartCoroutine(visual.m_SetupAnimation.PlacedSpawnAnimation());
-
+        visual.PlayPlacedSpawnAnimation();
         visual = null;
     }
-
 }
-

@@ -1,29 +1,12 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Unity.VisualScripting;
 using UnityEngine;
 using static Define;
-using static UnityEngine.EventSystems.EventTrigger;
 
-
-
-public class LevelGrid : MonoBehaviour
+public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridManager
 {
-    public static LevelGrid Instance { get; private set; }
-
-    public const float FLOOR_HEIGHT = 20f;
-
-    public event EventHandler<OnAnyUnitMovedGridPositionEventArgs> OnAnyUnitMovedGridPosition;
-    public class OnAnyUnitMovedGridPositionEventArgs : EventArgs
-    {
-        public GameEntity unit;
-        public List<GridPosition> fromGridPositions;
-        public List<GridPosition> toGridPositions;
-    }
-
     [SerializeField] private Transform gridDebugObjectPrefab;
     Dictionary<GridPosition, GridDebugObject> m_griddebug = new();
     [SerializeField] private int width;
@@ -31,7 +14,7 @@ public class LevelGrid : MonoBehaviour
     [SerializeField] private float cellSize;
     [SerializeField] private int floorAmount;
 
-    public List<GridSystem<GridObject>> GridSystemList {  get; private set; }
+    public List<GridSystem<GridObject>> GridSystemList { get; private set; }
 
     [Header("DeBug")]
     [SerializeField] private bool m_isShowCreateDebugObjects;
@@ -68,7 +51,7 @@ public class LevelGrid : MonoBehaviour
         }
     }
 
-    public event EventHandler<OnChangeGridAgrs> OnChangeGrid;
+    public event Action<OnChangeGridAgrs> OnChangeGrid;
 
     public class OnChangeGridAgrs : EventArgs
     {
@@ -76,17 +59,18 @@ public class LevelGrid : MonoBehaviour
         public List<GridPosition> ListGridPosition;
     }
 
+    private GridSystem<GridObject> GetGridSystem(int floor)
+    {
+        return GridSystemList[floor];
+    }
+
 
     private void Awake()
     {
-        if (Instance != null)
-        {
-            Debug.LogError("There's more than one LevelGrid! " + transform + " - " + Instance);
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-        
+        Managers.SceneServices.Register<IGridQuery>(this);
+        Managers.SceneServices.Register<IGridMutation>(this);
+        Managers.SceneServices.Register<IUnitGridManager>(this);
+
         // 초기화
         GridSystemList = new List<GridSystem<GridObject>>();
         m_DicFloorGridCache.Clear();
@@ -95,9 +79,9 @@ public class LevelGrid : MonoBehaviour
         {
             GridSystem<GridObject> gridSystem = new GridSystem<GridObject>(width, height, cellSize, floor, FLOOR_HEIGHT,
                     (GridSystem<GridObject> g, GridPosition gridPosition) => new GridObject(g, gridPosition));
-            if(m_isShowCreateDebugObjects)
-                m_griddebug.AddRange(gridSystem.CreateDebugObjects(gridDebugObjectPrefab));
-            
+            if (m_isShowCreateDebugObjects)
+                m_griddebug.AddRange(gridSystem.CreateDebugObjects(gridDebugObjectPrefab, this.transform));
+
             GridSystemList.Add(gridSystem);
 
             // ✅ 층 캐시 초기화
@@ -112,91 +96,48 @@ public class LevelGrid : MonoBehaviour
         OnChangeGrid += GridDebugObjectUpdate;
     }
 
-    #region Grid Object Add/Remove/Move
 
-    public void AddUnitAtGridPosition(List<GridPosition> gridPositions, GameEntity unit)
+    #region IGridMutation
+
+    public void SetCellType(GridPosition gridPosition, E_GridCheckType type, GameEntity entity = null)
     {
-        foreach (GridPosition gridPosition in gridPositions)
+        if (!IsValidGridPosition(gridPosition))
         {
-            GridObject gridObject = GetGridSystem(gridPosition.floor).GetGridObject(gridPosition);
-            gridObject.AddUnit(unit);
-
+            Debug.LogWarning("유효하지 않은 그리드를 SetCellType 했습니다. " + gridPosition);
+            return;
         }
 
-        E_GridCheckType type = E_GridCheckType.Walkable;
-
-        switch (unit.m_EObjectType)
+        if (m_DicFloorGridCache.TryGetValue(gridPosition.floor, out var data) == false)
         {
-            case E_ObjectType.None:
-                type = E_GridCheckType.Obstacle;
-                break;
-            case E_ObjectType.Unit:
-            case E_ObjectType.Building:
-            case E_ObjectType.Interact:
-            case E_ObjectType.AutoTrigger:
-            case E_ObjectType.PassiveObject:
-                type = E_GridCheckType.GameEntity;
-                break;
-            case E_ObjectType.Obstacle:
-                type = E_GridCheckType.Obstacle;
-                break;
+            Debug.LogWarning("유효하지 않은 그리드를 SetCellType 했습니다. " + gridPosition);
+            return;
         }
 
-        SetGridPositionCellInfo(gridPositions, type, unit);
-    }
+        // 1층 딕셔너리가 없으면 생성
+        var info = data[gridPosition];
+        info.Entity = entity;
+        info.gridType = type;
 
-    public void RemoveUnitAtGridPosition(List<GridPosition> gridPositions, GameEntity unit)
-    {
-        foreach (GridPosition gridPosition in gridPositions)
+        //Debug.Log($"그리드 지정 타입 : {type},  위치 : {gridPosition}, GameEntity : {entity?.name}");
+
+        // 3이벤트 호출
+        OnChangeGrid?.Invoke(new OnChangeGridAgrs
         {
-            GridObject gridObject = GetGridSystem(gridPosition.floor).GetGridObject(gridPosition);
-            gridObject.RemoveUnit(unit);
-        }
-
-        SetGridPositionCellInfo(gridPositions, E_GridCheckType.Walkable, unit);
-    }
-
-    public void UnitMovedGridPosition(GameEntity unit, List<GridPosition> fromGridPositions, List<GridPosition> toGridPositions)
-    {
-        //Debug.Log($"unit {unit} from {string.Join(" ", fromGridPositions)} to {string.Join(" ", toGridPositions) }");
-        RemoveUnitAtGridPosition(fromGridPositions, unit);
-        AddUnitAtGridPosition(toGridPositions, unit);
-
-        OnAnyUnitMovedGridPosition?.Invoke(this, new OnAnyUnitMovedGridPositionEventArgs {
-            unit = unit,
-            fromGridPositions = fromGridPositions,
-            toGridPositions = toGridPositions,
+            type = type,
+            ListGridPosition = new List<GridPosition> { gridPosition },
         });
+    }
+
+    public void SetCellType(IEnumerable<GridPosition> positions, E_GridCheckType type, GameEntity entity = null)
+    {
+        foreach (var position in positions)
+            SetCellType(position, type, entity);
     }
 
     #endregion
 
-    #region Get Grid Info for Object
 
-    public T GetObjectAtGridPosition<T>(GridPosition gridPosition) where T : GameEntity
-    {
-        GridObject gridObject = GetGridSystem(gridPosition.floor).GetGridObject(gridPosition);
-        return gridObject.GetObject() as T;
-    }
-
-    public GameEntity GetObjectAtGridPosition(GridPosition gridPosition)
-    {
-        GridObject gridObject = GetGridSystem(gridPosition.floor).GetGridObject(gridPosition);
-        return gridObject.GetObject();
-    }
-
-    // 인자로 받아온 포지션에서 모든 그리드 오브젝트 반환
-    public List<GameEntity> GetObjectsAtGridPositions(List<GridPosition> gridPositions)
-    {
-        if (gridPositions == null || gridPositions.Count == 0)
-            return new List<GameEntity>();
-
-        // 각 GridPosition에 해당하는 GameEntity를 가져오고 null이 아닌 것만 필터링
-        return gridPositions
-            .Select(pos => GetObjectAtGridPosition(pos))
-            .Where(obj => obj != null)
-            .ToList();
-    }
+    #region IGridQuery
 
     public bool IsValidGridPosition(GridPosition gridPosition)
     {
@@ -215,64 +156,6 @@ public class LevelGrid : MonoBehaviour
         var gridPosition = GetGridPosition(worldPos);
 
         return IsValidGridPosition(gridPosition);
-    }
-
-    public bool HasAnyUnitOnGridPosition(GridPosition gridPosition)
-    {
-        GridObject gridObject = GetGridSystem(gridPosition.floor).GetGridObject(gridPosition);
-        return gridObject.HasAnyUnit();
-    }
-
-    public bool HasEnemyAtGridPosition(GridPosition gridPosition, GridPosition targetPosition)
-    {
-        GameEntity searcherObject = GetObjectAtGridPosition<GameEntity>(gridPosition);
-        if (searcherObject == null)
-            return false;
-
-        GameEntity targetObject = GetObjectAtGridPosition<GameEntity>(targetPosition);
-        if (targetObject == null)
-            return false;
-
-        return searcherObject.IsEnemy(targetObject);
-    }
-
-    // origin -> target의 방향
-    public E_Dir GetDirGridPosition(GridPosition origin, GridPosition target)
-    {
-        int dx = target.x - origin.x;
-        int dz = target.z - origin.z;
-
-        if (dx == 0 && dz == 0)
-            return E_Dir.North; // 자기 자신 → 기본값 반환
-
-        float angle = Mathf.Atan2(dz, dx) * Mathf.Rad2Deg;
-        angle = (angle + 360f) % 360f; // 0~360도 정규화
-
-        if (angle >= 337.5f || angle < 22.5f)
-            return E_Dir.East;
-        else if (angle >= 22.5f && angle < 67.5f)
-            return E_Dir.NorthEast;
-        else if (angle >= 67.5f && angle < 112.5f)
-            return E_Dir.North;
-        else if (angle >= 112.5f && angle < 157.5f)
-            return E_Dir.NorthWest;
-        else if (angle >= 157.5f && angle < 202.5f)
-            return E_Dir.West;
-        else if (angle >= 202.5f && angle < 247.5f)
-            return E_Dir.SouthWest;
-        else if (angle >= 247.5f && angle < 292.5f)
-            return E_Dir.South;
-        else // angle >= 292.5f && angle < 337.5f
-            return E_Dir.SouthEast;
-    }
-
-    #endregion
-
-    #region Get Grid System Info
-
-    private GridSystem<GridObject> GetGridSystem(int floor)
-    {
-        return GridSystemList[floor];
     }
 
     public int GetFloor(Vector3 worldPosition)
@@ -299,7 +182,10 @@ public class LevelGrid : MonoBehaviour
     
     public int GetHeight() => GetGridSystem(0).GetHeight();
 
-    public int GetCellSize() => GetGridSystem(0).GetCellSize();
+    public float GetCellSize()
+    {
+        return GetGridSystem(0).GetCellSize();
+    }
 
     public int GetFloorAmount() => floorAmount;
 
@@ -318,181 +204,21 @@ public class LevelGrid : MonoBehaviour
         return (gridPosition.floor + 1) * FLOOR_HEIGHT; 
     }
 
-    #endregion
-
-    #region Caculate
-
-    public List<GridPosition> ToGridPosition(GameEntity entity, E_Dir dir)
+    public GameEntity GetCellEntity(GridPosition gridPosition)
     {
-        return entity.m_GridPositionOffsets
-            .Select(x => ToGridPosition(x, entity.m_GridPosition, dir)).ToList();
+        if (!IsValidGridPosition(gridPosition))
+            return null;
+
+        return m_DicFloorGridCache[gridPosition.floor][gridPosition].Entity;
     }
 
-    public List<GridPosition> ToGridPosition(GameEntity entity)
+    public E_GridCheckType GetCellType(GridPosition gridPosition)
     {
-        return entity.m_GridPositionOffsets
-            .Select(x => ToGridPosition(x, entity.m_GridPosition, entity.m_CurrentEDir)).ToList();
-    }
-
-    public List<GridPosition> ToGridPosition(GameEntity entity, GridPosition origin)
-    {
-        return entity.m_GridPositionOffsets
-            .Select(x => ToGridPosition(x, origin, entity.m_CurrentEDir)).ToList();
-    }
-
-    public GridPosition ToGridPosition(GridPosition offset, GridPosition origin, E_Dir dir)
-    {
-        int x = offset.x;
-        int z = offset.z;
-        int rotatedX = 0;
-        int rotatedZ = 0;
-
-        switch (dir)
-        {
-            case E_Dir.North:
-                rotatedX = x;
-                rotatedZ = z;
-                break;
-            case E_Dir.East:
-                rotatedX = z;
-                rotatedZ = -x;
-                break;
-            case E_Dir.South:
-                rotatedX = -x;
-                rotatedZ = -z;
-                break;
-            case E_Dir.West:
-                rotatedX = -z;
-                rotatedZ = x;
-                break;
-            case E_Dir.NorthEast:
-                rotatedX = Mathf.RoundToInt(x * 0.7071f + z * 0.7071f);
-                rotatedZ = Mathf.RoundToInt(-x * 0.7071f + z * 0.7071f);
-                break;
-            case E_Dir.SouthEast:
-                rotatedX = Mathf.RoundToInt(-x * 0.7071f + z * 0.7071f);
-                rotatedZ = Mathf.RoundToInt(-x * 0.7071f - z * 0.7071f);
-                break;
-            case E_Dir.SouthWest:
-                rotatedX = Mathf.RoundToInt(-x * 0.7071f - z * 0.7071f);
-                rotatedZ = Mathf.RoundToInt(x * 0.7071f - z * 0.7071f);
-                break;
-            case E_Dir.NorthWest:
-                rotatedX = Mathf.RoundToInt(x * 0.7071f - z * 0.7071f);
-                rotatedZ = Mathf.RoundToInt(x * 0.7071f + z * 0.7071f);
-                break;
-        }
-
-        return origin + new GridPosition(rotatedX, rotatedZ, offset.floor);
-    }
-
-    public float GetObstacleMaxHeight(GridPosition gridPosition, GridPosition targetPosition)
-    {
-        var posList = Pathfinding.Instance.FindPath(gridPosition, targetPosition, out int len, ignoreGridtype: E_GridCheckType.GameEntity);
-        float maxHegiht = 0;
-
-        // 공격자와 피격자 사이의 1칸 이상의 거리가 있다면
-        // 특정 사이즈 아래의 오브젝트가 있는가?
-        if (posList != null && posList.Count >= 3)
-        {
-            posList.RemoveAt(posList.Count - 1);
-            posList.RemoveAt(0);
-
-            foreach (var pos in posList)
-            {
-                var obj = GetObjectAtGridPosition(pos);
-                if(obj != null)
-                {
-                    maxHegiht = Math.Max(maxHegiht, obj.m_HitCollider.bounds.max.y);
-                }
-            }
-        }
-
-        return maxHegiht;
-    }
-
-    public float GetObstacleMaxHeight(Vector3 gridPosition, Vector3 targetPosition)
-    {
-        return GetObstacleMaxHeight(GetGridPosition(gridPosition), GetGridPosition(targetPosition));
-    }
-
-    #endregion
-
-    #region Todo Delete
-    public ISelectable GetInteractableAtGridPosition(GridPosition gridPosition)
-    {
-        GridObject gridObject = GetGridSystem(gridPosition.floor).GetGridObject(gridPosition);
-        return gridObject.GetInteractable();
-    }
-
-
-    public void SetInteractableAtGridPosition(GridPosition gridPosition, ISelectable interactable)
-    {
-        GridObject gridObject = GetGridSystem(gridPosition.floor).GetGridObject(gridPosition);
-        gridObject.SetInteractable(interactable);
-    }
-
-    public void ClearInteractableAtGridPosition(GridPosition gridPosition)
-    {
-        GridObject gridObject = GetGridSystem(gridPosition.floor).GetGridObject(gridPosition);
-        gridObject.ClearInteractable();
-    }
-
-    #endregion
-
-    #region ===== 그리드 Cache와 관련된 함수들 =====
-
-    public void SetGridPositionCellInfo(IEnumerable<GridPosition> gridPositions, E_GridCheckType type, GameEntity entity = null)
-    {
-        if (gridPositions == null || gridPositions.Count() == 0)
-            return;
-
-        foreach (var gridPosition in gridPositions)
-            m_DicFloorGridCache[gridPosition.floor][gridPosition] = new GridCellInfo(entity, type);
-
-        //Debug.Log($"그리드 지정 타입 : {type},  위치 : {string.Join(" ", gridPositions)}, GameEntity : {entity?.name}");
-
-        // 3이벤트 호출
-        OnChangeGrid?.Invoke(this, new OnChangeGridAgrs
-        {
-            type = type,
-            ListGridPosition = gridPositions.ToList(),
-        });
-    }
-
-    public void SetGridPositionCellInfo(GridPosition gridPosition, E_GridCheckType type, GameEntity entity = null)
-    {
-        // 1층 딕셔너리가 없으면 생성
-        m_DicFloorGridCache[gridPosition.floor][gridPosition] = new GridCellInfo(entity, type);
-
-        //Debug.Log($"그리드 지정 타입 : {type},  위치 : {gridPosition}, GameEntity : {entity?.name}");
-
-        // 3이벤트 호출
-        OnChangeGrid?.Invoke(this, new OnChangeGridAgrs
-        {
-            type = type,
-            ListGridPosition = new List<GridPosition> { gridPosition },
-        });
-    }
-
-
-    public GridCellInfo GetGridPositionCellInfo(GridPosition gridPosition)
-    {
-        return m_DicFloorGridCache[gridPosition.floor][gridPosition];
-    }
-
-    public IEnumerable<(GridPosition, GridCellInfo)> GetFloorGridPositionCellInfo(int floor)
-    {
-        if (!m_DicFloorGridCache.ContainsKey(floor))
-            return Enumerable.Empty<(GridPosition, GridCellInfo)>();
-
-        return m_DicFloorGridCache[floor].Select(pair => (pair.Key, pair.Value));
-    }
-
-    public E_GridCheckType GetGridPositionType(GridPosition gridPosition)
-    {
+        if (!IsValidGridPosition(gridPosition)) return E_GridCheckType.Void;
         return m_DicFloorGridCache[gridPosition.floor][gridPosition].gridType;
     }
+
+    #endregion
 
     public List<(GridPosition, E_GridCheckType)> GetFloorGridPositionAndType(int floor)
     {
@@ -558,19 +284,18 @@ public class LevelGrid : MonoBehaviour
         return gridPositions.All(pos => IsGridPositionCheckType(pos, types));
     }
 
-    private void ClearFloorCache(int floor)
+    public void ClearFloorCache(int floor)
     {
         if (m_DicFloorGridCache.ContainsKey(floor))
             m_DicFloorGridCache[floor].Clear();
     }
 
-    private void ClearAllFloorCache()
+    public void ClearAllFloorCache()
     {
         m_DicFloorGridCache.Clear();
     }
-    #endregion
 
-    private void GridDebugObjectUpdate(object sender, OnChangeGridAgrs info)
+    private void GridDebugObjectUpdate(OnChangeGridAgrs info)
     {
         if (!m_isShowCreateDebugObjects)
             return;
@@ -578,4 +303,79 @@ public class LevelGrid : MonoBehaviour
         foreach (var pos in info.ListGridPosition)
             m_griddebug[pos].UpdateGridObject();
     }
+
+
+    #region IUnitGridManager
+
+
+    public void AddUnitAtGridPositions(IReadOnlyList<GridPosition> cells, GameEntity unit)
+    {
+        if (unit == null || cells == null || cells.Count == 0) return;
+
+        foreach (var pos in cells)
+        {
+            if (!IsValidGridPosition(pos)) continue;
+
+            var gridObj = GetGridSystem(pos.floor).GetGridObject(pos);
+            gridObj.AddUnit(unit);
+
+            SetCellType(pos, E_GridCheckType.GameEntity, gridObj.GetTopUnitOrNull());
+        }
+    }
+
+    public void RemoveUnitAtGridPositions(IReadOnlyList<GridPosition> cells, GameEntity unit)
+    {
+        if (unit == null || cells == null || cells.Count == 0) return;
+
+        foreach (var pos in cells)
+        {
+            if (!IsValidGridPosition(pos)) continue;
+
+            var gridObj = GetGridSystem(pos.floor).GetGridObject(pos);
+            gridObj.RemoveUnit(unit);
+
+            if (gridObj.HasAnyUnit())
+                SetCellType(pos, E_GridCheckType.GameEntity, gridObj.GetTopUnitOrNull());
+            else
+                SetCellType(pos, E_GridCheckType.Walkable, null);
+        }
+    }
+
+    public void MoveUnit(GameEntity unit, IReadOnlyList<GridPosition> fromCells, IReadOnlyList<GridPosition> toCells)
+    {
+        // 이동은 항상 “Remove -> Add”로 통일 (동기화 규칙 1개로 유지)
+        RemoveUnitAtGridPositions(fromCells, unit);
+        AddUnitAtGridPositions(toCells, unit);
+    }
+
+    public IReadOnlyCollection<GameEntity> GetUnitsAt(GridPosition pos)
+    {
+        if (!IsValidGridPosition(pos))
+            return System.Array.Empty<GameEntity>();
+
+        var gridObj = GetGridSystem(pos.floor).GetGridObject(pos);
+        return gridObj.GetUnits(); // GridObject에서 IReadOnlyCollection으로 반환하게 만들기
+    }
+
+
+    #endregion
+
+
+#if UNITY_EDITOR
+    #region Debug 용도
+    public GridCellInfo GetGridPositionCellInfo(GridPosition gridPosition)
+    {
+        return m_DicFloorGridCache[gridPosition.floor][gridPosition];
+    }
+
+    public IEnumerable<(GridPosition, GridCellInfo)> GetFloorGridPositionCellInfo(int floor)
+    {
+        if (!m_DicFloorGridCache.ContainsKey(floor))
+            return Enumerable.Empty<(GridPosition, GridCellInfo)>();
+
+        return m_DicFloorGridCache[floor].Select(pair => (pair.Key, pair.Value));
+    }
+    #endregion
+#endif
+
 }

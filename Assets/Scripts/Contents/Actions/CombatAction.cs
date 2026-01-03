@@ -12,15 +12,10 @@ public class CombatAction : BaseAction
         m_actionName = "Combat";
     }
 
-    public event EventHandler<OnAttackBaseEventArgs> OnStartAttack;
-    public event EventHandler OnEndAttack;
-    //public event EventHandler OnAttackCancel;
-    public event EventHandler OnPhaseChange;
-
-    public class OnAttackBaseEventArgs : EventArgs
-    {
-        public AttackPattern attackPattern;
-    }
+    public event Action<AttackData> OnStartAttack;
+    public event Action OnEndAttack;
+    //public event Action OnAttackCancel;
+    public event Action OnPhaseChange;
 
     Func<bool> conditionPase;
     bool isChaningPase;
@@ -30,15 +25,19 @@ public class CombatAction : BaseAction
 
     BaseAction m_TODOChangeAction;
 
-    public AttackPattern m_ThisTimeAttack;
-    public AttackPattern m_PrevAttackPattern;
+    public AttackData m_ThisTimeAttack;
+    public AttackData m_PrevAttackPattern;
 
-    protected override void Start()
+    private void OnEnable()
     {
-        base.Start();
+        OnStartAttack += OnStartAttack_DrawGrid;
+        OnEndAttack += DrawGridVisual;
+    }
 
-        OnStartAttack += (s, e) =>  GridSystemVisual.Instance.UpdateGridVisual_Event(s, m_GameEntity);
-        OnEndAttack += (s, e) =>  GridSystemVisual.Instance.UpdateGridVisual_Event(s, m_GameEntity);
+    private void OnDisable()
+    {
+        OnStartAttack -= OnStartAttack_DrawGrid;
+        OnEndAttack -= DrawGridVisual;
     }
 
     protected override void Update()
@@ -95,9 +94,10 @@ public class CombatAction : BaseAction
         // 1. Success가 하나라도 있는가?
         if (grouped.TryGetValue(E_AttackCondition.Success, out var successList))
         {
-            var toAttack = usablePatterns.RandomPick();
+            // TODO 등급을 매겨서 우선순위 정하기
+            var toAttack = successList.RandomPick();
             
-            //Debug.Log($"{pobj}가 현재 선택한 공격 {toAttack.pattern}");
+            //Debug.Log($"{m_GameEntity}가 현재 선택한 공격 {toAttack.pattern}");
             ChangeAttack(toAttack.pattern);
 
             // Event (Animation, Sound) 실행
@@ -169,8 +169,6 @@ public class CombatAction : BaseAction
             return this;
     }
 
-
-
     public override EnemyAIAction GetEnemyAIAction(GridPosition gridPosition)
     {
         throw new NotImplementedException();
@@ -185,34 +183,38 @@ public class CombatAction : BaseAction
     {
         if(conditionPase != null && conditionPase.Invoke())
         {
-            OnPhaseChange?.Invoke(this, EventArgs.Empty);
+            OnPhaseChange?.Invoke();
         }
     }
 
     public void OnStartAttackEventInvoke()
     {
-        m_ThisTimeAttack.StartAttack(m_GameEntity, m_GameEntity.m_Target, m_PrevAttackPattern);
+        var pattern = Managers.Game.AttackPattern(m_ThisTimeAttack);
+        pattern.StartAttack(m_GameEntity, m_GameEntity.m_Target, m_ThisTimeAttack, m_PrevAttackPattern);
+        //m_ThisTimeAttack.StartAttack(m_GameEntity, m_GameEntity.m_Target, m_PrevAttackPattern);
 
-        OnStartAttack?.Invoke(this, new OnAttackBaseEventArgs()
-        {
-            attackPattern = m_ThisTimeAttack
-        });
+        OnStartAttack?.Invoke(m_ThisTimeAttack);
 
         m_bIsActive = true;
     }
 
     public void OnEndAttackEventInvoke()
     {
-        m_ThisTimeAttack?.EndAttack(m_GameEntity, m_GameEntity.m_Target);
+        if (m_ThisTimeAttack != null)
+        {
+            var pattern = Managers.Game.AttackPattern(m_ThisTimeAttack);
+            pattern.EndAttack(m_GameEntity, m_GameEntity.m_Target, m_ThisTimeAttack);
+        }
+        //m_ThisTimeAttack?.EndAttack(m_GameEntity, m_GameEntity.m_Target);
 
-        OnEndAttack?.Invoke(this, EventArgs.Empty);
+        OnEndAttack?.Invoke();
 
         m_bIsActive = false;
 
         m_TODOChangeAction = null;
 
         // 만약 다음 다음 어택이 있다면 교체
-        if (m_ThisTimeAttack?.m_iNextAttackPattern.Length == 0)
+        if (m_ThisTimeAttack?.NextAttacks.Length == 0)
         {
             m_ThisTimeAttack = null;
         }
@@ -230,7 +232,7 @@ public class CombatAction : BaseAction
         m_bIsActive = isFalse;
     }
 
-    public void ChangeAttack(AttackPattern todoAttack)
+    public void ChangeAttack(AttackData todoAttack)
     {
         m_PrevAttackPattern = m_ThisTimeAttack;
         m_ThisTimeAttack = todoAttack;
