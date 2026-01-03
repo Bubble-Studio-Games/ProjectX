@@ -105,10 +105,10 @@ public class NPCIdleAction : BaseAction
 
         float distance = Vector3.Distance(m_BaseObject.transform.position, player.transform.position);
 
-        if (distance <= PLAYER_PROXIMITY_RANGE)
-            _owner.EnableInteraction();
-        else
-            _owner.DisableInteraction();
+        // if (distance <= PLAYER_PROXIMITY_RANGE)
+        //     _owner.EnableInteraction();
+        // else
+        //     _owner.DisableInteraction();
     }
 
     private BaseAction HandleFriendlyIdle(Action onActionComplete)

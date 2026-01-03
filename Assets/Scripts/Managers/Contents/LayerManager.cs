@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Define;
 
 public class LayerManager
 {
@@ -16,7 +17,7 @@ public class LayerManager
     {
         // Layer 설정
         mousePlaneLayerMask = 1 << LayerMask.NameToLayer("MousePlane");
-        PlayerInteractableLayerMask = 
+        PlayerInteractableLayerMask =
             1 << LayerMask.NameToLayer("Controllable") |
             1 << LayerMask.NameToLayer("Interactable");
         ObstaclesLayerMask = 1 << LayerMask.NameToLayer("Obstacles");
@@ -29,5 +30,9 @@ public class LayerManager
             1 << LayerMask.NameToLayer("Trap")
             ;
         m_IgnoreLayerMask = 1 << LayerMask.NameToLayer("Ignore Raycast");
+    }
+
+    public void Clear()
+    {
     }
 }

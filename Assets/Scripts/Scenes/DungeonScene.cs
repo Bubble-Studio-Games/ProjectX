@@ -10,6 +10,9 @@ public class DungeonScene : BaseScene
 {
     [SerializeField] private GameObject m_InitObject; // 초기 데이터
 
+    private NPCSpawner _npcSpawner;
+    private MenuUI _menuUI;
+
     protected override void Init()
     {
         base.Init();
@@ -17,6 +20,12 @@ public class DungeonScene : BaseScene
         SceneType = Scene.Dungeon;
 
         var data = Managers.Load.GetContinueSaveData();
+
+        _npcSpawner = FindAnyObjectByType<NPCSpawner>();
+        _npcSpawner.SetUp();
+
+        _menuUI = FindAnyObjectByType<MenuUI>();
+        _menuUI.SetUp(MenuUI.MenuContext.InGamePaused);
 
         // 기존 플레이 했던 데이터가 있는 경우
         if (data != null && data.dungeondata.gameEntityDatas.Count > 0 && useLoadSaveFile)
@@ -76,16 +85,12 @@ public class DungeonScene : BaseScene
             }
         }
 
-        // Input Binding
-        InputManager.Instance.playerInputActions.KeyBoard.ESC.performed += i =>
-        {
-
-        };
+        // Input Binding (현재 빈 핸들러 - 필요 시 구현)
     }
 
     public override void Clear()
     {
+        _npcSpawner.Clear();
         
     }
-
 }

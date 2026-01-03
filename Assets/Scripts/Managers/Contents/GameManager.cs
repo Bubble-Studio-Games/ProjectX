@@ -13,9 +13,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using static Define;
-using static Unity.VisualScripting.Member;
-using static UnityEngine.Splines.SplineInstantiate;
-using static UnityEngine.UI.Image;
 using Scene = Define.Scene;
 
 public class GameManager
@@ -968,6 +965,10 @@ public class GameManager
                     break;
             }
         }
+    }
+
+    public void Clear()
+    {
     }
 
     #endregion

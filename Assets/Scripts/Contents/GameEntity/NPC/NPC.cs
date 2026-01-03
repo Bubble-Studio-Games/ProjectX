@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using static Define;
 
@@ -19,14 +20,14 @@ public class NPC : Unit
     [SerializeField] private bool _isInit = false;
     [SerializeField] private NPCStat _npcStat;
     [SerializeField] private NPCOutlineView _outline;
-    [SerializeField] private NPCExclamationIcon _exclamationIcon;
+    [SerializeField] private NPCInteractionUI _exclamationIcon;
     [SerializeField] private Player _player;
     public Player Player 
     {
         get 
         {
             if (_player == null)
-                _player = FindObjectOfType<Player>();
+                _player = FindAnyObjectByType<Player>();
             return _player;
         }
     }
@@ -41,7 +42,7 @@ public class NPC : Unit
         return true;
     }
 
-    public E_ObjectType m_ObjectType => E_ObjectType.NPC;
+    public new E_ObjectType m_ObjectType => E_ObjectType.NPC;
     [SerializeField] private E_NPCState _state = E_NPCState.Neutral;
     public E_NPCState State
     {
@@ -59,11 +60,26 @@ public class NPC : Unit
         }
     }
 
-    private Transform _dungeonCoreTransform => DungeonCore.instance.transform;
+    private Transform _dungeonCoreTransform
+    {
+        get
+        {
+            if (DungeonCore.instance == null)
+                return null;
+            return DungeonCore.instance.transform;
+        }
+    }
     private Coroutine _shopTimerCoroutine;
 
     public Vector3 TargetPos => _targetPos;
     public NPCStat NPCStat { get => _npcStat; set => _npcStat = value; }
+
+    [Header("Quest")]
+    [SerializeField] private string _mainQuestId;
+    [SerializeField] private List<string> _subQuestIds = new List<string>();
+
+    public string MainQuestId => _mainQuestId;
+    public List<string> SubQuestIds => _subQuestIds;
 
     public static event Action<NPC> OnAnyNPCDeath;
     public event Action<NPC, E_NPCState> OnStateChanged;
@@ -85,12 +101,19 @@ public class NPC : Unit
             _npcStat = npcStat;
             _state = _npcStat.InitState;
             _isInit = true;
+
+            // 퀘스트 ID 로드
+            _mainQuestId = _npcStat.MainQuestId;
+            if (_npcStat.SubQuestIds != null)
+            {
+                _subQuestIds = new List<string>(_npcStat.SubQuestIds);
+            }
         }
 
-        _exclamationIcon = this.gameObject.GetComponentInChildren<NPCExclamationIcon>(true);
-        _exclamationIcon.Init(this);
-        _outline = this.gameObject.GetOrAddComponent<NPCOutlineView>();
-        _outline.Init(this);    
+        // _exclamationIcon = this.gameObject.GetComponentInChildren<NPCExclamationIcon>(true);
+        // _exclamationIcon.Init(this);
+        // _outline = this.gameObject.GetOrAddComponent<NPCOutlineView>();
+        // _outline.Init(this);    
     }
 
     public override void OnDestroy()
@@ -112,7 +135,7 @@ public class NPC : Unit
         State = _state;
     }
 
-    protected override void InitStateAction()
+    protected void InitStateAction()
     {
         var initAction = GetAction<NPCIdleAction>();
         if (initAction != null)
@@ -231,8 +254,6 @@ public class NPC : Unit
 
         Debug.Log($"{name}의 상점 운영 시간이 종료되었습니다. 원래 위치로 복귀합니다.");
 
-        DisableInteraction();
-
         // 복귀 로직 실행
         if (_npcStat.ReturnToSpawnAfterGoal)
         {
@@ -244,16 +265,6 @@ public class NPC : Unit
         }
 
         _shopTimerCoroutine = null;
-    }
-
-    public void EnableInteraction()
-    {
-        _exclamationIcon.SetVisible(true);
-    }
-
-    public void DisableInteraction()
-    {
-        _exclamationIcon.SetVisible(false);
     }
 
     public void OnExclamationIconClicked()
@@ -292,11 +303,10 @@ public class NPC : Unit
     {
         Debug.Log($"NPC - 대화 시작 - {name}");
         DialogueUI dialogueUI = Managers.UI.ShowPopupUI<DialogueUI>();
-        dialogueUI.StartDialogue(this);
     }
 
 
-    public override void DeSpawnStart()
+    public new void DeSpawnStart()
     {
         base.DeSpawnStart();
         OnAnyNPCDeath?.Invoke(this); 

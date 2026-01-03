@@ -10,6 +10,7 @@ public class StartScene : BaseScene
     [SerializeField] private GameObject m_goMenuUI;
     [SerializeField] private MenuUI m_MenuUI;
     [SerializeField] bool m_IsSkip = false;
+    [SerializeField] private bool m_animationSkip = false;
 
     [Header("Company")]
     [SerializeField] private AudioClip m_CompanyTitleSound;
@@ -23,22 +24,31 @@ public class StartScene : BaseScene
     protected override void Init()
     {
         base.Init();
-
-        SceneType = Define.Scene.Start;
+        var menuUI = FindAnyObjectByType<MenuUI>();
+        menuUI.SetUp(MenuUI.MenuContext.StartScreen);
     }
 
     protected override void Start()
     {
         base.Start();
 
+        if (m_animationSkip)
+        {
+            m_goMenuUI.SetActive(false);
+            m_CompanyTitle.enabled = false;
+            Managers.UI.FadeIn(m_CompanyTitle, 0.0f, EColorMode.HSV);
+            Managers.Sound.Play(m_CompanyTitleSound);
+            CompleteUI();
+            return;
+        }
+        
         StartCoroutine(IProcessUI());
-
     }
 
     public void SkipIntro()
     {
         // 마우스 클릭 체크
-        if(m_IsSkip == false)
+        if (m_IsSkip == false)
         {
             m_IsSkip = true;
 
@@ -95,6 +105,10 @@ public class StartScene : BaseScene
         Managers.Sound.Play(m_SceneMainTemaAudioclip, 1, Sound.Bgm);
         m_goMenuUI.SetActive(true);
         m_MenuUI.m_Animator.Play("Empty");
+
+        // MenuUI 컨텍스트 설정 - 타이틀 화면
+        m_MenuUI.SetUp(MenuUI.MenuContext.StartScreen);
+
         m_IsSkip = true;
     }
 

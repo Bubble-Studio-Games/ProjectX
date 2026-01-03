@@ -48,8 +48,8 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
     private bool m_SpawnFromWeapon = true;
 
     [Header("최적화용도")]
-    List<(Item obj, Transform spawnTransform)> keepList = new();
-    List<(Item obj, Transform spawnTransform)> removeList = new();
+    List<(ItemObject obj, Transform spawnTransform)> keepList = new();
+    List<(ItemObject obj, Transform spawnTransform)> removeList = new();
 
 
     public override (E_AttackCondition condition, HashSet<GridPosition> CanAttackablePos) 

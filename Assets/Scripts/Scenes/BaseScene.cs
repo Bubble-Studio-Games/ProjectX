@@ -7,7 +7,7 @@ using static Define;
 
 public abstract class BaseScene : MonoBehaviour
 {
-    public Define.Scene SceneType { get; protected set; } = Define.Scene.Unknown;
+    [field: SerializeField]public Define.Scene SceneType { get; protected set; } = Define.Scene.Unknown;
 
     [Tooltip("세이브 파일을 로드할 것인가?")]
     public bool useLoadSaveFile = true;
@@ -24,11 +24,15 @@ public abstract class BaseScene : MonoBehaviour
 
 	protected virtual void Init()
     {
-        Object obj = GameObject.FindFirstObjectByType(typeof(EventSystem));
-        if (obj == null)
+        GameObject obj = FindAnyObjectByType<EventSystem>().gameObject;
+        if (obj == null && GlobalSettings.Instance?.EventSystem == null)
             Managers.Resource.Instantiate("UI/EventSystem").name = "@EventSystem";
 
+        if (obj == GlobalSettings.Instance?.EventSystem?.gameObject)
+            return;
 
+        if (GlobalSettings.Instance != null && GlobalSettings.Instance.EventSystem != null && obj != null)
+            GameObject.Destroy(obj);
     }
 
     protected virtual void Start()

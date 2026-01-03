@@ -1,9 +1,10 @@
 using Data;
+using GoogleSheet;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-using static Define;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 public partial class Define
 {
@@ -40,5 +41,70 @@ public partial class Define
 
         // 여러 개 복원
         void RestoreSaveDatas(IEnumerable<BaseData> datas) { }
+    }
+
+    /// <summary>
+    /// 비동기 닫힘 대기 인터페이스 - UI가 닫힐 때 비동기적으로 대기
+    /// </summary>
+    public interface IAsyncCloseable
+    {
+        public Action OnClose { get; set; }
+    }
+
+    /// <summary>
+    /// 아이템 호버 정책 인터페이스 - 부모 UI가 호버 패널 표시 여부 및 방식 결정
+    /// </summary>
+    public interface IItemHoverPolicy
+    {
+        /// <summary>
+        /// 아이템 호버 패널 표시
+        /// </summary>
+        public void ShowItemHover(Item.Data data, UnityEngine.Vector2 screenPos);
+
+        /// <summary>
+        /// 아이템 호버 패널 숨김
+        /// </summary>
+        public void HideItemHover();
+    }
+
+    public interface IItemBoxUI
+    {
+        public ITable Table { get; }
+    }
+}
+
+public static class IAsyncCloseableEx
+{
+    /// <summary>
+    /// UI 닫힘 대기 - 여러 UI가 모두 닫힐 때까지 비동기 대기
+    /// </summary>
+    public static async Task WaitForUICloseAsync(CancellationToken ct, params Define.IAsyncCloseable[] closeables)
+    {
+        var registrations = new List<CancellationTokenRegistration>();
+
+        try
+        {
+            var tasks = closeables.Select(ui =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+
+                if (ct.CanBeCanceled)
+                {
+                    var registration = ct.Register(() => tcs.TrySetCanceled());
+                    registrations.Add(registration);
+                }
+
+                ui.OnClose = null;
+                ui.OnClose = () => tcs.TrySetResult(true);
+                return tcs.Task;
+            }).ToArray();
+
+            await Task.WhenAll(tasks);
+        }
+        finally
+        {
+            foreach (var registration in registrations)
+                registration.Dispose();
+        }
     }
 }

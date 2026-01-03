@@ -74,8 +74,4 @@ public class SelectionManager
     }
 
 
-    public void Clear()
-    {
-
-    }
 }

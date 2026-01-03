@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using GoogleSheet.Core.Type;
 
 public partial class Define
 {
@@ -221,7 +222,8 @@ public partial class Define
         AutoTrigger = 4,
         Obstacle,
         Skill,
-        PassiveObject
+        PassiveObject,
+        NPC
     }
 
 
@@ -307,6 +309,10 @@ public partial class Define
         Test = 3,
         Loading,
         Camp, // 거점 구역
+
+        LMGameScene = -100,
+        LMCampScene = -200,
+        LMStartScene = -300,
     }
 
     public enum Sound
@@ -329,7 +335,11 @@ public partial class Define
         Pressed,
         PointerDown,
         PointerUp,
-        
+        Hover,
+        HoverExit,
+        BeginDrag,
+        Drag,
+        EndDrag,
     }
 
     public enum CursorType
@@ -338,6 +348,46 @@ public partial class Define
         Arrow,
         Hand,
         Look,
+    }
+
+    public enum E_NPCState
+    {
+        Neutral,
+        Hostile,
+        Friendly,
+    }
+
+    public enum E_NPC
+    {
+        None,
+        Shop,
+        Quest,
+        Event,
+    }
+
+    #endregion
+
+    #region Manager
+
+    /// <summary>
+    /// Manager 카테고리 - 씬별 생명주기 관리
+    /// </summary>
+    public enum E_ManagerCategory
+    {
+        /// <summary>
+        /// 모든 씬에서 유지되는 Core Manager
+        /// </summary>
+        Core,
+
+        /// <summary>
+        /// Camp 씬 전용 Manager
+        /// </summary>
+        Camp,
+
+        /// <summary>
+        /// Dungeon 씬 전용 Manager
+        /// </summary>
+        Dungeon,
     }
     #endregion
 }

@@ -406,6 +406,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5fcd88d444d95c94281347a0c81a54cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <SceneType>k__BackingField: 5
+  useLoadSaveFile: 1
+  isSaveFile: 1
   m_SceneMainTemaAudioclip: {fileID: 0}
   tempButton: {fileID: 1971469912}
 --- !u!4 &1060957157

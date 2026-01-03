@@ -40,13 +40,18 @@ public class MouseWorld : MonoBehaviour
     GameObject m_goPoolableEffect;
     [SerializeField] float m_Defaultheight = 2f;
 
+    // InputAction 콜백에서 IsPointerOverGameObject() 사용 시 이전 프레임 상태 반환 문제 해결용
+    private bool _isPointerOverUI = false;
+    public bool IsPointerOverUI => _isPointerOverUI;
+
     private void Awake()
     {
         Instance = this;
         SelectionBox.gameObject.SetActive(false);
 
-        // Cursor
-        Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
+        // Cursor - GlobalSettings에서 활성화 여부 확인
+        if (IsCursorEnabled())
+            Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
 
         // effect
         Managers.Command.OnCommandAction += InstantiateMouseEffect;
@@ -58,9 +63,11 @@ public class MouseWorld : MonoBehaviour
 
     private void Update()
     {
+        // InputAction 콜백에서 사용할 수 있도록 UI 상태 캐싱
+        _isPointerOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+
         MouseDrag();
         UpdateCursor();
-
         UpdateGridPosition();
     }
 
@@ -87,6 +94,22 @@ public class MouseWorld : MonoBehaviour
         return LevelGrid.Instance.GetGridPosition(mousePlanePos);
     }
 
+    /// <summary>
+    /// 마우스 커서가 활성화되어 있는지 확인 - GlobalSettings 기반
+    /// </summary>
+    private bool IsCursorEnabled()
+    {
+        // GlobalSettings가 없으면 기본값 true (안전)
+        if (GlobalSettings.Instance == null)
+            return true;
+
+        // SettingsData가 null이면 기본값 true (안전)
+        if (GlobalSettings.Instance.SettingsData == null)
+            return true;
+
+        return GlobalSettings.Instance.Mouse.IsMouseCursorEnabled;
+    }
+
 
 
     public void MouseUp()
@@ -111,8 +134,8 @@ public class MouseWorld : MonoBehaviour
 
     public void MouseDown()
     {
-        // 다른 UI에 손을 못대게
-        if (EventSystem.current.IsPointerOverGameObject())
+        // 다른 UI에 손을 못대게 (캐싱된 값 사용 - InputAction 콜백 호환)
+        if (_isPointerOverUI)
             return;
         
         // Drag Box
@@ -223,7 +246,10 @@ public class MouseWorld : MonoBehaviour
     {
         if (!Application.isFocused) return;
 
-        Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
+        // 커서 활성화 시 기본 커서 설정
+        if (IsCursorEnabled())
+            Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
+
         lastHoveredObject = null;
 
         // Select Object
@@ -237,17 +263,21 @@ public class MouseWorld : MonoBehaviour
                     if (Managers.Selection.SelectedUnits.Count == 0)
                         return;
 
-                    Cursor.SetCursor(AttackCursor, hotspot, CursorMode.Auto);
+                    if (IsCursorEnabled())
+                        Cursor.SetCursor(AttackCursor, hotspot, CursorMode.Auto);
                 }
                 else if (result.m_ObjectType == E_ObjectType.Interact)
                 {
-                    Cursor.SetCursor(InteractCursor, hotspot, CursorMode.Auto);
-
+                    if (IsCursorEnabled())
+                        Cursor.SetCursor(InteractCursor, hotspot, CursorMode.Auto);
                 }
 
                 lastHoveredObject = result.gameObject;
             }
         }
+
+        if (IsCursorEnabled() == false)
+            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
     }
 
     #endregion

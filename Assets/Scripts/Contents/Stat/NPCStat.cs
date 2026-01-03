@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using static Define;
 
@@ -42,4 +43,11 @@ public class NPCStat : BaseStat
     [Header("Dialogue & Content")]
     [Tooltip("대화 스크립트 파일 경로")]
     public string DialogueScriptPath;
+
+    [Header("Quest")]
+    [Tooltip("메인 퀘스트 ID (MC 전용)")]
+    public string MainQuestId;
+
+    [Tooltip("서브 퀘스트 ID 목록")]
+    public List<string> SubQuestIds = new List<string>();
 }

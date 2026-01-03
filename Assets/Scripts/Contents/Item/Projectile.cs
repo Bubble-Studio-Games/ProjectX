@@ -2,8 +2,11 @@ using Data;
 using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// 발사체 아이템 - ItemObject 상속
+/// </summary>
 [RequireComponent(typeof(Poolable), typeof(Rigidbody))]
-public class Projectile : Item
+public class Projectile : ItemObject
 {
     public AudioSource m_AudioSource { get; private set; }
     public Rigidbody m_Rigidbody { get; private set; }

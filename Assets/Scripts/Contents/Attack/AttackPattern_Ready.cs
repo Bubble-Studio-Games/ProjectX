@@ -17,7 +17,7 @@ public class AttackPattern_Ready : AttackPattern<AttackPatternInfoClipWithReady>
     public AudioClip ReadyFailAudioClip;
 
     [Header("Spawn Object")]
-    public Item m_ReadyGameObjectPrefab;
+    public ItemObject m_ReadyGameObjectPrefab;
     public GameObject m_FailPrefab;
     [SerializeField] private int m_iSpawnReadyCount = 1;
     [SerializeField, Tooltip("무기에 붙어서 생성할지 여부")]
@@ -30,8 +30,8 @@ public class AttackPattern_Ready : AttackPattern<AttackPatternInfoClipWithReady>
     public bool m_ISAttackReadyFinished => Time.time - lastAttackReadytime >= m_AttackReadyTime;
 
     [Header("Ready Object 최적화용도")]
-    List<(Item obj, Transform spawnTransform)> keepList = new();
-    List<(Item obj, Transform spawnTransform)> removeList = new();
+    List<(ItemObject obj, Transform spawnTransform)> keepList = new();
+    List<(ItemObject obj, Transform spawnTransform)> removeList = new();
 
 
     public override void Init()
@@ -113,7 +113,7 @@ public class AttackPattern_Ready : AttackPattern<AttackPatternInfoClipWithReady>
 
                     //Debug.Log("Ready에서 새로운 준비 오브젝트를 생성");
 
-                    var newObj = Managers.Resource.Instantiate<Item>(m_ReadyGameObjectPrefab.gameObject, spawnT);
+                    var newObj = Managers.Resource.Instantiate<ItemObject>(m_ReadyGameObjectPrefab.gameObject, spawnT);
                     newObj.transform.localPosition = Vector3.zero;
                     newObj.transform.localRotation = Quaternion.identity;
 

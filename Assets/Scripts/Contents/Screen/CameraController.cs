@@ -43,6 +43,24 @@ public class CameraController : MonoBehaviour
         m_CMImpulseListener =  GetComponentInChildren<CinemachineImpulseListener>();
     }
 
+    private void OnEnable()
+    {
+        if (InputManager.Instance != null)
+        {
+            InputManager.Instance.OnActionMapChanged += OnActionMapChanged;
+            // 현재 ActionMap 상태에 맞춰 초기화
+            OnActionMapChanged(InputManager.Instance.CurrentActionMapGroup);
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (InputManager.Instance != null)
+        {
+            InputManager.Instance.OnActionMapChanged -= OnActionMapChanged;
+        }
+    }
+
     private void Start()
     {
         targetFollowOffset = m_CM.Target.TrackingTarget.transform.position;
@@ -81,20 +99,67 @@ public class CameraController : MonoBehaviour
         m_Follow.position += moveVector * moveSpeed * Time.deltaTime;
     }
 
-    // 마우스 우클릭 시에만 작동하게
+    /// <summary>
+    /// ActionMap 변경 시 호출되는 콜백
+    /// </summary>
+    private void OnActionMapChanged(string newActionMap)
+    {
+        bool isGamePlay = newActionMap == "GamePlay";
+
+        // GamePlay가 아니면 모든 Cinemachine 입력 비활성화
+        if (isGamePlay == false)
+        {
+            DisableAllCMControllers();
+        }
+    }
+
+    /// <summary>
+    /// 마우스 우클릭 시에만 작동하게 - GamePlay ActionMap일 때만
+    /// </summary>
     private void HandleEnableCMController()
     {
-        if(InputManager.Instance == null) return;
+        if (InputManager.Instance == null)
+            return;
 
-        if(InputManager.Instance.mouse_R_Hold)
+        // GamePlay ActionMap이 아니면 비활성화
+        if (InputManager.Instance.CurrentActionMapGroup != "GamePlay")
         {
-            m_CMInputAxisController.Controllers[0].Enabled = true; // X
-            m_CMInputAxisController.Controllers[1].Enabled = true; // Y
+            DisableAllCMControllers();
+            return;
+        }
+
+        // GamePlay ActionMap + 우클릭 홀드 시에만 활성화
+        bool enableControllers = InputManager.Instance.mouse_R_Hold;
+
+        if (enableControllers)
+        {
+            m_CMInputAxisController.Controllers[0].Enabled = true; // X축 회전
+            m_CMInputAxisController.Controllers[1].Enabled = true; // Y축 회전
         }
         else
         {
-            m_CMInputAxisController.Controllers[0].Enabled = false; // X
-            m_CMInputAxisController.Controllers[1].Enabled = false; // Y
+            m_CMInputAxisController.Controllers[0].Enabled = false; // X축 회전
+            m_CMInputAxisController.Controllers[1].Enabled = false; // Y축 회전
+        }
+
+        // Zoom은 항상 비활성화 (ActionMap과 독립적으로 동작하지 않도록)
+        if (m_CMInputAxisController.Controllers.Count > 2)
+        {
+            m_CMInputAxisController.Controllers[2].Enabled = false;
+        }
+    }
+
+    /// <summary>
+    /// 모든 Cinemachine 입력 컨트롤러 비활성화
+    /// </summary>
+    private void DisableAllCMControllers()
+    {
+        if (m_CMInputAxisController == null)
+            return;
+
+        for (int i = 0; i < m_CMInputAxisController.Controllers.Count; i++)
+        {
+            m_CMInputAxisController.Controllers[i].Enabled = false;
         }
     }
 

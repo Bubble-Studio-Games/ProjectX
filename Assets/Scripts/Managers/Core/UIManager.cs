@@ -7,7 +7,7 @@ using static Define;
 
 public class UIManager
 {
-    int _order = 10;
+    private int _order = 10;
 
     public Stack<UI_Popup> _popupStack = new Stack<UI_Popup>();
     public UI_Scene SceneUI { get; set; }
@@ -82,6 +82,19 @@ public class UIManager
 		return sceneUI;
 	}
 
+	public T ShowNotificationUI<T>(string name = null) where T : UI_Notification
+	{
+		if (string.IsNullOrEmpty(name))
+			name = typeof(T).Name;
+
+		GameObject go = Managers.Resource.Instantiate($"UI/Notification/{name}");
+		T notification = Util.GetOrAddComponent<T>(go);
+
+		go.transform.SetParent(Root.transform);
+
+		return notification;
+	}
+
 	public T ShowPopupUI<T>(string name = null) where T : UI_Popup
     {
         if (string.IsNullOrEmpty(name))
@@ -103,7 +116,7 @@ public class UIManager
         
         if (_popupStack.Peek() != popup)
         {
-            Debug.Log("Close Popup Failed!");
+            Debug.LogWarning("Close Popup Failed!");
             return;
         }
 
@@ -162,6 +175,12 @@ public class UIManager
         return _popupStack
             .OfType<T>() // 타입이 T인 것만 필터링
             .FirstOrDefault(x => x.name == name); // 이름 일치하는 것 반환
+    }
+
+    public bool TryGetUIBase<T>(out T ui, string name = null) where T : UI_Base
+    {
+        ui = GetUIBase<T>(name);
+        return ui != null;
     }
 
 

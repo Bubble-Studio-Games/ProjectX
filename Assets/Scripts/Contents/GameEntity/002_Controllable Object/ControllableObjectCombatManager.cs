@@ -8,7 +8,7 @@ using static UnityEditor.Experimental.AssetDatabaseExperimental.AssetDatabaseCou
 
 public class ControllableObjectCombatManager : MonoBehaviour
 {
-    public List<(Item obj, Transform spawnTransform)> m_AttackReadyItemObject = new();
+    public List<(ItemObject obj, Transform spawnTransform)> m_AttackReadyItemObject = new();
 
     [HideInInspector] public ControllableObject m_ControllableObject;
 

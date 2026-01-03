@@ -11,8 +11,6 @@ public class LoadingScene : BaseScene
     protected override void Start()
     {
         base.Start();
-
-        StartCoroutine(LoadSceneProcess());
     }
 
     IEnumerator LoadSceneProcess()

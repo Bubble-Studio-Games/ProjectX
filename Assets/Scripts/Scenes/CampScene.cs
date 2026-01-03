@@ -17,7 +17,12 @@ public class CampScene : BaseScene
         tempButton.onClick.AddListener(async () =>
         {
             await Managers.Save.SaveAllData();
-            Managers.Scene.LoadScene(Define.Scene.Dungeon);
+            _ = Managers.Scene.LoadSceneAsync
+            (
+                Define.Scene.Camp,
+                Define.Scene.LMGameScene,
+                () => Debug.Log($"씬 전환 완료 {Define.Scene.LMGameScene}")
+            );
         });
     }
 
@@ -31,6 +36,6 @@ public class CampScene : BaseScene
 
     public override void Clear()
     {
-        
+
     }
 }
