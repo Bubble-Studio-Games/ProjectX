@@ -2,7 +2,13 @@
     "name": "PlayerInputActions",
     "maps": [
         {
-            "name": "GamePlay",
+            "name": "Lobby",
+            "id": "412bb02c-ce20-4c7c-8c99-1c2627f3c94f",
+            "actions": [],
+            "bindings": []
+        },
+        {
+            "name": "Game",
             "id": "08c1bbc6-969e-4b32-b6a9-b734b26cf2eb",
             "actions": [
                 {

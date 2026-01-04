@@ -88,7 +88,13 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     ""name"": ""PlayerInputActions"",
     ""maps"": [
         {
-            ""name"": ""GamePlay"",
+            ""name"": ""Lobby"",
+            ""id"": ""412bb02c-ce20-4c7c-8c99-1c2627f3c94f"",
+            ""actions"": [],
+            ""bindings"": []
+        },
+        {
+            ""name"": ""Game"",
             ""id"": ""08c1bbc6-969e-4b32-b6a9-b734b26cf2eb"",
             ""actions"": [
                 {
@@ -462,18 +468,20 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     ],
     ""controlSchemes"": []
 }");
-        // GamePlay
-        m_GamePlay = asset.FindActionMap("GamePlay", throwIfNotFound: true);
-        m_GamePlay_LeftClick = m_GamePlay.FindAction("LeftClick", throwIfNotFound: true);
-        m_GamePlay_RightClickHold = m_GamePlay.FindAction("RightClickHold", throwIfNotFound: true);
-        m_GamePlay_Shift = m_GamePlay.FindAction("Shift", throwIfNotFound: true);
-        m_GamePlay_ESC = m_GamePlay.FindAction("ESC", throwIfNotFound: true);
-        m_GamePlay_R = m_GamePlay.FindAction("R", throwIfNotFound: true);
-        m_GamePlay_CameraMovement = m_GamePlay.FindAction("CameraMovement", throwIfNotFound: true);
-        m_GamePlay_CameraRotate = m_GamePlay.FindAction("CameraRotate", throwIfNotFound: true);
-        m_GamePlay_CameraZoom = m_GamePlay.FindAction("CameraZoom", throwIfNotFound: true);
-        m_GamePlay_Inventory = m_GamePlay.FindAction("Inventory", throwIfNotFound: true);
-        m_GamePlay_Quest = m_GamePlay.FindAction("Quest", throwIfNotFound: true);
+        // Lobby
+        m_Lobby = asset.FindActionMap("Lobby", throwIfNotFound: true);
+        // Game
+        m_Game = asset.FindActionMap("Game", throwIfNotFound: true);
+        m_Game_LeftClick = m_Game.FindAction("LeftClick", throwIfNotFound: true);
+        m_Game_RightClickHold = m_Game.FindAction("RightClickHold", throwIfNotFound: true);
+        m_Game_Shift = m_Game.FindAction("Shift", throwIfNotFound: true);
+        m_Game_ESC = m_Game.FindAction("ESC", throwIfNotFound: true);
+        m_Game_R = m_Game.FindAction("R", throwIfNotFound: true);
+        m_Game_CameraMovement = m_Game.FindAction("CameraMovement", throwIfNotFound: true);
+        m_Game_CameraRotate = m_Game.FindAction("CameraRotate", throwIfNotFound: true);
+        m_Game_CameraZoom = m_Game.FindAction("CameraZoom", throwIfNotFound: true);
+        m_Game_Inventory = m_Game.FindAction("Inventory", throwIfNotFound: true);
+        m_Game_Quest = m_Game.FindAction("Quest", throwIfNotFound: true);
         // Dialogue
         m_Dialogue = asset.FindActionMap("Dialogue", throwIfNotFound: true);
         m_Dialogue_Submit = m_Dialogue.FindAction("Submit", throwIfNotFound: true);
@@ -485,7 +493,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
 
     ~@PlayerInputActions()
     {
-        UnityEngine.Debug.Assert(!m_GamePlay.enabled, "This will cause a leak and performance issues, PlayerInputActions.GamePlay.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_Lobby.enabled, "This will cause a leak and performance issues, PlayerInputActions.Lobby.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_Game.enabled, "This will cause a leak and performance issues, PlayerInputActions.Game.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_Dialogue.enabled, "This will cause a leak and performance issues, PlayerInputActions.Dialogue.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_Tutorial.enabled, "This will cause a leak and performance issues, PlayerInputActions.Tutorial.Disable() has not been called.");
     }
@@ -560,74 +569,24 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         return asset.FindBinding(bindingMask, out action);
     }
 
-    // GamePlay
-    private readonly InputActionMap m_GamePlay;
-    private List<IGamePlayActions> m_GamePlayActionsCallbackInterfaces = new List<IGamePlayActions>();
-    private readonly InputAction m_GamePlay_LeftClick;
-    private readonly InputAction m_GamePlay_RightClickHold;
-    private readonly InputAction m_GamePlay_Shift;
-    private readonly InputAction m_GamePlay_ESC;
-    private readonly InputAction m_GamePlay_R;
-    private readonly InputAction m_GamePlay_CameraMovement;
-    private readonly InputAction m_GamePlay_CameraRotate;
-    private readonly InputAction m_GamePlay_CameraZoom;
-    private readonly InputAction m_GamePlay_Inventory;
-    private readonly InputAction m_GamePlay_Quest;
+    // Lobby
+    private readonly InputActionMap m_Lobby;
+    private List<ILobbyActions> m_LobbyActionsCallbackInterfaces = new List<ILobbyActions>();
     /// <summary>
-    /// Provides access to input actions defined in input action map "GamePlay".
+    /// Provides access to input actions defined in input action map "Lobby".
     /// </summary>
-    public struct GamePlayActions
+    public struct LobbyActions
     {
         private @PlayerInputActions m_Wrapper;
 
         /// <summary>
         /// Construct a new instance of the input action map wrapper class.
         /// </summary>
-        public GamePlayActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
-        /// <summary>
-        /// Provides access to the underlying input action "GamePlay/LeftClick".
-        /// </summary>
-        public InputAction @LeftClick => m_Wrapper.m_GamePlay_LeftClick;
-        /// <summary>
-        /// Provides access to the underlying input action "GamePlay/RightClickHold".
-        /// </summary>
-        public InputAction @RightClickHold => m_Wrapper.m_GamePlay_RightClickHold;
-        /// <summary>
-        /// Provides access to the underlying input action "GamePlay/Shift".
-        /// </summary>
-        public InputAction @Shift => m_Wrapper.m_GamePlay_Shift;
-        /// <summary>
-        /// Provides access to the underlying input action "GamePlay/ESC".
-        /// </summary>
-        public InputAction @ESC => m_Wrapper.m_GamePlay_ESC;
-        /// <summary>
-        /// Provides access to the underlying input action "GamePlay/R".
-        /// </summary>
-        public InputAction @R => m_Wrapper.m_GamePlay_R;
-        /// <summary>
-        /// Provides access to the underlying input action "GamePlay/CameraMovement".
-        /// </summary>
-        public InputAction @CameraMovement => m_Wrapper.m_GamePlay_CameraMovement;
-        /// <summary>
-        /// Provides access to the underlying input action "GamePlay/CameraRotate".
-        /// </summary>
-        public InputAction @CameraRotate => m_Wrapper.m_GamePlay_CameraRotate;
-        /// <summary>
-        /// Provides access to the underlying input action "GamePlay/CameraZoom".
-        /// </summary>
-        public InputAction @CameraZoom => m_Wrapper.m_GamePlay_CameraZoom;
-        /// <summary>
-        /// Provides access to the underlying input action "GamePlay/Inventory".
-        /// </summary>
-        public InputAction @Inventory => m_Wrapper.m_GamePlay_Inventory;
-        /// <summary>
-        /// Provides access to the underlying input action "GamePlay/Quest".
-        /// </summary>
-        public InputAction @Quest => m_Wrapper.m_GamePlay_Quest;
+        public LobbyActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
-        public InputActionMap Get() { return m_Wrapper.m_GamePlay; }
+        public InputActionMap Get() { return m_Wrapper.m_Lobby; }
         /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
         public void Enable() { Get().Enable(); }
         /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
@@ -635,9 +594,9 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
         public bool enabled => Get().enabled;
         /// <summary>
-        /// Implicitly converts an <see ref="GamePlayActions" /> to an <see ref="InputActionMap" /> instance.
+        /// Implicitly converts an <see ref="LobbyActions" /> to an <see ref="InputActionMap" /> instance.
         /// </summary>
-        public static implicit operator InputActionMap(GamePlayActions set) { return set.Get(); }
+        public static implicit operator InputActionMap(LobbyActions set) { return set.Get(); }
         /// <summary>
         /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
         /// </summary>
@@ -645,11 +604,146 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <remarks>
         /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
         /// </remarks>
-        /// <seealso cref="GamePlayActions" />
-        public void AddCallbacks(IGamePlayActions instance)
+        /// <seealso cref="LobbyActions" />
+        public void AddCallbacks(ILobbyActions instance)
         {
-            if (instance == null || m_Wrapper.m_GamePlayActionsCallbackInterfaces.Contains(instance)) return;
-            m_Wrapper.m_GamePlayActionsCallbackInterfaces.Add(instance);
+            if (instance == null || m_Wrapper.m_LobbyActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_LobbyActionsCallbackInterfaces.Add(instance);
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="LobbyActions" />
+        private void UnregisterCallbacks(ILobbyActions instance)
+        {
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="LobbyActions.UnregisterCallbacks(ILobbyActions)" />.
+        /// </summary>
+        /// <seealso cref="LobbyActions.UnregisterCallbacks(ILobbyActions)" />
+        public void RemoveCallbacks(ILobbyActions instance)
+        {
+            if (m_Wrapper.m_LobbyActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="LobbyActions.AddCallbacks(ILobbyActions)" />
+        /// <seealso cref="LobbyActions.RemoveCallbacks(ILobbyActions)" />
+        /// <seealso cref="LobbyActions.UnregisterCallbacks(ILobbyActions)" />
+        public void SetCallbacks(ILobbyActions instance)
+        {
+            foreach (var item in m_Wrapper.m_LobbyActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_LobbyActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="LobbyActions" /> instance referencing this action map.
+    /// </summary>
+    public LobbyActions @Lobby => new LobbyActions(this);
+
+    // Game
+    private readonly InputActionMap m_Game;
+    private List<IGameActions> m_GameActionsCallbackInterfaces = new List<IGameActions>();
+    private readonly InputAction m_Game_LeftClick;
+    private readonly InputAction m_Game_RightClickHold;
+    private readonly InputAction m_Game_Shift;
+    private readonly InputAction m_Game_ESC;
+    private readonly InputAction m_Game_R;
+    private readonly InputAction m_Game_CameraMovement;
+    private readonly InputAction m_Game_CameraRotate;
+    private readonly InputAction m_Game_CameraZoom;
+    private readonly InputAction m_Game_Inventory;
+    private readonly InputAction m_Game_Quest;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "Game".
+    /// </summary>
+    public struct GameActions
+    {
+        private @PlayerInputActions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public GameActions(@PlayerInputActions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "Game/LeftClick".
+        /// </summary>
+        public InputAction @LeftClick => m_Wrapper.m_Game_LeftClick;
+        /// <summary>
+        /// Provides access to the underlying input action "Game/RightClickHold".
+        /// </summary>
+        public InputAction @RightClickHold => m_Wrapper.m_Game_RightClickHold;
+        /// <summary>
+        /// Provides access to the underlying input action "Game/Shift".
+        /// </summary>
+        public InputAction @Shift => m_Wrapper.m_Game_Shift;
+        /// <summary>
+        /// Provides access to the underlying input action "Game/ESC".
+        /// </summary>
+        public InputAction @ESC => m_Wrapper.m_Game_ESC;
+        /// <summary>
+        /// Provides access to the underlying input action "Game/R".
+        /// </summary>
+        public InputAction @R => m_Wrapper.m_Game_R;
+        /// <summary>
+        /// Provides access to the underlying input action "Game/CameraMovement".
+        /// </summary>
+        public InputAction @CameraMovement => m_Wrapper.m_Game_CameraMovement;
+        /// <summary>
+        /// Provides access to the underlying input action "Game/CameraRotate".
+        /// </summary>
+        public InputAction @CameraRotate => m_Wrapper.m_Game_CameraRotate;
+        /// <summary>
+        /// Provides access to the underlying input action "Game/CameraZoom".
+        /// </summary>
+        public InputAction @CameraZoom => m_Wrapper.m_Game_CameraZoom;
+        /// <summary>
+        /// Provides access to the underlying input action "Game/Inventory".
+        /// </summary>
+        public InputAction @Inventory => m_Wrapper.m_Game_Inventory;
+        /// <summary>
+        /// Provides access to the underlying input action "Game/Quest".
+        /// </summary>
+        public InputAction @Quest => m_Wrapper.m_Game_Quest;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_Game; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="GameActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(GameActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="GameActions" />
+        public void AddCallbacks(IGameActions instance)
+        {
+            if (instance == null || m_Wrapper.m_GameActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_GameActionsCallbackInterfaces.Add(instance);
             @LeftClick.started += instance.OnLeftClick;
             @LeftClick.performed += instance.OnLeftClick;
             @LeftClick.canceled += instance.OnLeftClick;
@@ -688,8 +782,8 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <remarks>
         /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
         /// </remarks>
-        /// <seealso cref="GamePlayActions" />
-        private void UnregisterCallbacks(IGamePlayActions instance)
+        /// <seealso cref="GameActions" />
+        private void UnregisterCallbacks(IGameActions instance)
         {
             @LeftClick.started -= instance.OnLeftClick;
             @LeftClick.performed -= instance.OnLeftClick;
@@ -724,12 +818,12 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         }
 
         /// <summary>
-        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="GamePlayActions.UnregisterCallbacks(IGamePlayActions)" />.
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="GameActions.UnregisterCallbacks(IGameActions)" />.
         /// </summary>
-        /// <seealso cref="GamePlayActions.UnregisterCallbacks(IGamePlayActions)" />
-        public void RemoveCallbacks(IGamePlayActions instance)
+        /// <seealso cref="GameActions.UnregisterCallbacks(IGameActions)" />
+        public void RemoveCallbacks(IGameActions instance)
         {
-            if (m_Wrapper.m_GamePlayActionsCallbackInterfaces.Remove(instance))
+            if (m_Wrapper.m_GameActionsCallbackInterfaces.Remove(instance))
                 UnregisterCallbacks(instance);
         }
 
@@ -739,21 +833,21 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
         /// <remarks>
         /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
         /// </remarks>
-        /// <seealso cref="GamePlayActions.AddCallbacks(IGamePlayActions)" />
-        /// <seealso cref="GamePlayActions.RemoveCallbacks(IGamePlayActions)" />
-        /// <seealso cref="GamePlayActions.UnregisterCallbacks(IGamePlayActions)" />
-        public void SetCallbacks(IGamePlayActions instance)
+        /// <seealso cref="GameActions.AddCallbacks(IGameActions)" />
+        /// <seealso cref="GameActions.RemoveCallbacks(IGameActions)" />
+        /// <seealso cref="GameActions.UnregisterCallbacks(IGameActions)" />
+        public void SetCallbacks(IGameActions instance)
         {
-            foreach (var item in m_Wrapper.m_GamePlayActionsCallbackInterfaces)
+            foreach (var item in m_Wrapper.m_GameActionsCallbackInterfaces)
                 UnregisterCallbacks(item);
-            m_Wrapper.m_GamePlayActionsCallbackInterfaces.Clear();
+            m_Wrapper.m_GameActionsCallbackInterfaces.Clear();
             AddCallbacks(instance);
         }
     }
     /// <summary>
-    /// Provides a new <see cref="GamePlayActions" /> instance referencing this action map.
+    /// Provides a new <see cref="GameActions" /> instance referencing this action map.
     /// </summary>
-    public GamePlayActions @GamePlay => new GamePlayActions(this);
+    public GameActions @Game => new GameActions(this);
 
     // Dialogue
     private readonly InputActionMap m_Dialogue;
@@ -958,11 +1052,19 @@ public partial class @PlayerInputActions: IInputActionCollection2, IDisposable
     /// </summary>
     public TutorialActions @Tutorial => new TutorialActions(this);
     /// <summary>
-    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "GamePlay" which allows adding and removing callbacks.
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Lobby" which allows adding and removing callbacks.
     /// </summary>
-    /// <seealso cref="GamePlayActions.AddCallbacks(IGamePlayActions)" />
-    /// <seealso cref="GamePlayActions.RemoveCallbacks(IGamePlayActions)" />
-    public interface IGamePlayActions
+    /// <seealso cref="LobbyActions.AddCallbacks(ILobbyActions)" />
+    /// <seealso cref="LobbyActions.RemoveCallbacks(ILobbyActions)" />
+    public interface ILobbyActions
+    {
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Game" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="GameActions.AddCallbacks(IGameActions)" />
+    /// <seealso cref="GameActions.RemoveCallbacks(IGameActions)" />
+    public interface IGameActions
     {
         /// <summary>
         /// Method invoked when associated input action "LeftClick" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.

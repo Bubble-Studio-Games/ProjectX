@@ -124,9 +124,10 @@ public class ShopUI : UI_Popup, IAsyncCloseable
         base.ClosePopupUI();
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         _shopBoxList.Clear();
         _selectedBox = null;
+        base.OnDestroy();
     }
 }

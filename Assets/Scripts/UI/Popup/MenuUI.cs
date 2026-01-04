@@ -210,7 +210,7 @@ public class MenuUI : UI_Popup
         await Managers.Save.SaveAllData();
         Managers.Game.ResumeGame();
         Managers.UI.ClosePopupUI<MenuUI>();
-        await Managers.Scene.LoadSceneAsync(Managers.Scene.CurrentScene.SceneType, Define.Scene.Camp,
+        await Managers.Scene.LoadSceneAsync(Define.Scene.Camp,
          () => Debug.Log($"씬 전환 완료 {Define.Scene.Camp}"));
     }
 

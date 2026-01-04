@@ -7,7 +7,7 @@ using static Define;
 
 public abstract class BaseScene : MonoBehaviour
 {
-    [field: SerializeField]public Define.Scene SceneType { get; protected set; } = Define.Scene.Unknown;
+    public Define.Scene SceneType { get; protected set; } = Define.Scene.Unknown;
 
     [Tooltip("세이브 파일을 로드할 것인가?")]
     public bool useLoadSaveFile = true;
@@ -24,6 +24,9 @@ public abstract class BaseScene : MonoBehaviour
 
 	protected virtual void Init()
     {
+        if (InputManager.Instance != null)
+            InputManager.Instance.PushActionMapGroup(GetRequiredActionMap());
+
         GameObject obj = FindAnyObjectByType<EventSystem>().gameObject;
         if (obj == null && GlobalSettings.Instance?.EventSystem == null)
             Managers.Resource.Instantiate("UI/EventSystem").name = "@EventSystem";
@@ -40,5 +43,14 @@ public abstract class BaseScene : MonoBehaviour
         Managers.Game.ResumeGame();
     }
 
-    public abstract void Clear();
+    public virtual void Clear()
+    {
+        // 씬 종료 시 액션맵 복원
+        if (InputManager.Instance != null)
+        {
+            InputManager.Instance.PopActionMapGroup();
+        }
+    }
+
+	protected virtual InputActionMap GetRequiredActionMap() => InputActionMap.Lobby;
 }

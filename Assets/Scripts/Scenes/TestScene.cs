@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Define;
 
 public class TestScene : BaseScene
 {
@@ -13,6 +14,8 @@ public class TestScene : BaseScene
 
     public override void Clear()
     {
-
+        base.Clear();
     }
+
+    protected override InputActionMap GetRequiredActionMap() => InputActionMap.Lobby;
 }

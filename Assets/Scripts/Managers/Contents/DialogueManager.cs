@@ -8,13 +8,13 @@ using static Define;
 
 public class DialogueManager
 {
-    private const string ACTION_MAP_DIALOGUE = "Dialogue";
     private const string LINE_TYPE_CHOICE = "Choice";
     private const string SPEAKER_TYPE_SYSTEM = "System";
 
     private Dictionary<string, List<Dialogue.Data>> _dialogueData;
     public bool IsDialogueContext { get; private set; } = false;
     public string CurDialogueId { get; private set; } = string.Empty;
+    private bool _isDialogueInputSubscribed = false;
 
     public event Action<List<Dialogue.Data>> OnDialogueStarted;
     public event Action<List<Dialogue.Data>> OnDialogueEnded;
@@ -60,7 +60,15 @@ public class DialogueManager
     private void SubscribeInput(InputManager inputManager)
     {
         if (inputManager == null)
+        {
             return;
+        }
+
+        if (_isDialogueInputSubscribed == true)
+        {
+            return;
+        }
+        _isDialogueInputSubscribed = true;
 
         var dialogue = inputManager.InputActions.Dialogue;
         dialogue.Submit.performed += OnDialogueSubmit;
@@ -73,7 +81,15 @@ public class DialogueManager
     private void UnsubscribeInput(InputManager inputManager)
     {
         if (inputManager == null)
+        {
             return;
+        }
+
+        if (_isDialogueInputSubscribed == false)
+        {
+            return;
+        }
+        _isDialogueInputSubscribed = false;
 
         var dialogue = inputManager.InputActions.Dialogue;
         dialogue.Submit.performed -= OnDialogueSubmit;
@@ -151,7 +167,7 @@ public class DialogueManager
             Debug.LogError("InputManager가 존재하지 않습니다.");
             return;
         }
-        input.PushActionMapGroup(ACTION_MAP_DIALOGUE);
+        input.PushActionMapGroup(Define.InputActionMap.Dialogue);
         SubscribeInput(input);
 
         _dialogueUI = Managers.UI.ShowPopupUI<DialogueUI>();

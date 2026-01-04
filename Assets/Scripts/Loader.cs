@@ -6,6 +6,6 @@ public class Loader : MonoBehaviour
 {
     private void Awake()
     {
-        Managers.Scene.LoadSceneAsync(nextScene: Define.Scene.LMStartScene);
+        Managers.Scene.AddSceneAdditive(nextScene: Define.Scene.LMStartScene);
     }
 }

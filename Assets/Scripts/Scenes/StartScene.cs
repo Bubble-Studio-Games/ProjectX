@@ -116,4 +116,6 @@ public class StartScene : BaseScene
     {
 
     }
+
+    protected override InputActionMap GetRequiredActionMap() => InputActionMap.Lobby;
 }

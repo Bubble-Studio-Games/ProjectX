@@ -100,6 +100,7 @@ public partial class DataManager
         _entryData?.Clear();
         _questData?.Clear();
         _shopData?.Clear();
+        _itemData?.Clear();
     }
 
 }

@@ -315,6 +315,14 @@ public partial class Define
         LMStartScene = -300,
     }
 
+    public enum InputActionMap
+    {
+        Lobby,
+        Game,
+        Dialogue,
+        Tutorial
+    }
+
     public enum Sound
     {
         Bgm = 0,

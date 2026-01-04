@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using static Define;
 
 public class CampScene : BaseScene
 {
@@ -17,12 +18,10 @@ public class CampScene : BaseScene
         tempButton.onClick.AddListener(async () =>
         {
             await Managers.Save.SaveAllData();
-            _ = Managers.Scene.LoadSceneAsync
-            (
-                Define.Scene.Camp,
-                Define.Scene.LMGameScene,
-                () => Debug.Log($"씬 전환 완료 {Define.Scene.LMGameScene}")
-            );
+            _ = Managers.Scene.LoadSceneAsync(Define.Scene.LMGameScene, () =>
+            {
+                Debug.Log("캠프씬에서 던전씬으로 이동 완료");
+            });
         });
     }
 
@@ -36,6 +35,8 @@ public class CampScene : BaseScene
 
     public override void Clear()
     {
-
+        base.Clear();
     }
+
+    protected override InputActionMap GetRequiredActionMap() => InputActionMap.Lobby;
 }

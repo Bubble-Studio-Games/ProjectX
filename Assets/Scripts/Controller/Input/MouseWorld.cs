@@ -115,6 +115,11 @@ public class MouseWorld : MonoBehaviour
     public void MouseUp()
     {
         m_isDragwing = false;
+        if (SelectionBox == null)
+        {
+            Debug.LogWarning("SelectionBox is null!");
+            return;
+        }
         SelectionBox.gameObject.SetActive(false);
 
 
@@ -222,7 +227,8 @@ public class MouseWorld : MonoBehaviour
                 return;
             height += target.m_HitCollider.bounds.max.y;
             // 해당 위치의 오브젝트의 선택 색상을 빨갛게 변화시키고,
-            // 화살표를 오브젝트의 콜라이더 위로 옮겨 버리기
+            // 화살표를 오브젝트의
+            //  콜라이더 위로 옮겨 버리기
             // 너무 높은 것도 그냥 올려버림.
         }
 

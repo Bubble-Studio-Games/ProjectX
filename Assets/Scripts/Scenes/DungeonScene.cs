@@ -13,6 +13,7 @@ public class DungeonScene : BaseScene
     private NPCSpawner _npcSpawner;
     private MenuUI _menuUI;
 
+
     protected override void Init()
     {
         base.Init();
@@ -25,10 +26,14 @@ public class DungeonScene : BaseScene
         _npcSpawner.SetUp();
 
         _menuUI = FindAnyObjectByType<MenuUI>();
-        _menuUI.SetUp(MenuUI.MenuContext.InGamePaused);
+        if (_menuUI != null)
+            _menuUI.SetUp(MenuUI.MenuContext.InGamePaused);
+
+        if (m_InitObject == null)
+            return;
 
         // 기존 플레이 했던 데이터가 있는 경우
-        if (data != null && data.dungeondata.gameEntityDatas.Count > 0 && useLoadSaveFile)
+        if (data != null && data.dungeondata.gameEntityDatas.Count > 0 && useLoadSaveFile )
         {
             m_InitObject.SetActive(false);
 
@@ -84,13 +89,13 @@ public class DungeonScene : BaseScene
                     DungeonCore.instance.transform.position, DungeonCore.instance.transform.rotation);
             }
         }
-
-        // Input Binding (현재 빈 핸들러 - 필요 시 구현)
     }
 
     public override void Clear()
     {
+        base.Clear();
         _npcSpawner.Clear();
-        
     }
+
+    protected override InputActionMap GetRequiredActionMap() => InputActionMap.Game;
 }

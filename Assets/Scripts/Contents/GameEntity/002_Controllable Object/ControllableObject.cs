@@ -358,7 +358,8 @@ public class ControllableObject :
         }
 
         m_OnChangeGradeEventArgs = cData.gradeArgs;
-        m_EObjectGrade = m_OnChangeGradeEventArgs.objGrade;
+        if (m_OnChangeGradeEventArgs != null)
+            m_EObjectGrade = m_OnChangeGradeEventArgs.objGrade;
 
         SetTarget(Managers.Object.FindByGuidObject<GameEntity>(cData.targetGuid));
     }

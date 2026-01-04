@@ -36,6 +36,12 @@ public class SceneManagerEx
         return name;
     }
 
+    public string GetCurrentSceneName()
+    {
+        string curScene = SceneManager.GetActiveScene().name;
+        return curScene;
+    }
+
     public void Clear()
     {
         CurrentScene.Clear();
@@ -47,8 +53,10 @@ public class SceneManagerEx
     #region  어드레서블
     private Dictionary<string, SceneInstance> _sceneInstances = new();
 
-    public async Task LoadSceneAsync(Define.Scene curScene, Define.Scene nextScene, Action onComplete = null)
+    public async Task LoadSceneAsync(Define.Scene nextScene, Action onComplete = null)
     {
+        string currentSceneName = GetCurrentSceneName();
+
         // 로딩씬 로드
         var loadingTCS = new TaskCompletionSource<SceneInstance>();
         Addressables.LoadSceneAsync(Define.Scene.Loading.ToString(), LoadSceneMode.Additive, activateOnLoad: true).Completed += (handle) =>
@@ -60,10 +68,10 @@ public class SceneManagerEx
 
         // 현재씬 언로드
         var unLoadTCS = new TaskCompletionSource<bool>();
-        if (TryGetSceneInstance(GetSceneName(curScene), out var instance))
+        if (TryGetSceneInstance(currentSceneName, out var instance))
         {
             Addressables.UnloadSceneAsync(instance);
-            _sceneInstances.Remove(GetSceneName(curScene));
+            _sceneInstances.Remove(currentSceneName);
             unLoadTCS.SetResult(true);
         }
         await Task.WhenAll(unLoadTCS.Task, Task.Delay(3000));
@@ -83,7 +91,7 @@ public class SceneManagerEx
         Addressables.UnloadSceneAsync(loadingTCS.Task.Result);
     }
 
-    public void LoadSceneAsync(Define.Scene nextScene, Action onComplete = null)
+    public void AddSceneAdditive(Define.Scene nextScene, Action onComplete = null)
     {
         Addressables.LoadSceneAsync(GetSceneName(nextScene), LoadSceneMode.Additive).Completed += (handle) =>
         {

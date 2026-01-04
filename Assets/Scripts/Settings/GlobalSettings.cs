@@ -36,6 +36,11 @@ public class GlobalSettings : MonoBehaviour
 	
 	private void Init()
 	{
+		if (Instance != null && Instance != this)
+		{
+			Destroy(this.gameObject);
+			return;
+		}
 		Instance = this;
 		DontDestroyOnLoad(this.gameObject);
 		_eventSystem = this.GetComponentInChildren<EventSystem>();

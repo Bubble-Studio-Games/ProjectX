@@ -13,7 +13,26 @@ public class InputManager : MonoBehaviour
     public bool mouse_R_Hold;
 
     private Stack<string> _actionMapStack = new();
+    private bool _isGameInputSubscribed = false;
     public string CurrentActionMapGroup => _actionMapStack.Count > 0 ? _actionMapStack.Peek() : "None";
+    public Define.InputActionMap? CurrentActionMapType
+    {
+        get
+        {
+            if (_actionMapStack.Count == 0)
+                return null;
+
+            var currentName = _actionMapStack.Peek();
+            return currentName switch
+            {
+                "Lobby" => Define.InputActionMap.Lobby,
+                "Game" => Define.InputActionMap.Game,
+                "Dialogue" => Define.InputActionMap.Dialogue,
+                "Tutorial" => Define.InputActionMap.Tutorial,
+                _ => null
+            };
+        }
+    }
 
     /// <summary>
     /// ActionMap 변경 시 발생하는 이벤트 - 새로운 ActionMap 이름 전달
@@ -33,32 +52,13 @@ public class InputManager : MonoBehaviour
 
         InputActions = new PlayerInputActions();
 
-        // GamePlay ActionMap 이벤트 구독
-        InputActions.GamePlay.ESC.performed += Handle_ESC_Input;
-        InputActions.GamePlay.R.performed += Handle_R_Input;
-        InputActions.GamePlay.RightClickHold.performed += Handle_Mouse_Right_Input;
-        InputActions.GamePlay.RightClickHold.canceled += Handle_Mouse_Right_Canceled;
-        InputActions.GamePlay.LeftClick.performed += Handle_Mouse_Left_Input;
-        InputActions.GamePlay.LeftClick.canceled += Handle_Mouse_Left_Canceled;
-
-        // 기본 GamePlay 상태로 시작
-        PushActionMapGroup("GamePlay");
+        // 기본 액션맵 제거 - 각 씬에서 필요한 액션맵을 직접 활성화
     }
 
     private void OnDestroy()
     {
         if (InputActions == null)
-        {
             return;
-        }
-
-        // 이벤트 구독 해제
-        InputActions.GamePlay.ESC.performed -= Handle_ESC_Input;
-        InputActions.GamePlay.R.performed -= Handle_R_Input;
-        InputActions.GamePlay.RightClickHold.performed -= Handle_Mouse_Right_Input;
-        InputActions.GamePlay.RightClickHold.canceled -= Handle_Mouse_Right_Canceled;
-        InputActions.GamePlay.LeftClick.performed -= Handle_Mouse_Left_Input;
-        InputActions.GamePlay.LeftClick.canceled -= Handle_Mouse_Left_Canceled;
 
         InputActions.Dispose();
     }
@@ -66,10 +66,42 @@ public class InputManager : MonoBehaviour
     #region ActionMap Stack 시스템
 
     /// <summary>
+    /// 열거형 → 문자열 변환
+    /// </summary>
+    private string ActionMapTypeToString(Define.InputActionMap mapType)
+    {
+        var ret = mapType switch
+        {
+            Define.InputActionMap.Lobby => "Lobby",
+            Define.InputActionMap.Game => "Game",
+            Define.InputActionMap.Dialogue => "Dialogue",
+            Define.InputActionMap.Tutorial => "Tutorial",
+            _ => throw new ArgumentException($"지원하지 않는 ActionMapType: {mapType}")
+        };
+        return ret;
+    }
+
+    /// <summary>
+    /// ActionMap 그룹 추가 - 열거형 기반 타입 안전 버전
+    /// </summary>
+    public void PushActionMapGroup(Define.InputActionMap mapType)
+    {
+        var ret = ActionMapTypeToString(mapType);
+        PushActionMapGroup(ret);
+    }
+
+    /// <summary>
     /// ActionMap 그룹 추가 - 이전 상태는 스택에 저장
     /// </summary>
     public void PushActionMapGroup(string groupName)
     {
+        // 이미 최상단에 같은 그룹이 있으면 무시
+        if (_actionMapStack.Count > 0 && _actionMapStack.Peek() == groupName)
+        {
+            Debug.LogWarning($"[입력] {groupName}이 이미 활성화되어 있습니다.");
+            return;
+        }
+
         // 현재 활성 그룹 비활성화
         if (_actionMapStack.Count > 0)
         {
@@ -122,8 +154,13 @@ public class InputManager : MonoBehaviour
     {
         switch (groupName)
         {
-            case "GamePlay":
-                InputActions.GamePlay.Enable();
+            case "Lobby":
+                InputActions.Lobby.Enable();
+                break;
+
+            case "Game":
+                SubscribeGameInput();
+                InputActions.Game.Enable();
                 break;
 
             case "Dialogue":
@@ -140,8 +177,13 @@ public class InputManager : MonoBehaviour
     {
         switch (groupName)
         {
-            case "GamePlay":
-                InputActions.GamePlay.Disable();
+            case "Lobby":
+                InputActions.Lobby.Disable();
+                break;
+
+            case "Game":
+                UnsubscribeGameInput();
+                InputActions.Game.Disable();
                 break;
 
             case "Dialogue":
@@ -154,13 +196,49 @@ public class InputManager : MonoBehaviour
         }
     }
 
+    #region Game ActionMap 구독 관리
+
+    private void SubscribeGameInput()
+    {
+        if (_isGameInputSubscribed == true)
+        {
+            return;
+        }
+        _isGameInputSubscribed = true;
+
+        InputActions.Game.ESC.performed += Handle_ESC_Input;
+        InputActions.Game.R.performed += Handle_R_Input;
+        InputActions.Game.RightClickHold.performed += Handle_Mouse_Right_Input;
+        InputActions.Game.RightClickHold.canceled += Handle_Mouse_Right_Canceled;
+        InputActions.Game.LeftClick.performed += Handle_Mouse_Left_Input;
+        InputActions.Game.LeftClick.canceled += Handle_Mouse_Left_Canceled;
+    }
+
+    private void UnsubscribeGameInput()
+    {
+        if (_isGameInputSubscribed == false)
+        {
+            return;
+        }
+        _isGameInputSubscribed = false;
+
+        InputActions.Game.ESC.performed -= Handle_ESC_Input;
+        InputActions.Game.R.performed -= Handle_R_Input;
+        InputActions.Game.RightClickHold.performed -= Handle_Mouse_Right_Input;
+        InputActions.Game.RightClickHold.canceled -= Handle_Mouse_Right_Canceled;
+        InputActions.Game.LeftClick.performed -= Handle_Mouse_Left_Input;
+        InputActions.Game.LeftClick.canceled -= Handle_Mouse_Left_Canceled;
+    }
+
+    #endregion
+
     #endregion
 
     #region Camera
 
     public Vector2 GetCameraMoveVector()
     {
-        var ret = InputActions.GamePlay.CameraMovement.ReadValue<Vector2>();
+        var ret = InputActions.Game.CameraMovement.ReadValue<Vector2>();
         return ret;
     }
 
