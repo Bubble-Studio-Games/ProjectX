@@ -48,8 +48,8 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
     private bool m_SpawnFromWeapon = true;
 
     [Header("최적화용도")]
-    List<(Item obj, Transform spawnTransform)> keepList = new();
-    List<(Item obj, Transform spawnTransform)> removeList = new();
+    List<(ItemObject obj, Transform spawnTransform)> keepList = new();
+    List<(ItemObject obj, Transform spawnTransform)> removeList = new();
 
 
     public override (E_AttackCondition condition, HashSet<GridPosition> CanAttackablePos) 
@@ -107,10 +107,10 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
                 return;
             }
 
-            // 1️ 기존 오브젝트 정보 가져오기 (삭제 X)
+            // 기존 오브젝트 정보 가져오기 (삭제 X)
             var existingList = cobj.m_ControllableObjectCombatManager.m_AttackReadyItemObject;
 
-            // 2️ 비교용 리스트 초기화
+            // 비교용 리스트 초기화
             keepList.Clear();
             removeList.Clear();
             m_SpawnProjectiles.Clear();
@@ -130,7 +130,7 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
                     removeList.Add((obj, spawnT));
             }
 
-            // 3️ 제거 대상 오브젝트만 삭제 (spawnTransform은 보존)
+            // 제거 대상 오브젝트만 삭제 (spawnTransform은 보존)
             List<Transform> reusableTransforms = removeList
                 .Where(x => x.spawnTransform != null)
                 .Select(x => x.spawnTransform)
@@ -146,12 +146,12 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
             int remainingCount = keepList.Count;
             int desiredCount = m_iSpawnProjectileCount;
 
-            // 4️ 필요한 만큼 새로 생성
+            // 필요한 만큼 새로 생성
             List<Transform> initSpawnTransforms 
                 = cobj.m_ControllableObjectCombatManager.GetProjectileSpawnTransforms(m_SpawnFromWeapon, desiredCount);
 
 
-            // 6️ 새로 생성해야 할 개수만큼 생성
+            // 새로 생성해야 할 개수만큼 생성
             //     → 제거된 위치(reusableTransforms)를 우선 재사용
             int reuseIndex = 0;
 
@@ -179,7 +179,7 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
                 m_SpawnProjectiles.Add(newObj);
             }
 
-            // 7️ Projectile 생성 및 타겟 할당
+            // Projectile 생성 및 타겟 할당
             m_SpawnProjectiles.AddRange(
                 cobj.m_ControllableObjectCombatManager.m_AttackReadyItemObject
                 .Where(x => x.obj is Projectile)
@@ -193,7 +193,7 @@ public class AttackPattern_Range : AttackPattern<AttackPatternInfoClip>
                 for (int i = 0; i < m_SpawnProjectiles.Count; i++)
                     m_SpawnProjectiles[i].AttackReady(attacker, this, m_tempTargets[i]);
 
-                // 8️⃣ 즉시 발사
+                // 즉시 발사
                 if (m_IsImmediateLaunch)
                     CoroutineRunner.Instance.StartCoroutine(LaunchProjectileCoroutine(attacker));
             }

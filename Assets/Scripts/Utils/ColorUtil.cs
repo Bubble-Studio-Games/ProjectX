@@ -10,6 +10,8 @@ public static class ColorUtil
 
     public static Color GetHeal() => GetColor("#66FF66");
 
+    public static Color GetSelectedBox() => GetColor("#FFE79E");
+
     private static Color GetColor(string htmlColor)
     {
         // # 없으면 추가

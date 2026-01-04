@@ -39,7 +39,7 @@ public abstract class UI_Base : MonoBehaviour
 				objects[i] = Util.FindChild<T>(gameObject, names[i], true);
 
 			if (objects[i] == null)
-				Debug.Log($"Failed to bind({names[i]})");
+				Debug.LogWarning($"Failed to bind({names[i]})");
 		}
 	}
 
@@ -49,6 +49,7 @@ public abstract class UI_Base : MonoBehaviour
 	protected void BindText(Type type) { Bind<TextMeshProUGUI>(type); }
 	protected void BindButton(Type type) { Bind<Button>(type); }
 	protected void BindSlider(Type type) { Bind<Slider>(type); }
+	protected void BindToggle(Type type) { Bind<Toggle>(type); }
 
 	protected T Get<T>(int idx) where T : UnityEngine.Object
 	{
@@ -64,6 +65,7 @@ public abstract class UI_Base : MonoBehaviour
 	protected Button GetButton(int idx) { return Get<Button>(idx); }
 	protected Image GetImage(int idx) { return Get<Image>(idx); }
 	protected Slider GetSlider(int idx) { return Get<Slider>(idx); }
+	protected Toggle GetToggle(int idx) { return Get<Toggle>(idx); }
 
 	public static void BindEvent(GameObject go, Action action, Define.UIEvent type = Define.UIEvent.Click)
 	{
@@ -87,8 +89,38 @@ public abstract class UI_Base : MonoBehaviour
 				evt.OnPointerUpHandler -= action;
 				evt.OnPointerUpHandler += action;
 				break;
+			case Define.UIEvent.Hover:
+				evt.OnPointerEnterHandler -= action;
+				evt.OnPointerEnterHandler += action;
+				break;
+			case Define.UIEvent.HoverExit:
+				evt.OnPointerExitHandler -= action;
+				evt.OnPointerExitHandler += action;
+				break;
 		}
 	}
+
+	public static void BindDragEvent(GameObject go, Action<PointerEventData> action, Define.UIEvent type)
+	{
+		UI_EventHandler evt = Util.GetOrAddComponent<UI_EventHandler>(go);
+
+		switch (type)
+		{
+			case Define.UIEvent.BeginDrag:
+				evt.OnBeginDragHandler -= action;
+				evt.OnBeginDragHandler += action;
+				break;
+			case Define.UIEvent.Drag:
+				evt.OnDragHandler -= action;
+				evt.OnDragHandler += action;
+				break;
+			case Define.UIEvent.EndDrag:
+				evt.OnEndDragHandler -= action;
+				evt.OnEndDragHandler += action;
+				break;
+		}
+	}
+
 	public static void BindEventRemove(GameObject go, Define.UIEvent type = Define.UIEvent.Click)
 	{
 		UI_EventHandler evt = Util.GetOrAddComponent<UI_EventHandler>(go);
@@ -126,5 +158,11 @@ public abstract class UI_Base : MonoBehaviour
     {
         foreach (Button btn in btns)
             btn.onClick.AddListener(() => action());
+    }
+
+    protected virtual void OnDestroy()
+    {
+        _objects?.Clear();
+        _objects = null;
     }
 }

@@ -34,12 +34,6 @@ public class StraightLauncher : IProjectileLauncher
         return baseCenter + Vector3.up * (height * (1f / 6f));
     }
 
-    // StraightLauncher.cs
-
-    // ... (GetTargetPosition 메서드 아래)
-
-    // StraightLauncher.cs LaunchStraight 코루틴 (보완된 최종 버전)
-
     private IEnumerator LaunchStraight(Projectile projectile, Vector3 targetPos)
     {
         Vector3 initialDirection = (targetPos - projectile.m_Rigidbody.position).normalized;

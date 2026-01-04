@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e73c5523d7733e48b8f96dae88a24a6, type: 3}
   m_Name: 1 Class Casting
   m_EditorClassIdentifier: 
-  ID: 401
+  ID: 15
   AttackName: 1 Class Casting
   m_EAttackType: 2
   m_IsEnableSelfAttack: 0
@@ -23,21 +23,20 @@ MonoBehaviour:
     z: 2
     floor: 0
   m_ArcAngle: 90
-  m_IsAttackStartPositionAtAttacker: 1
-  m_StartOffset:
-    x: 0
-    z: 0
-    floor: 0
+  m_IsAttackStartPositionAtAttacker: 0
   m_GridCheckTypes: 
-  m_ApplyTargetTeampId: 1
+  m_ApplyTargetE_Tendency: 0
   m_iNextAttackPattern:
   - {fileID: 11400000, guid: 181cab53489cf9244a388f1efa1f61f1, type: 2}
   m_iConditionPrevAttackPattern: {fileID: 0}
   m_iCoolTime:
     _value: 2
+  m_fLastCooltime:
+    _value: -2
   m_iManaCost:
-    _value: 0
+    _value: 10
   m_IsTwoHandAttack: 0
+  m_IsIncludeCasterInAttack: 0
   m_iPhysicalAttackDamage:
     _value: 0
   m_iMagicAttackDamage:
@@ -60,11 +59,16 @@ MonoBehaviour:
     _value: 1
   m_iKnockbackChance:
     _value: 0
+  m_fLifeStealPercent:
+    _value: 0
   AttackAudioClip: {fileID: 8300000, guid: af7f10e17f9bb494f9002faf1aa9fadd, type: 3}
+  AttackMissClipList: []
   m_Clips:
-  - AttackAnimationClip: {fileID: -203655887218126122, guid: ec5e113490fdf3842abdc604d7fccbe9, type: 3}
-    ReadyFailAnimationClip: {fileID: 7400000, guid: ffdc7cb9c8743574da41154b71224d93, type: 2}
+  - AttackAnimationClip: {fileID: 3060610079319413300, guid: ec5e113490fdf3842abdc604d7fccbe9, type: 3}
+    ReadyFailAnimationClip: {fileID: 7400000, guid: c86ed5ec3363daa4e83e414c84521a34, type: 2}
   ReadyFailAudioClip: {fileID: 8300000, guid: 06e798fa5427eeb40ba5748d7cd41052, type: 3}
   m_ReadyGameObjectPrefab: {fileID: 232523246547959510, guid: 24af3d0d8349c4942a314537f9a823b9, type: 3}
   m_FailPrefab: {fileID: 425180874580948975, guid: f32233d41f243a147acfaf3aef728e2a, type: 3}
+  m_iSpawnReadyCount: 1
+  m_SpawnFromWeapon: 1
   m_AttackReadyTime: 2

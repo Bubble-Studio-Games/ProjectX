@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43755161b97bd1948b6b5a64e4f4b73b, type: 3}
   m_Name: Zombi Attack
   m_EditorClassIdentifier: 
-  ID: 1001
+  ID: 10
   AttackName: 
   m_EAttackType: 1
   m_IsEnableSelfAttack: 0
@@ -23,22 +23,19 @@ MonoBehaviour:
     z: 1
     floor: 0
   m_ArcAngle: 90
-  m_IsAttackStartPositionAtAttacker: 1
-  m_StartOffset:
-    x: 0
-    z: 0
-    floor: 0
+  m_IsAttackStartPositionAtAttacker: 0
   m_GridCheckTypes: 02000000
   m_ApplyTargetE_Tendency: 2
   m_iNextAttackPattern: []
   m_iConditionPrevAttackPattern: {fileID: 0}
   m_iCoolTime:
     _value: 2
-  lastCooltime:
+  m_fLastCooltime:
     _value: -2
   m_iManaCost:
     _value: 0
   m_IsTwoHandAttack: 0
+  m_IsIncludeCasterInAttack: 0
   m_iPhysicalAttackDamage:
     _value: 10
   m_iMagicAttackDamage:
@@ -64,7 +61,8 @@ MonoBehaviour:
   m_fLifeStealPercent:
     _value: 0
   AttackAudioClip: {fileID: 8300000, guid: ac6034ade498bb94b87620cdf6eac48b, type: 3}
+  AttackMissClipList: []
   m_Clips:
-  - AttackAnimationClip: {fileID: -203655887218126122, guid: 3457086d9666beb498e097d5b7defbf5, type: 3}
-  - AttackAnimationClip: {fileID: -203655887218126122, guid: 8295271b466dd894a876be60a0eb87c4, type: 3}
-  - AttackAnimationClip: {fileID: -203655887218126122, guid: 026760cffaf73a943a7896fe352d6f63, type: 3}
+  - AttackAnimationClip: {fileID: 3060610079319413300, guid: 3457086d9666beb498e097d5b7defbf5, type: 3}
+  - AttackAnimationClip: {fileID: 3060610079319413300, guid: 8295271b466dd894a876be60a0eb87c4, type: 3}
+  - AttackAnimationClip: {fileID: 3060610079319413300, guid: 026760cffaf73a943a7896fe352d6f63, type: 3}

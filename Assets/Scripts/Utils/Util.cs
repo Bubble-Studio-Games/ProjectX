@@ -225,8 +225,13 @@ public static partial class Util
                 // 🔹 배열 / 리스트 내부 재귀 탐색
                 if (value is IEnumerable enumerable && !(value is string))
                 {
+                    // Transform 은 자식 Transform을 열거하므로 제외
+                    if (value is Transform)
+                        continue;
+
                     foreach (var element in enumerable)
                         ExploreObject(element, targetType, results, visited);
+
                     continue;
                 }
 

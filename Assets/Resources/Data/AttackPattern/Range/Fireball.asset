@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78c37a08149180b49ab810b26c0645c6, type: 3}
   m_Name: Fireball
   m_EditorClassIdentifier: 
-  ID: 402
+  ID: 13
   AttackName: Fireball
   m_EAttackType: 2
   m_IsEnableSelfAttack: 0
@@ -23,22 +23,19 @@ MonoBehaviour:
     z: 2
     floor: 0
   m_ArcAngle: 90
-  m_IsAttackStartPositionAtAttacker: 1
-  m_StartOffset:
-    x: 0
-    z: 0
-    floor: 0
+  m_IsAttackStartPositionAtAttacker: 0
   m_GridCheckTypes: 02000000
   m_ApplyTargetE_Tendency: 2
   m_iNextAttackPattern: []
   m_iConditionPrevAttackPattern: {fileID: 11400000, guid: 6b3e633896ebf844e89cd94d991b5e3c, type: 2}
   m_iCoolTime:
     _value: 2
-  lastCooltime:
+  m_fLastCooltime:
     _value: -2
   m_iManaCost:
-    _value: 0
+    _value: 20
   m_IsTwoHandAttack: 0
+  m_IsIncludeCasterInAttack: 0
   m_iPhysicalAttackDamage:
     _value: 0
   m_iMagicAttackDamage:
@@ -64,9 +61,10 @@ MonoBehaviour:
   m_fLifeStealPercent:
     _value: 0
   AttackAudioClip: {fileID: 8300000, guid: 674258a055e994b72bbb15a28eb79838, type: 3}
+  AttackMissClipList: []
   m_Clips:
-  - AttackAnimationClip: {fileID: 7400000, guid: d7505ce6ee9da0c4b882edb53f1c7422, type: 2}
-  - AttackAnimationClip: {fileID: 7400000, guid: fa1beeb1f5226f34485b738a16684fb5, type: 2}
+  - AttackAnimationClip: {fileID: 3060610079319413300, guid: abf2d29f82292ab4babcab703e4b63aa, type: 3}
+  - AttackAnimationClip: {fileID: 3060610079319413300, guid: 0d7053a350f838e41838b2246836e306, type: 3}
   m_ProjectilePrefab: {fileID: 8731590995680581366, guid: 10d0ba2a8b5d01745b450df4406acb00, type: 3}
   _selectType: 1
   m_iSpawnProjectileCount: 1

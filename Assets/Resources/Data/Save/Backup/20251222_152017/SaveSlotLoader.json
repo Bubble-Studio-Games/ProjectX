@@ -1,0 +1,2985 @@
+{
+  "stats": [
+    {
+      "slotId": 0,
+      "dungeondata": {
+        "gameEntityDatas": [
+          {
+            "$type": "Data.GameEntityData, Assembly-CSharp",
+            "attributeSystemData": {
+              "stat": {
+                "ID": 5,
+                "Name": "Dungeon Core",
+                "m_sDescription": "",
+                "m_iMaxHP": {
+                  "Value": 5.0
+                },
+                "m_iCurrentHp": {
+                  "Value": 5.0
+                },
+                "m_iIsStepReduceHP": true,
+                "m_fHPRegenrate": {
+                  "Value": 0.0
+                },
+                "m_fMPRegenrate": {
+                  "Value": 0.0
+                },
+                "m_iMaxMP": {
+                  "Value": 0.0
+                },
+                "m_iCurrentMP": {
+                  "Value": 0.0
+                },
+                "m_fChaseSpeed": {
+                  "Value": 0.0
+                },
+                "m_fWalkSpeed": {
+                  "Value": 0.0
+                },
+                "m_iCommandMoveDistance": 0,
+                "m_iDetectRange": 0,
+                "m_iChaseRange": 0,
+                "m_iPhysicalBaseDamamge": {
+                  "Value": 0.0
+                },
+                "m_iMagicalBaseDamamge": {
+                  "Value": 0.0
+                },
+                "m_iPhysicalDefence": {
+                  "Value": 0.0
+                },
+                "m_iMagicalDefence": {
+                  "Value": 0.0
+                },
+                "m_fCounterAttackChance": {
+                  "Value": 0.0
+                },
+                "m_fEvasionChance": {
+                  "Value": 0.0
+                },
+                "m_fKnockbackRegist": {
+                  "Value": 0.0
+                },
+                "name": "Dungeon Core(Clone)",
+                "hideFlags": 0
+              },
+              "attackPatterns": [],
+              "rewardData": null,
+              "prefabName": null,
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "normalized": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0,
+                  "eulerAngles": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  }
+                }
+              },
+              "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "guid": null
+            },
+            "CurrentActionType": 0,
+            "BeforeActionType": 0,
+            "NextActionType": 0,
+            "gameEntityAnimationData": null,
+            "thisAttackPattern": null,
+            "prefabName": "Dungeon Core",
+            "position": {
+              "x": 18.0,
+              "y": 0.0,
+              "z": 18.0,
+              "normalized": {
+                "x": 0.707106769,
+                "y": 0.0,
+                "z": 0.707106769,
+                "magnitude": 1.0,
+                "sqrMagnitude": 0.99999994
+              },
+              "magnitude": 25.4558449,
+              "sqrMagnitude": 648.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0,
+              "eulerAngles": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              }
+            },
+            "scale": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "guid": "778487bf-1d7c-406d-acd1-6effc52a3f94"
+          },
+          {
+            "$type": "Data.ControllableObjectData, Assembly-CSharp",
+            "attackReadyItemData": [],
+            "readyAttackPatternData": [],
+            "gradeArgs": null,
+            "targetGuid": null,
+            "attributeSystemData": {
+              "stat": {
+                "$type": "UnitStat, Assembly-CSharp",
+                "m_iSpawnCost": 15,
+                "ID": 6,
+                "Name": "Greate Warior",
+                "m_sDescription": "",
+                "m_iMaxHP": {
+                  "Value": 150.0
+                },
+                "m_iCurrentHp": {
+                  "Value": 150.0
+                },
+                "m_iIsStepReduceHP": false,
+                "m_fHPRegenrate": {
+                  "Value": 0.0
+                },
+                "m_fMPRegenrate": {
+                  "Value": 0.0
+                },
+                "m_iMaxMP": {
+                  "Value": 20.0
+                },
+                "m_iCurrentMP": {
+                  "Value": 20.0
+                },
+                "m_fChaseSpeed": {
+                  "Value": 4.0
+                },
+                "m_fWalkSpeed": {
+                  "Value": 0.0
+                },
+                "m_iCommandMoveDistance": 4,
+                "m_iDetectRange": 3,
+                "m_iChaseRange": 5,
+                "m_iPhysicalBaseDamamge": {
+                  "Value": 0.0
+                },
+                "m_iMagicalBaseDamamge": {
+                  "Value": 0.0
+                },
+                "m_iPhysicalDefence": {
+                  "Value": 20.0
+                },
+                "m_iMagicalDefence": {
+                  "Value": -10.0
+                },
+                "m_fCounterAttackChance": {
+                  "Value": 0.0
+                },
+                "m_fEvasionChance": {
+                  "Value": 15.0
+                },
+                "m_fKnockbackRegist": {
+                  "Value": 80.0
+                },
+                "name": "Greate Warior",
+                "hideFlags": 0
+              },
+              "attackPatterns": [
+                {
+                  "id": 1,
+                  "targetsGuid": null,
+                  "coolTime": {
+                    "Value": 2.0
+                  },
+                  "lastCoolTime": {
+                    "Value": -2.0
+                  },
+                  "manaCost": {
+                    "Value": 0.0
+                  },
+                  "physicalAttackDamage": {
+                    "Value": 10.0
+                  },
+                  "magicAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "magicFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "magicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "criticalChance": {
+                    "Value": 10.0
+                  },
+                  "criticalDamageUp": {
+                    "Value": 5.0
+                  },
+                  "accuracy": {
+                    "Value": 95.0
+                  },
+                  "attackSpeed": {
+                    "Value": 1.0
+                  },
+                  "knockbackChance": {
+                    "Value": 0.0
+                  },
+                  "lifeStealPercent": {
+                    "Value": 0.0
+                  },
+                  "prefabName": null,
+                  "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    },
+                    "normalized": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "w": 1.0,
+                      "eulerAngles": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "magnitude": 0.0,
+                        "sqrMagnitude": 0.0
+                      }
+                    }
+                  },
+                  "scale": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "guid": null
+                },
+                {
+                  "id": 2,
+                  "targetsGuid": null,
+                  "coolTime": {
+                    "Value": 2.0
+                  },
+                  "lastCoolTime": {
+                    "Value": -2.0
+                  },
+                  "manaCost": {
+                    "Value": 0.0
+                  },
+                  "physicalAttackDamage": {
+                    "Value": 10.0
+                  },
+                  "magicAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "magicFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "magicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "criticalChance": {
+                    "Value": 10.0
+                  },
+                  "criticalDamageUp": {
+                    "Value": 5.0
+                  },
+                  "accuracy": {
+                    "Value": 95.0
+                  },
+                  "attackSpeed": {
+                    "Value": 1.0
+                  },
+                  "knockbackChance": {
+                    "Value": 0.0
+                  },
+                  "lifeStealPercent": {
+                    "Value": 0.0
+                  },
+                  "prefabName": null,
+                  "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    },
+                    "normalized": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "w": 1.0,
+                      "eulerAngles": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "magnitude": 0.0,
+                        "sqrMagnitude": 0.0
+                      }
+                    }
+                  },
+                  "scale": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "guid": null
+                },
+                {
+                  "id": 3,
+                  "targetsGuid": null,
+                  "coolTime": {
+                    "Value": 2.0
+                  },
+                  "lastCoolTime": {
+                    "Value": -2.0
+                  },
+                  "manaCost": {
+                    "Value": 0.0
+                  },
+                  "physicalAttackDamage": {
+                    "Value": 20.0
+                  },
+                  "magicAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "magicFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "magicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "criticalChance": {
+                    "Value": 10.0
+                  },
+                  "criticalDamageUp": {
+                    "Value": 5.0
+                  },
+                  "accuracy": {
+                    "Value": 95.0
+                  },
+                  "attackSpeed": {
+                    "Value": 1.0
+                  },
+                  "knockbackChance": {
+                    "Value": 0.0
+                  },
+                  "lifeStealPercent": {
+                    "Value": 0.0
+                  },
+                  "prefabName": null,
+                  "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    },
+                    "normalized": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "w": 1.0,
+                      "eulerAngles": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "magnitude": 0.0,
+                        "sqrMagnitude": 0.0
+                      }
+                    }
+                  },
+                  "scale": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "guid": null
+                }
+              ],
+              "rewardData": null,
+              "prefabName": null,
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "normalized": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0,
+                  "eulerAngles": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  }
+                }
+              },
+              "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "guid": null
+            },
+            "CurrentActionType": 0,
+            "BeforeActionType": 0,
+            "NextActionType": 0,
+            "gameEntityAnimationData": null,
+            "thisAttackPattern": null,
+            "prefabName": "Great Warior",
+            "position": {
+              "x": 18.0,
+              "y": 0.0,
+              "z": 20.0,
+              "normalized": {
+                "x": 0.668964744,
+                "y": 0.0,
+                "z": 0.7432942,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 26.9072475,
+              "sqrMagnitude": 724.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0,
+              "eulerAngles": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              }
+            },
+            "scale": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "guid": "83a2c5e5-a206-4eef-9c56-735f3d4b03bb"
+          },
+          {
+            "$type": "Data.ControllableObjectData, Assembly-CSharp",
+            "attackReadyItemData": [],
+            "readyAttackPatternData": [],
+            "gradeArgs": null,
+            "targetGuid": null,
+            "attributeSystemData": {
+              "stat": {
+                "$type": "UnitStat, Assembly-CSharp",
+                "m_iSpawnCost": 10,
+                "ID": 10,
+                "Name": "Warrior",
+                "m_sDescription": "",
+                "m_iMaxHP": {
+                  "Value": 100.0
+                },
+                "m_iCurrentHp": {
+                  "Value": 100.0
+                },
+                "m_iIsStepReduceHP": false,
+                "m_fHPRegenrate": {
+                  "Value": 0.0
+                },
+                "m_fMPRegenrate": {
+                  "Value": 0.0
+                },
+                "m_iMaxMP": {
+                  "Value": 0.0
+                },
+                "m_iCurrentMP": {
+                  "Value": 0.0
+                },
+                "m_fChaseSpeed": {
+                  "Value": 4.0
+                },
+                "m_fWalkSpeed": {
+                  "Value": 0.0
+                },
+                "m_iCommandMoveDistance": 4,
+                "m_iDetectRange": 3,
+                "m_iChaseRange": 5,
+                "m_iPhysicalBaseDamamge": {
+                  "Value": 0.0
+                },
+                "m_iMagicalBaseDamamge": {
+                  "Value": 0.0
+                },
+                "m_iPhysicalDefence": {
+                  "Value": 0.0
+                },
+                "m_iMagicalDefence": {
+                  "Value": 0.0
+                },
+                "m_fCounterAttackChance": {
+                  "Value": 0.0
+                },
+                "m_fEvasionChance": {
+                  "Value": 0.0
+                },
+                "m_fKnockbackRegist": {
+                  "Value": 0.0
+                },
+                "name": "Warrior",
+                "hideFlags": 0
+              },
+              "attackPatterns": [
+                {
+                  "id": 7,
+                  "targetsGuid": null,
+                  "coolTime": {
+                    "Value": 2.0
+                  },
+                  "lastCoolTime": {
+                    "Value": -2.0
+                  },
+                  "manaCost": {
+                    "Value": 0.0
+                  },
+                  "physicalAttackDamage": {
+                    "Value": 10.0
+                  },
+                  "magicAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "magicFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "magicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "criticalChance": {
+                    "Value": 0.0
+                  },
+                  "criticalDamageUp": {
+                    "Value": 0.0
+                  },
+                  "accuracy": {
+                    "Value": 95.0
+                  },
+                  "attackSpeed": {
+                    "Value": 1.0
+                  },
+                  "knockbackChance": {
+                    "Value": 0.0
+                  },
+                  "lifeStealPercent": {
+                    "Value": 0.0
+                  },
+                  "prefabName": null,
+                  "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    },
+                    "normalized": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "w": 1.0,
+                      "eulerAngles": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "magnitude": 0.0,
+                        "sqrMagnitude": 0.0
+                      }
+                    }
+                  },
+                  "scale": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "guid": null
+                },
+                {
+                  "id": 8,
+                  "targetsGuid": null,
+                  "coolTime": {
+                    "Value": 2.0
+                  },
+                  "lastCoolTime": {
+                    "Value": -2.0
+                  },
+                  "manaCost": {
+                    "Value": 0.0
+                  },
+                  "physicalAttackDamage": {
+                    "Value": 10.0
+                  },
+                  "magicAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "magicFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "magicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "criticalChance": {
+                    "Value": 0.0
+                  },
+                  "criticalDamageUp": {
+                    "Value": 0.0
+                  },
+                  "accuracy": {
+                    "Value": 95.0
+                  },
+                  "attackSpeed": {
+                    "Value": 1.0
+                  },
+                  "knockbackChance": {
+                    "Value": 0.0
+                  },
+                  "lifeStealPercent": {
+                    "Value": 0.0
+                  },
+                  "prefabName": null,
+                  "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    },
+                    "normalized": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "w": 1.0,
+                      "eulerAngles": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "magnitude": 0.0,
+                        "sqrMagnitude": 0.0
+                      }
+                    }
+                  },
+                  "scale": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "guid": null
+                },
+                {
+                  "id": 9,
+                  "targetsGuid": null,
+                  "coolTime": {
+                    "Value": 2.0
+                  },
+                  "lastCoolTime": {
+                    "Value": -2.0
+                  },
+                  "manaCost": {
+                    "Value": 0.0
+                  },
+                  "physicalAttackDamage": {
+                    "Value": 10.0
+                  },
+                  "magicAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "magicFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "magicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "criticalChance": {
+                    "Value": 0.0
+                  },
+                  "criticalDamageUp": {
+                    "Value": 0.0
+                  },
+                  "accuracy": {
+                    "Value": 95.0
+                  },
+                  "attackSpeed": {
+                    "Value": 1.0
+                  },
+                  "knockbackChance": {
+                    "Value": 0.0
+                  },
+                  "lifeStealPercent": {
+                    "Value": 0.0
+                  },
+                  "prefabName": null,
+                  "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    },
+                    "normalized": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "w": 1.0,
+                      "eulerAngles": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "magnitude": 0.0,
+                        "sqrMagnitude": 0.0
+                      }
+                    }
+                  },
+                  "scale": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "guid": null
+                }
+              ],
+              "rewardData": null,
+              "prefabName": null,
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "normalized": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0,
+                  "eulerAngles": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  }
+                }
+              },
+              "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "guid": null
+            },
+            "CurrentActionType": 0,
+            "BeforeActionType": 0,
+            "NextActionType": 0,
+            "gameEntityAnimationData": null,
+            "thisAttackPattern": null,
+            "prefabName": "Paladin",
+            "position": {
+              "x": 20.0,
+              "y": 0.0,
+              "z": 22.0,
+              "normalized": {
+                "x": 0.6726728,
+                "y": 0.0,
+                "z": 0.739940047,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.0
+              },
+              "magnitude": 29.7321377,
+              "sqrMagnitude": 884.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0,
+              "eulerAngles": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              }
+            },
+            "scale": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "guid": "628bea13-60aa-478e-bc8f-fca3dc6650e7"
+          },
+          {
+            "$type": "Data.ControllableObjectData, Assembly-CSharp",
+            "attackReadyItemData": [],
+            "readyAttackPatternData": [],
+            "gradeArgs": null,
+            "targetGuid": null,
+            "attributeSystemData": {
+              "stat": {
+                "$type": "UnitStat, Assembly-CSharp",
+                "m_iSpawnCost": 20,
+                "ID": 7,
+                "Name": "Magician",
+                "m_sDescription": "",
+                "m_iMaxHP": {
+                  "Value": 80.0
+                },
+                "m_iCurrentHp": {
+                  "Value": 80.0
+                },
+                "m_iIsStepReduceHP": false,
+                "m_fHPRegenrate": {
+                  "Value": 0.0
+                },
+                "m_fMPRegenrate": {
+                  "Value": 0.0
+                },
+                "m_iMaxMP": {
+                  "Value": 50.0
+                },
+                "m_iCurrentMP": {
+                  "Value": 50.0
+                },
+                "m_fChaseSpeed": {
+                  "Value": 4.0
+                },
+                "m_fWalkSpeed": {
+                  "Value": 0.0
+                },
+                "m_iCommandMoveDistance": 4,
+                "m_iDetectRange": 3,
+                "m_iChaseRange": 5,
+                "m_iPhysicalBaseDamamge": {
+                  "Value": 0.0
+                },
+                "m_iMagicalBaseDamamge": {
+                  "Value": 0.0
+                },
+                "m_iPhysicalDefence": {
+                  "Value": 0.0
+                },
+                "m_iMagicalDefence": {
+                  "Value": 10.0
+                },
+                "m_fCounterAttackChance": {
+                  "Value": 0.0
+                },
+                "m_fEvasionChance": {
+                  "Value": 10.0
+                },
+                "m_fKnockbackRegist": {
+                  "Value": 0.0
+                },
+                "name": "Magician",
+                "hideFlags": 0
+              },
+              "attackPatterns": [
+                {
+                  "id": 15,
+                  "targetsGuid": null,
+                  "coolTime": {
+                    "Value": 2.0
+                  },
+                  "lastCoolTime": {
+                    "Value": -2.0
+                  },
+                  "manaCost": {
+                    "Value": 10.0
+                  },
+                  "physicalAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "magicAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "magicFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "magicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "criticalChance": {
+                    "Value": 0.0
+                  },
+                  "criticalDamageUp": {
+                    "Value": 0.0
+                  },
+                  "accuracy": {
+                    "Value": 95.0
+                  },
+                  "attackSpeed": {
+                    "Value": 1.0
+                  },
+                  "knockbackChance": {
+                    "Value": 0.0
+                  },
+                  "lifeStealPercent": {
+                    "Value": 0.0
+                  },
+                  "prefabName": null,
+                  "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    },
+                    "normalized": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "w": 1.0,
+                      "eulerAngles": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "magnitude": 0.0,
+                        "sqrMagnitude": 0.0
+                      }
+                    }
+                  },
+                  "scale": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "guid": null
+                },
+                {
+                  "id": 13,
+                  "targetsGuid": null,
+                  "coolTime": {
+                    "Value": 2.0
+                  },
+                  "lastCoolTime": {
+                    "Value": -2.0
+                  },
+                  "manaCost": {
+                    "Value": 20.0
+                  },
+                  "physicalAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "magicAttackDamage": {
+                    "Value": 30.0
+                  },
+                  "physicalFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "magicFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "magicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "criticalChance": {
+                    "Value": 0.0
+                  },
+                  "criticalDamageUp": {
+                    "Value": 0.0
+                  },
+                  "accuracy": {
+                    "Value": 95.0
+                  },
+                  "attackSpeed": {
+                    "Value": 1.0
+                  },
+                  "knockbackChance": {
+                    "Value": 0.0
+                  },
+                  "lifeStealPercent": {
+                    "Value": 0.0
+                  },
+                  "prefabName": null,
+                  "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    },
+                    "normalized": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "w": 1.0,
+                      "eulerAngles": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "magnitude": 0.0,
+                        "sqrMagnitude": 0.0
+                      }
+                    }
+                  },
+                  "scale": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "guid": null
+                }
+              ],
+              "rewardData": null,
+              "prefabName": null,
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "normalized": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0,
+                  "eulerAngles": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  }
+                }
+              },
+              "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "guid": null
+            },
+            "CurrentActionType": 0,
+            "BeforeActionType": 0,
+            "NextActionType": 0,
+            "gameEntityAnimationData": null,
+            "thisAttackPattern": null,
+            "prefabName": "Magician",
+            "position": {
+              "x": 20.0,
+              "y": 0.0,
+              "z": 18.0,
+              "normalized": {
+                "x": 0.7432942,
+                "y": 0.0,
+                "z": 0.668964744,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.00000012
+              },
+              "magnitude": 26.9072475,
+              "sqrMagnitude": 724.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0,
+              "eulerAngles": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              }
+            },
+            "scale": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "guid": "4fbc2a2d-8f87-4a9a-ac14-de729065e7e0"
+          },
+          {
+            "$type": "Data.ControllableObjectData, Assembly-CSharp",
+            "attackReadyItemData": [],
+            "readyAttackPatternData": [],
+            "gradeArgs": null,
+            "targetGuid": null,
+            "attributeSystemData": {
+              "stat": {
+                "$type": "UnitStat, Assembly-CSharp",
+                "m_iSpawnCost": 12,
+                "ID": 2,
+                "Name": "Archer",
+                "m_sDescription": "",
+                "m_iMaxHP": {
+                  "Value": 90.0
+                },
+                "m_iCurrentHp": {
+                  "Value": 90.0
+                },
+                "m_iIsStepReduceHP": false,
+                "m_fHPRegenrate": {
+                  "Value": 0.0
+                },
+                "m_fMPRegenrate": {
+                  "Value": 0.0
+                },
+                "m_iMaxMP": {
+                  "Value": 0.0
+                },
+                "m_iCurrentMP": {
+                  "Value": 0.0
+                },
+                "m_fChaseSpeed": {
+                  "Value": 4.0
+                },
+                "m_fWalkSpeed": {
+                  "Value": 3.0
+                },
+                "m_iCommandMoveDistance": 4,
+                "m_iDetectRange": 3,
+                "m_iChaseRange": 6,
+                "m_iPhysicalBaseDamamge": {
+                  "Value": 0.0
+                },
+                "m_iMagicalBaseDamamge": {
+                  "Value": 0.0
+                },
+                "m_iPhysicalDefence": {
+                  "Value": 5.0
+                },
+                "m_iMagicalDefence": {
+                  "Value": 0.0
+                },
+                "m_fCounterAttackChance": {
+                  "Value": 0.0
+                },
+                "m_fEvasionChance": {
+                  "Value": 0.0
+                },
+                "m_fKnockbackRegist": {
+                  "Value": 5.0
+                },
+                "name": "Archer",
+                "hideFlags": 0
+              },
+              "attackPatterns": [
+                {
+                  "id": 11,
+                  "targetsGuid": null,
+                  "coolTime": {
+                    "Value": 2.0
+                  },
+                  "lastCoolTime": {
+                    "Value": -2.0
+                  },
+                  "manaCost": {
+                    "Value": 0.0
+                  },
+                  "physicalAttackDamage": {
+                    "Value": 30.0
+                  },
+                  "magicAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "magicFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "magicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "criticalChance": {
+                    "Value": 0.0
+                  },
+                  "criticalDamageUp": {
+                    "Value": 0.0
+                  },
+                  "accuracy": {
+                    "Value": 95.0
+                  },
+                  "attackSpeed": {
+                    "Value": 1.0
+                  },
+                  "knockbackChance": {
+                    "Value": 0.0
+                  },
+                  "lifeStealPercent": {
+                    "Value": 0.0
+                  },
+                  "prefabName": null,
+                  "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    },
+                    "normalized": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "w": 1.0,
+                      "eulerAngles": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "magnitude": 0.0,
+                        "sqrMagnitude": 0.0
+                      }
+                    }
+                  },
+                  "scale": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "guid": null
+                },
+                {
+                  "id": 12,
+                  "targetsGuid": null,
+                  "coolTime": {
+                    "Value": 2.0
+                  },
+                  "lastCoolTime": {
+                    "Value": -2.0
+                  },
+                  "manaCost": {
+                    "Value": 0.0
+                  },
+                  "physicalAttackDamage": {
+                    "Value": 15.0
+                  },
+                  "magicAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "magicFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "magicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "criticalChance": {
+                    "Value": 10.0
+                  },
+                  "criticalDamageUp": {
+                    "Value": 5.0
+                  },
+                  "accuracy": {
+                    "Value": 95.0
+                  },
+                  "attackSpeed": {
+                    "Value": 1.0
+                  },
+                  "knockbackChance": {
+                    "Value": 0.0
+                  },
+                  "lifeStealPercent": {
+                    "Value": 0.0
+                  },
+                  "prefabName": null,
+                  "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    },
+                    "normalized": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "w": 1.0,
+                      "eulerAngles": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "magnitude": 0.0,
+                        "sqrMagnitude": 0.0
+                      }
+                    }
+                  },
+                  "scale": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "guid": null
+                },
+                {
+                  "id": 16,
+                  "targetsGuid": null,
+                  "coolTime": {
+                    "Value": 2.0
+                  },
+                  "lastCoolTime": {
+                    "Value": -2.0
+                  },
+                  "manaCost": {
+                    "Value": 0.0
+                  },
+                  "physicalAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "magicAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "magicFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "magicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "criticalChance": {
+                    "Value": 0.0
+                  },
+                  "criticalDamageUp": {
+                    "Value": 0.0
+                  },
+                  "accuracy": {
+                    "Value": 95.0
+                  },
+                  "attackSpeed": {
+                    "Value": 1.0
+                  },
+                  "knockbackChance": {
+                    "Value": 0.0
+                  },
+                  "lifeStealPercent": {
+                    "Value": 0.0
+                  },
+                  "prefabName": null,
+                  "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    },
+                    "normalized": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "w": 1.0,
+                      "eulerAngles": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "magnitude": 0.0,
+                        "sqrMagnitude": 0.0
+                      }
+                    }
+                  },
+                  "scale": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "guid": null
+                },
+                {
+                  "id": 17,
+                  "targetsGuid": null,
+                  "coolTime": {
+                    "Value": 2.0
+                  },
+                  "lastCoolTime": {
+                    "Value": -2.0
+                  },
+                  "manaCost": {
+                    "Value": 0.0
+                  },
+                  "physicalAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "magicAttackDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "magicFixedDamage": {
+                    "Value": 0.0
+                  },
+                  "physicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "magicalArmorPenetraion": {
+                    "Value": 0.0
+                  },
+                  "criticalChance": {
+                    "Value": 0.0
+                  },
+                  "criticalDamageUp": {
+                    "Value": 0.0
+                  },
+                  "accuracy": {
+                    "Value": 95.0
+                  },
+                  "attackSpeed": {
+                    "Value": 1.0
+                  },
+                  "knockbackChance": {
+                    "Value": 0.0
+                  },
+                  "lifeStealPercent": {
+                    "Value": 0.0
+                  },
+                  "prefabName": null,
+                  "position": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "rotation": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 0.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    },
+                    "normalized": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "w": 1.0,
+                      "eulerAngles": {
+                        "x": 0.0,
+                        "y": 0.0,
+                        "z": 0.0,
+                        "magnitude": 0.0,
+                        "sqrMagnitude": 0.0
+                      }
+                    }
+                  },
+                  "scale": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "guid": null
+                }
+              ],
+              "rewardData": null,
+              "prefabName": null,
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 0.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "normalized": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 1.0,
+                  "eulerAngles": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  }
+                }
+              },
+              "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "guid": null
+            },
+            "CurrentActionType": 0,
+            "BeforeActionType": 0,
+            "NextActionType": 0,
+            "gameEntityAnimationData": null,
+            "thisAttackPattern": null,
+            "prefabName": "Archer",
+            "position": {
+              "x": 22.0,
+              "y": 0.0,
+              "z": 18.0,
+              "normalized": {
+                "x": 0.7739573,
+                "y": 0.0,
+                "z": 0.6332378,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.0
+              },
+              "magnitude": 28.42534,
+              "sqrMagnitude": 808.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 1.0,
+              "eulerAngles": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              }
+            },
+            "scale": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "guid": "0a351f31-a543-42d5-b7cc-6b966d0c9283"
+          },
+          {
+            "$type": "Data.ItemData, Assembly-CSharp",
+            "spawnPosition": {
+              "x": 21.9046974,
+              "y": 0.7929387,
+              "z": 18.377037,
+              "normalized": {
+                "x": 0.7658049,
+                "y": 0.02772174,
+                "z": 0.6424752,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.0
+              },
+              "magnitude": 28.6034966,
+              "sqrMagnitude": 818.160034
+            },
+            "spawnRotation": {
+              "x": 0.387565762,
+              "y": 0.799245059,
+              "z": 0.429465562,
+              "w": -0.1629718,
+              "eulerAngles": {
+                "x": 305.627563,
+                "y": 172.861954,
+                "z": 55.40865,
+                "normalized": {
+                  "x": 0.8597822,
+                  "y": 0.48629,
+                  "z": 0.155873924,
+                  "magnitude": 1.0,
+                  "sqrMagnitude": 1.00000012
+                },
+                "magnitude": 355.470917,
+                "sqrMagnitude": 126359.578
+              },
+              "normalized": {
+                "x": 0.3875657,
+                "y": 0.79924494,
+                "z": 0.4294655,
+                "w": -0.16297178,
+                "eulerAngles": {
+                  "x": 305.627563,
+                  "y": 172.861954,
+                  "z": 55.40865,
+                  "normalized": {
+                    "x": 0.8597822,
+                    "y": 0.48629,
+                    "z": 0.155873924,
+                    "magnitude": 1.0,
+                    "sqrMagnitude": 1.00000012
+                  },
+                  "magnitude": 355.470917,
+                  "sqrMagnitude": 126359.578
+                }
+              }
+            },
+            "onwerGuid": null,
+            "prefabName": "Level_01 Bow",
+            "position": {
+              "x": 21.9046974,
+              "y": 0.7929387,
+              "z": 18.377037,
+              "normalized": {
+                "x": 0.7658049,
+                "y": 0.02772174,
+                "z": 0.6424752,
+                "magnitude": 1.0,
+                "sqrMagnitude": 1.0
+              },
+              "magnitude": 28.6034966,
+              "sqrMagnitude": 818.160034
+            },
+            "rotation": {
+              "x": 0.387565762,
+              "y": 0.799245059,
+              "z": 0.429465562,
+              "w": -0.1629718,
+              "eulerAngles": {
+                "x": 305.627563,
+                "y": 172.861954,
+                "z": 55.40865,
+                "normalized": {
+                  "x": 0.8597822,
+                  "y": 0.48629,
+                  "z": 0.155873924,
+                  "magnitude": 1.0,
+                  "sqrMagnitude": 1.00000012
+                },
+                "magnitude": 355.470917,
+                "sqrMagnitude": 126359.578
+              },
+              "normalized": {
+                "x": 0.3875657,
+                "y": 0.79924494,
+                "z": 0.4294655,
+                "w": -0.16297178,
+                "eulerAngles": {
+                  "x": 305.627563,
+                  "y": 172.861954,
+                  "z": 55.40865,
+                  "normalized": {
+                    "x": 0.8597822,
+                    "y": 0.48629,
+                    "z": 0.155873924,
+                    "magnitude": 1.0,
+                    "sqrMagnitude": 1.00000012
+                  },
+                  "magnitude": 355.470917,
+                  "sqrMagnitude": 126359.578
+                }
+              }
+            },
+            "scale": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "guid": "e55a544c-86d2-4cbe-91dc-13968240e731"
+          }
+        ],
+        "buildingCardDatas": [
+          {
+            "$type": "Data.BuildingCardData, Assembly-CSharp",
+            "gameEntitySaveData": {
+              "$type": "Data.ControllableObjectData, Assembly-CSharp",
+              "attackReadyItemData": null,
+              "readyAttackPatternData": [],
+              "gradeArgs": null,
+              "targetGuid": null,
+              "attributeSystemData": {
+                "stat": {
+                  "$type": "UnitStat, Assembly-CSharp",
+                  "m_iSpawnCost": 10,
+                  "ID": 10,
+                  "Name": "Warrior",
+                  "m_sDescription": "",
+                  "m_iMaxHP": {
+                    "Value": 100.0
+                  },
+                  "m_iCurrentHp": {
+                    "Value": 100.0
+                  },
+                  "m_iIsStepReduceHP": false,
+                  "m_fHPRegenrate": {
+                    "Value": 0.0
+                  },
+                  "m_fMPRegenrate": {
+                    "Value": 0.0
+                  },
+                  "m_iMaxMP": {
+                    "Value": 0.0
+                  },
+                  "m_iCurrentMP": {
+                    "Value": 0.0
+                  },
+                  "m_fChaseSpeed": {
+                    "Value": 4.0
+                  },
+                  "m_fWalkSpeed": {
+                    "Value": 0.0
+                  },
+                  "m_iCommandMoveDistance": 4,
+                  "m_iDetectRange": 3,
+                  "m_iChaseRange": 5,
+                  "m_iPhysicalBaseDamamge": {
+                    "Value": 0.0
+                  },
+                  "m_iMagicalBaseDamamge": {
+                    "Value": 0.0
+                  },
+                  "m_iPhysicalDefence": {
+                    "Value": 0.0
+                  },
+                  "m_iMagicalDefence": {
+                    "Value": 0.0
+                  },
+                  "m_fCounterAttackChance": {
+                    "Value": 0.0
+                  },
+                  "m_fEvasionChance": {
+                    "Value": 0.0
+                  },
+                  "m_fKnockbackRegist": {
+                    "Value": 0.0
+                  },
+                  "name": "Warrior",
+                  "hideFlags": 0
+                },
+                "attackPatterns": [],
+                "rewardData": null,
+                "prefabName": null,
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 0.0,
+                  "eulerAngles": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "normalized": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 1.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    }
+                  }
+                },
+                "scale": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "guid": null
+              },
+              "CurrentActionType": 0,
+              "BeforeActionType": 0,
+              "NextActionType": 0,
+              "gameEntityAnimationData": null,
+              "thisAttackPattern": null,
+              "prefabName": "Paladin",
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                }
+              },
+              "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "guid": ""
+            },
+            "prefabName": null,
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 0.0,
+              "eulerAngles": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "normalized": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                }
+              }
+            },
+            "scale": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "guid": null
+          },
+          {
+            "$type": "Data.BuildingCardData, Assembly-CSharp",
+            "gameEntitySaveData": {
+              "$type": "Data.ControllableObjectData, Assembly-CSharp",
+              "attackReadyItemData": null,
+              "readyAttackPatternData": [],
+              "gradeArgs": null,
+              "targetGuid": null,
+              "attributeSystemData": {
+                "stat": {
+                  "$type": "BuildingStat, Assembly-CSharp",
+                  "m_iReconstructionCost": 0,
+                  "m_iDestructionCost": 0,
+                  "m_iSpawnCost": 8,
+                  "ID": 9,
+                  "Name": "Wagon",
+                  "m_sDescription": "",
+                  "m_iMaxHP": {
+                    "Value": 150.0
+                  },
+                  "m_iCurrentHp": {
+                    "Value": 150.0
+                  },
+                  "m_iIsStepReduceHP": false,
+                  "m_fHPRegenrate": {
+                    "Value": 0.0
+                  },
+                  "m_fMPRegenrate": {
+                    "Value": 0.0
+                  },
+                  "m_iMaxMP": {
+                    "Value": 0.0
+                  },
+                  "m_iCurrentMP": {
+                    "Value": 0.0
+                  },
+                  "m_fChaseSpeed": {
+                    "Value": 0.0
+                  },
+                  "m_fWalkSpeed": {
+                    "Value": 0.0
+                  },
+                  "m_iCommandMoveDistance": 0,
+                  "m_iDetectRange": 0,
+                  "m_iChaseRange": 0,
+                  "m_iPhysicalBaseDamamge": {
+                    "Value": 0.0
+                  },
+                  "m_iMagicalBaseDamamge": {
+                    "Value": 0.0
+                  },
+                  "m_iPhysicalDefence": {
+                    "Value": 0.0
+                  },
+                  "m_iMagicalDefence": {
+                    "Value": 0.0
+                  },
+                  "m_fCounterAttackChance": {
+                    "Value": 0.0
+                  },
+                  "m_fEvasionChance": {
+                    "Value": 0.0
+                  },
+                  "m_fKnockbackRegist": {
+                    "Value": 0.0
+                  },
+                  "name": "Wagon",
+                  "hideFlags": 0
+                },
+                "attackPatterns": [],
+                "rewardData": null,
+                "prefabName": null,
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 0.0,
+                  "eulerAngles": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "normalized": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 1.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    }
+                  }
+                },
+                "scale": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "guid": null
+              },
+              "CurrentActionType": 0,
+              "BeforeActionType": 0,
+              "NextActionType": 0,
+              "gameEntityAnimationData": null,
+              "thisAttackPattern": null,
+              "prefabName": "Wagon",
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                }
+              },
+              "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "guid": ""
+            },
+            "prefabName": null,
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 0.0,
+              "eulerAngles": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "normalized": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                }
+              }
+            },
+            "scale": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "guid": null
+          },
+          {
+            "$type": "Data.BuildingCardData, Assembly-CSharp",
+            "gameEntitySaveData": {
+              "$type": "Data.ControllableObjectData, Assembly-CSharp",
+              "attackReadyItemData": null,
+              "readyAttackPatternData": [],
+              "gradeArgs": null,
+              "targetGuid": null,
+              "attributeSystemData": {
+                "stat": {
+                  "$type": "BuildingStat, Assembly-CSharp",
+                  "m_iReconstructionCost": 0,
+                  "m_iDestructionCost": 0,
+                  "m_iSpawnCost": 8,
+                  "ID": 9,
+                  "Name": "Wagon",
+                  "m_sDescription": "",
+                  "m_iMaxHP": {
+                    "Value": 150.0
+                  },
+                  "m_iCurrentHp": {
+                    "Value": 150.0
+                  },
+                  "m_iIsStepReduceHP": false,
+                  "m_fHPRegenrate": {
+                    "Value": 0.0
+                  },
+                  "m_fMPRegenrate": {
+                    "Value": 0.0
+                  },
+                  "m_iMaxMP": {
+                    "Value": 0.0
+                  },
+                  "m_iCurrentMP": {
+                    "Value": 0.0
+                  },
+                  "m_fChaseSpeed": {
+                    "Value": 0.0
+                  },
+                  "m_fWalkSpeed": {
+                    "Value": 0.0
+                  },
+                  "m_iCommandMoveDistance": 0,
+                  "m_iDetectRange": 0,
+                  "m_iChaseRange": 0,
+                  "m_iPhysicalBaseDamamge": {
+                    "Value": 0.0
+                  },
+                  "m_iMagicalBaseDamamge": {
+                    "Value": 0.0
+                  },
+                  "m_iPhysicalDefence": {
+                    "Value": 0.0
+                  },
+                  "m_iMagicalDefence": {
+                    "Value": 0.0
+                  },
+                  "m_fCounterAttackChance": {
+                    "Value": 0.0
+                  },
+                  "m_fEvasionChance": {
+                    "Value": 0.0
+                  },
+                  "m_fKnockbackRegist": {
+                    "Value": 0.0
+                  },
+                  "name": "Wagon",
+                  "hideFlags": 0
+                },
+                "attackPatterns": [],
+                "rewardData": null,
+                "prefabName": null,
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 0.0,
+                  "eulerAngles": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "normalized": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 1.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    }
+                  }
+                },
+                "scale": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "guid": null
+              },
+              "CurrentActionType": 0,
+              "BeforeActionType": 0,
+              "NextActionType": 0,
+              "gameEntityAnimationData": null,
+              "thisAttackPattern": null,
+              "prefabName": "Wagon",
+              "position": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                }
+              },
+              "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "guid": ""
+            },
+            "prefabName": null,
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 0.0,
+              "eulerAngles": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "normalized": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                }
+              }
+            },
+            "scale": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "guid": null
+          },
+          {
+            "$type": "Data.BuildingCardData, Assembly-CSharp",
+            "gameEntitySaveData": {
+              "$type": "Data.ControllableObjectData, Assembly-CSharp",
+              "attackReadyItemData": null,
+              "readyAttackPatternData": [],
+              "gradeArgs": null,
+              "targetGuid": null,
+              "attributeSystemData": {
+                "stat": {
+                  "$type": "UnitStat, Assembly-CSharp",
+                  "m_iSpawnCost": 20,
+                  "ID": 7,
+                  "Name": "Magician",
+                  "m_sDescription": "",
+                  "m_iMaxHP": {
+                    "Value": 80.0
+                  },
+                  "m_iCurrentHp": {
+                    "Value": 80.0
+                  },
+                  "m_iIsStepReduceHP": false,
+                  "m_fHPRegenrate": {
+                    "Value": 0.0
+                  },
+                  "m_fMPRegenrate": {
+                    "Value": 0.0
+                  },
+                  "m_iMaxMP": {
+                    "Value": 50.0
+                  },
+                  "m_iCurrentMP": {
+                    "Value": 50.0
+                  },
+                  "m_fChaseSpeed": {
+                    "Value": 4.0
+                  },
+                  "m_fWalkSpeed": {
+                    "Value": 0.0
+                  },
+                  "m_iCommandMoveDistance": 4,
+                  "m_iDetectRange": 3,
+                  "m_iChaseRange": 5,
+                  "m_iPhysicalBaseDamamge": {
+                    "Value": 0.0
+                  },
+                  "m_iMagicalBaseDamamge": {
+                    "Value": 0.0
+                  },
+                  "m_iPhysicalDefence": {
+                    "Value": 0.0
+                  },
+                  "m_iMagicalDefence": {
+                    "Value": 10.0
+                  },
+                  "m_fCounterAttackChance": {
+                    "Value": 0.0
+                  },
+                  "m_fEvasionChance": {
+                    "Value": 10.0
+                  },
+                  "m_fKnockbackRegist": {
+                    "Value": 0.0
+                  },
+                  "name": "Magician",
+                  "hideFlags": 0
+                },
+                "attackPatterns": [],
+                "rewardData": null,
+                "prefabName": null,
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 0.0,
+                  "eulerAngles": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "normalized": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 1.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    }
+                  }
+                },
+                "scale": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "guid": null
+              },
+              "CurrentActionType": 0,
+              "BeforeActionType": 0,
+              "NextActionType": 0,
+              "gameEntityAnimationData": null,
+              "thisAttackPattern": null,
+              "prefabName": "Magician",
+              "position": {
+                "x": 20.0,
+                "y": 0.0,
+                "z": 18.0,
+                "normalized": {
+                  "x": 0.7432942,
+                  "y": 0.0,
+                  "z": 0.668964744,
+                  "magnitude": 1.0,
+                  "sqrMagnitude": 1.00000012
+                },
+                "magnitude": 26.9072475,
+                "sqrMagnitude": 724.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                }
+              },
+              "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "guid": ""
+            },
+            "prefabName": null,
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 0.0,
+              "eulerAngles": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "normalized": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                }
+              }
+            },
+            "scale": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "guid": null
+          },
+          {
+            "$type": "Data.BuildingCardData, Assembly-CSharp",
+            "gameEntitySaveData": {
+              "$type": "Data.ControllableObjectData, Assembly-CSharp",
+              "attackReadyItemData": null,
+              "readyAttackPatternData": [],
+              "gradeArgs": null,
+              "targetGuid": null,
+              "attributeSystemData": {
+                "stat": {
+                  "$type": "UnitStat, Assembly-CSharp",
+                  "m_iSpawnCost": 15,
+                  "ID": 6,
+                  "Name": "Greate Warior",
+                  "m_sDescription": "",
+                  "m_iMaxHP": {
+                    "Value": 150.0
+                  },
+                  "m_iCurrentHp": {
+                    "Value": 150.0
+                  },
+                  "m_iIsStepReduceHP": false,
+                  "m_fHPRegenrate": {
+                    "Value": 0.0
+                  },
+                  "m_fMPRegenrate": {
+                    "Value": 0.0
+                  },
+                  "m_iMaxMP": {
+                    "Value": 20.0
+                  },
+                  "m_iCurrentMP": {
+                    "Value": 20.0
+                  },
+                  "m_fChaseSpeed": {
+                    "Value": 4.0
+                  },
+                  "m_fWalkSpeed": {
+                    "Value": 0.0
+                  },
+                  "m_iCommandMoveDistance": 4,
+                  "m_iDetectRange": 3,
+                  "m_iChaseRange": 5,
+                  "m_iPhysicalBaseDamamge": {
+                    "Value": 0.0
+                  },
+                  "m_iMagicalBaseDamamge": {
+                    "Value": 0.0
+                  },
+                  "m_iPhysicalDefence": {
+                    "Value": 20.0
+                  },
+                  "m_iMagicalDefence": {
+                    "Value": -10.0
+                  },
+                  "m_fCounterAttackChance": {
+                    "Value": 0.0
+                  },
+                  "m_fEvasionChance": {
+                    "Value": 15.0
+                  },
+                  "m_fKnockbackRegist": {
+                    "Value": 80.0
+                  },
+                  "name": "Greate Warior",
+                  "hideFlags": 0
+                },
+                "attackPatterns": [],
+                "rewardData": null,
+                "prefabName": null,
+                "position": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "rotation": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "w": 0.0,
+                  "eulerAngles": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "magnitude": 0.0,
+                    "sqrMagnitude": 0.0
+                  },
+                  "normalized": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0,
+                    "w": 1.0,
+                    "eulerAngles": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0,
+                      "magnitude": 0.0,
+                      "sqrMagnitude": 0.0
+                    }
+                  }
+                },
+                "scale": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                },
+                "guid": null
+              },
+              "CurrentActionType": 0,
+              "BeforeActionType": 0,
+              "NextActionType": 0,
+              "gameEntityAnimationData": null,
+              "thisAttackPattern": null,
+              "prefabName": "Great Warior",
+              "position": {
+                "x": 18.0,
+                "y": 0.0,
+                "z": 20.0,
+                "normalized": {
+                  "x": 0.668964744,
+                  "y": 0.0,
+                  "z": 0.7432942,
+                  "magnitude": 1.0,
+                  "sqrMagnitude": 1.00000012
+                },
+                "magnitude": 26.9072475,
+                "sqrMagnitude": 724.0
+              },
+              "rotation": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                }
+              },
+              "scale": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "guid": ""
+            },
+            "prefabName": null,
+            "position": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "rotation": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "w": 0.0,
+              "eulerAngles": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "magnitude": 0.0,
+                "sqrMagnitude": 0.0
+              },
+              "normalized": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0,
+                "w": 1.0,
+                "eulerAngles": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0,
+                  "magnitude": 0.0,
+                  "sqrMagnitude": 0.0
+                }
+              }
+            },
+            "scale": {
+              "x": 0.0,
+              "y": 0.0,
+              "z": 0.0,
+              "magnitude": 0.0,
+              "sqrMagnitude": 0.0
+            },
+            "guid": null
+          }
+        ],
+        "downJam": 0,
+        "cameraPos": {
+          "x": 18.0,
+          "y": 0.0,
+          "z": 18.0,
+          "normalized": {
+            "x": 0.707106769,
+            "y": 0.0,
+            "z": 0.707106769,
+            "magnitude": 1.0,
+            "sqrMagnitude": 0.99999994
+          },
+          "magnitude": 25.4558449,
+          "sqrMagnitude": 648.0
+        },
+        "cameraRot": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0,
+          "w": 1.0,
+          "eulerAngles": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "magnitude": 0.0,
+            "sqrMagnitude": 0.0
+          }
+        }
+      },
+      "campdata": {},
+      "LastScene": 2,
+      "createTime": "2025-11-10 09:09:15",
+      "lastSaveTime": "2025-12-21 22:40:42",
+      "totalPlaySeconds": 41.524247169494629
+    }
+  ]
+}

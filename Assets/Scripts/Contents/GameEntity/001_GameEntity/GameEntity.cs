@@ -1,11 +1,20 @@
+using Data;
+using GLTF.Schema;
+using RootMotion.FinalIK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 using static Define;
+using static UnityEngine.UI.Image;
 using Material = UnityEngine.Material;
 using Random = UnityEngine.Random;
 using Type = System.Type;
+
 
 public interface IAccessories<TAnimator, TSounder> 
     where TAnimator : GameEntityAnimator 
@@ -16,12 +25,27 @@ public interface IAccessories<TAnimator, TSounder>
 }
 
 [RequireComponent(typeof(AttributeSystem))]
-public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameEntitySounder>
+public class GameEntity : 
+    MonoBehaviour, 
+    IAccessories<GameEntityAnimator,  GameEntitySounder>, 
+    ISaveable, 
+    IGuidObject,
+    IInteractable
 {
     // Event
     public event EventHandler OnSpawnObjectSelected; // 오브젝트를 배치하려고 할 때
     public event EventHandler OnObjectSpawned; // 씬에 생성되거나 활성화될 때
     public event EventHandler OnObjectDespawned; // 파괴되거나 비활성화될 때
+    public event EventHandler OnSelectedEvent;
+    public event EventHandler OnDeselectedEvent;
+
+    public string _guid { get; private set; } = string.Empty; // private field로 변경하고 프로퍼티로 접근
+    public string guid => _guid;
+
+    public void SetGUID(string inputGuid)
+    {
+        _guid = inputGuid;
+    }
 
     // Ref
     [Header("Ref")]
@@ -55,7 +79,6 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     public Transform m_ActionsTransform;
 
     protected Dictionary<Type, BaseAction> baseActionDict = new Dictionary<Type, BaseAction>();
-    [SerializeField] protected List<BaseAction> m_BaseActions;  // 디버깅용 List
 
     [SerializeField] float m_fDelayDestroyTime = 3f;
 
@@ -68,15 +91,16 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     public bool m_IsRotateSymmetry { get; private set; }
 
     public bool IsDead => m_AttributeSystem.m_IsDead;
-    public float CurHP 
-    {
-        get => m_AttributeSystem.m_Stat.m_iCurrentHp;
-        set => m_AttributeSystem.m_Stat.m_iCurrentHp = value;
-    }
     public float MaxHP => m_AttributeSystem.m_Stat.m_iMaxHP;
     
     protected virtual void Awake()
     {
+        // 씬에 배치된 오브젝트인 경우, GUID가 없으면 새로 생성
+        if (string.IsNullOrEmpty(_guid))
+        {
+            _guid = Guid.NewGuid().ToString(); // System.Guid를 사용하여 새 GUID 생성
+        }
+
         m_AttributeSystem = GetComponent<AttributeSystem>();
 
         if(m_AnimatorManagers == null)
@@ -86,12 +110,10 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
         m_SetupAnimation = GetComponent<SetupAnimation>();
 
-        m_BaseActions = new List<BaseAction>();
         foreach (var action in GetComponentsInChildren<BaseAction>())
-        {
             baseActionDict[action.GetType()] = action;
-            m_BaseActions.Add(action);
-        }
+
+        m_AttributeSystem.OnDead += ClearAction;
     }
 
     protected virtual void Start()
@@ -115,12 +137,6 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
     public virtual void OnDestroy()
     {
-        m_BaseActions?.Clear();
-        baseActionDict?.Clear();
-        m_BaseActions = null;
-        m_CurrentAction = null;
-        m_NextAction = null;
-        m_BeforeAction = null;   
     }
 
     protected virtual void Update()
@@ -139,17 +155,15 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
                 .ToArray(); // ✅ ToArray()로 즉시 평가 (지연 실행 방지)
 
             // 이제 renderer.materials로 개별 인스턴스 생성
-            m_ModelMaterials = renderers
+            m_ModelMaterials = Enumerable.ToHashSet( renderers
                 .SelectMany(r => r.materials   // ✅ 인스턴스화 발생
                     .Where(m => m != null)
                     .Select(m => (mat: m, obj: r.gameObject)))
-                .ToHashSet();
+                );
         }
 
         return m_ModelMaterials;
     }
-
-
 
     public List<Collider> GetChildColliders()
     {
@@ -158,7 +172,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         // root 포함 모든 자식 탐색
         foreach (Transform child in GetComponentsInChildren<Transform>(true))
         {
-            if (((1 << child.gameObject.layer) & LayerManager.Instance.HitColLayerMask) != 0)
+            if (((1 << child.gameObject.layer) & Managers.Layer.HitColLayerMask) != 0)
             {
                 Collider col = child.GetComponent<Collider>();
                 if (col != null)
@@ -186,14 +200,16 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         }
     }
 
-    public virtual void OnDeselected()
+    public void OnDeselected()
     {
-        //Debug.Log($"{name} DeSelectMe");
+        //Debug.Log($"{name} DeSelect");
+        OnDeselectedEvent?.Invoke(this, EventArgs.Empty);
     }
 
-    public virtual void OnSelected()
+    public void OnSelected()
     {
-        //Debug.Log($"{name} SelectMe");
+        //Debug.Log($"{name} Select");
+        OnSelectedEvent?.Invoke(this, EventArgs.Empty);
     }
 
     public GridPosition GetGridPosition()
@@ -304,7 +320,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
     }
 
     // 보통은 디스폰을 사망 애니메이션이 끝나면 바로 호출.
-    public virtual void DeSpawnStart()
+    public void DeSpawnStart()
     {
         OnObjectDespawned?.Invoke(this, EventArgs.Empty);
     }
@@ -317,6 +333,8 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         Managers.Object.Remove(gameObject);
 
         Managers.Resource.Destroy(gameObject);
+
+        Managers.Selection.Deselect(this);
     }
 
     // 플레이어가 카드에서 오브젝트를 드래그 해서 선택 중일 때
@@ -382,7 +400,7 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
 
     #region Action
 
-    protected virtual void ExecuteAction(object sender, GridPosition args) { }
+    protected virtual void ExecuteAction(object sender, EventArgs args) { }
 
 
     public virtual void SwitchToNextStateAction(BaseAction nextAction)
@@ -446,6 +464,146 @@ public class GameEntity : MonoBehaviour, IAccessories<GameEntityAnimator,  GameE
         return enemyTeams;
     }
 
+    #region Save & Load Data
 
+    public virtual BaseData CaptureSaveData()
+    {
+        var state = GetAnimationsManager().FirstOrDefault();
+
+        GameEntityAnimationData adata = null;
+        
+        if(state != null)
+        {
+            new GameEntityAnimationData()
+            {
+                stateNameHash = state.m_Animator.GetCurrentAnimatorStateInfo(0).fullPathHash,
+                normalizedTime = state.m_Animator.GetCurrentAnimatorStateInfo(0).normalizedTime,
+                speed = GetAnimationsManager().FirstOrDefault().m_Animator.speed,
+            };
+        }
+
+        AttackPatternData attackData = null;
+
+        if(m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
+        {
+            if(combatAction.m_ThisTimeAttack != null)
+            {
+                attackData = combatAction.m_ThisTimeAttack.CaptureSaveData() as AttackPatternData;
+            }
+        }
+
+        return new GameEntityData
+        {
+            prefabName = name,
+            position = transform.position,
+            rotation = transform.rotation,
+            guid = _guid,
+            attributeSystemData = m_AttributeSystem.CaptureSaveData(),
+
+            // Action type
+            CurrentActionType = GetEActionTypeByAction(m_CurrentAction),
+            BeforeActionType = GetEActionTypeByAction(m_BeforeAction),
+            NextActionType = GetEActionTypeByAction(m_NextAction),
+
+            gameEntityAnimationData = adata,
+
+            thisAttackPattern = attackData
+        };
+
+        E_ActionType GetEActionTypeByAction(BaseAction action)
+        {
+            if (action == null)
+                return E_ActionType.None;
+
+            if (action is IdleAction)
+                return E_ActionType.Idle;
+            else if (action is ChaseAction)
+                return E_ActionType.Chase;
+            else if (action is CombatAction)
+                return E_ActionType.Combat;
+            else if (action is PatrolAction)
+                return E_ActionType.Patrol;
+            else if (action is CommandAttackAction)
+                return E_ActionType.CommandAttack;
+            else if (action is CommandMoveAction)
+                return E_ActionType.CommandMove;
+            else 
+                return E_ActionType.None;
+        }
+    }
+
+    public virtual void RestoreSaveData(BaseData data)
+    {
+        GameEntityData gdata = data as GameEntityData;
+        _guid = gdata.guid;
+        transform.position = gdata.position;
+        transform.rotation = gdata.rotation;
+        //m_AttributeSystem.RestoreSaveData(gdata.attributeSystemData);
+        m_CurrentAction = GetActionByEActionType(gdata.CurrentActionType);
+        m_BeforeAction = GetActionByEActionType(gdata.BeforeActionType);
+        m_NextAction = GetActionByEActionType(gdata.NextActionType);
+
+        GameEntityAnimationData animData = gdata.gameEntityAnimationData;
+        if (animData != null)
+        {
+            var animManager = GetAnimationsManager().FirstOrDefault();
+            if (animManager != null)
+            {
+                var animator = animManager.GetComponent<Animator>();
+
+                if (animator != null)
+                {
+
+                    // 2. 저장된 스테이트와 진행 정도(Normalized Time)부터 재생 시작
+                    // Animator.Play(int stateNameHash, int layer, float normalizedTime) 사용
+                    animator.Play(animData.stateNameHash, 0, animData.normalizedTime);
+
+                    animator.speed = animData.speed;
+                    // 로드 후 애니메이터가 멈춰 있을 수 있으므로 speed를 복구합니다.
+                    animManager.AnimationPlay();
+
+                }
+            }
+        }
+
+        if(m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
+        {
+            combatAction.m_ThisTimeAttack = m_AttributeSystem.m_AttackPatterns.Find(attack => attack.ID == gdata.thisAttackPattern.id);
+        }
+
+        BaseAction GetActionByEActionType(E_ActionType action)
+        {
+            if (action == E_ActionType.None)
+                return null;
+
+            switch (action)
+            {
+                case E_ActionType.None:
+                    return null;
+                case E_ActionType.Idle:
+                    return GetAction<IdleAction>();
+                case E_ActionType.Chase:
+                    return GetAction<ChaseAction>();
+                case E_ActionType.Combat:
+                    return GetAction<CombatAction>();
+                case E_ActionType.Patrol:
+                    return GetAction<PatrolAction>();
+                case E_ActionType.CommandAttack:
+                    return GetAction<CommandAttackAction>();
+                case E_ActionType.CommandMove:
+                    return GetAction<CommandMoveAction>();
+                default:
+                    return null;
+            }
+        }
+    }
+
+    public void Interact(Action onInteractionComplete)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    #endregion
 
 }

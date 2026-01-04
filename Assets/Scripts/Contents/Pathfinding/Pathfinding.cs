@@ -8,9 +8,7 @@ using static Define;
 
 public class Pathfinding : MonoBehaviour
 {
-
     public static Pathfinding Instance { get; private set; }
-
 
     private const int MOVE_STRAIGHT_COST = 10;
     private const int MOVE_DIAGONAL_COST = 14;
@@ -37,7 +35,12 @@ public class Pathfinding : MonoBehaviour
         Instance = this;
     }
 
-    public void Setup(int width, int height, float cellSize, int floorAmount)
+    private void Start()
+    {
+        Setup(LevelGrid.Instance.GetWidth(), LevelGrid.Instance.GetHeight(), LevelGrid.Instance.GetCellSize(), LevelGrid.Instance.GetFloorAmount());
+    }
+
+    private void Setup(int width, int height, float cellSize, int floorAmount)
     {
         this.width = width;
         this.height = height;
@@ -72,7 +75,7 @@ public class Pathfinding : MonoBehaviour
                         worldPosition + Vector3.up * raycastOffsetDistance,
                         Vector3.down,
                         raycastOffsetDistance * 2,
-                        LayerManager.Instance.mousePlaneLayerMask))
+                        Managers.Layer.mousePlaneLayerMask))
                     {
                         LevelGrid.Instance.SetGridPositionCellInfo(gridPosition, E_GridCheckType.Walkable, null);
                     }
@@ -81,7 +84,7 @@ public class Pathfinding : MonoBehaviour
                         worldPosition + Vector3.down * raycastOffsetDistance,
                         Vector3.up,
                         raycastOffsetDistance * 2,
-                        LayerManager.Instance.ObstaclesLayerMask))
+                        Managers.Layer.ObstaclesLayerMask))
                     {
                         LevelGrid.Instance.SetGridPositionCellInfo(gridPosition, E_GridCheckType.Obstacle, null);
                     }
@@ -157,13 +160,13 @@ public class Pathfinding : MonoBehaviour
                     continue;
                 }
 
-                bool isStart = neighbourNode == startNode;
-                bool isEnd = neighbourNode == endNode;
+                //bool isStart = neighbourNode == startNode;
+                //bool isEnd = neighbourNode == endNode;
                 var toCheckGridCellInfo = LevelGrid.Instance.GetGridPositionCellInfo(neighbourNode.GetGridPosition());
                 
-                // 1. Walkable이 아니면 기본적으로 제외
-                if (!isStart && !isEnd)
+                //if (!isStart && !isEnd)
                 {
+                    // 1. Walkable이 아니면 기본적으로 제외
                     // 장애물, Void, Unit 등 막힌 칸
                     if (toCheckGridCellInfo.gridType != E_GridCheckType.Walkable)
                     {

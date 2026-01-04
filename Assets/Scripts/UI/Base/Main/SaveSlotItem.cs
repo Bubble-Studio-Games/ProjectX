@@ -15,8 +15,8 @@ public class SaveSlotItem : UI_Base
     public TextMeshProUGUI m_CreateTimeText;
     public TextMeshProUGUI m_PlayTimeText;
 
-    public MenuUI m_MenuUI;
-    public bool m_havingData { get; private set; }
+    private SaveSlotPanel _saveSlotPanel;
+    public bool m_havingData => m_SaveImage != null;
 
     [Header("Sounds")]
     public AudioClip uiButtonClick;
@@ -26,77 +26,62 @@ public class SaveSlotItem : UI_Base
         if (base.Init() == false)
             return false;
 
+        _saveSlotPanel = GetComponentInParent<SaveSlotPanel>();
+
         m_SaveBGImage.gameObject.BindEvent(() => Click());
         m_SaveImage.gameObject.BindEvent(() => Click());
 
-        return true;
-    }
-
-    public void SetData(Sprite image, string createTime, double seconds)
-    {
-        m_SaveImage.sprite = image;
-
-        m_CreateTimeText.text = createTime;
-
-        TimeSpan t = TimeSpan.FromSeconds(seconds);
-        m_PlayTimeText.text = $"{(int)t.TotalHours:D2}:{t.Minutes:D2}:{t.Seconds:D2}";
-
         RefreshUI();
+        return true;
     }
 
     private async void Click()
     {
+        if (_saveSlotPanel == null)
+            return;
+
         // 복붙 기능이 켜져 있음. 원하는 슬롯을 클릭하면 복붙을 함.
-        if(m_MenuUI.m_IsCopying)
+        if (_saveSlotPanel.IsCopying)
         {
-            await Managers.Data.Copy(m_MenuUI.m_iselectSlotID, slotID);
-            m_MenuUI.RefreshUI(); // 슬롯 데이터 갱신
-            m_MenuUI.CopyComplete();
+            await Managers.Save.CopySlotAsync(_saveSlotPanel.SelectedSlotID, slotID);
+            _saveSlotPanel.RefreshUI();
+            _saveSlotPanel.CopyComplete();
         }
 
-        m_MenuUI.SlotsClickCancel();
-        m_MenuUI.IsClickingSlot(m_havingData);
-        m_MenuUI.m_iselectSlotID = slotID;
+        _saveSlotPanel.CancelAllSlotSelection();
+        _saveSlotPanel.UpdateSlotButtons(m_havingData);
+        _saveSlotPanel.SetSelectedSlot(slotID);
 
         m_SaveBGImage.color = Color.red;
+
+        Managers.Sound.Play(uiButtonClick);
 
         RefreshUI();
     }
 
-    public void ClickCancle()
-    {
-        m_SaveBGImage.color = Color.white;
-    }
-
-    public void ClearData()
-    {
-        m_CreateTimeText.text = null;
-        m_PlayTimeText.text = null;
-        m_SaveImage.sprite = null;
-        m_havingData = false;
-    }
+    public void ClickCancle() => m_SaveBGImage.color = Color.white;
 
     public override void RefreshUI()
     {
-        //Debug.Log("Save Slot Item Refresh");
-
-        // Image
-        if (m_SaveImage.sprite == null)
-            m_havingData = false;
-        else
-            m_havingData = true;
-
-        // Create Time & Play Time
-
-        if (string.IsNullOrEmpty(m_CreateTimeText.text))
+        if(Managers.Data.SaveDic.TryGetValue(slotID, out var slot))
         {
-            m_CreateTimeText.gameObject.SetActive(false);
-            m_PlayTimeText.gameObject.SetActive(false);
+            m_SaveImage.sprite = Managers.Game.LoadScreenShot(slotID);
+            m_CreateTimeText.text = slot.createTime;
+
+            TimeSpan t = TimeSpan.FromSeconds(slot.totalPlaySeconds);
+            m_PlayTimeText.text = $"{(int)t.TotalHours:D2}:{t.Minutes:D2}:{t.Seconds:D2}";
+
+            m_CreateTimeText.gameObject.SetActive(true);
+            m_PlayTimeText.gameObject.SetActive(true);
         }
         else
         {
-            m_CreateTimeText.gameObject.SetActive(true);
-            m_PlayTimeText.gameObject.SetActive(true);
+            m_SaveImage.sprite = null;
+            m_CreateTimeText.text = null;
+            m_PlayTimeText.text = null;
+
+            m_CreateTimeText.gameObject.SetActive(false);
+            m_PlayTimeText.gameObject.SetActive(false);
         }
     }
 

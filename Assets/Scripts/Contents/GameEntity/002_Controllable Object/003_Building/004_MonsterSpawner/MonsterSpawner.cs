@@ -59,7 +59,7 @@ public class MonsterSpawner : PassiveObject
             UnitActionSystem.Instance.OnUpdateActionTick -= ExecuteAction;
     }
 
-    protected override void ExecuteAction(object sender, GridPosition args)
+    protected override void ExecuteAction(object sender, EventArgs args)
     {
         base.ExecuteAction(sender, args);
 

@@ -7,13 +7,11 @@ public class LookAtCamera : MonoBehaviour
 
     [SerializeField] private bool invert;
 
-
     private Transform cameraTransform;
 
-
-    private void Awake()
+    private void Start()
     {
-        cameraTransform = Camera.main.transform;
+        cameraTransform = CameraController.Instance.m_UICamera.transform;
     }
 
     private void LateUpdate()
