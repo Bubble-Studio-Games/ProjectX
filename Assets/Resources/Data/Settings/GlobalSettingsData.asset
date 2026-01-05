@@ -15,5 +15,5 @@ MonoBehaviour:
   _mouseSettings: {fileID: 11400000, guid: 7800ec119449f0a49a76fdc9bf5e45d1, type: 2}
   _npcSettings: {fileID: 11400000, guid: 62e2e6c8bbf5c4f4bba4f39651ceed82, type: 2}
   _dialogueSettings: {fileID: 11400000, guid: 725a8ea4527057c4ebfb967a23879ee9, type: 2}
-  _startSettings: {fileID: 11400000, guid: 582845c4da020d94f83778246afa5836, type: 2}
+  _sceneSettings: {fileID: 11400000, guid: 582845c4da020d94f83778246afa5836, type: 2}
   _inventorySettings: {fileID: 11400000, guid: e4f9db21f30855042af5dca637e3bc3c, type: 2}

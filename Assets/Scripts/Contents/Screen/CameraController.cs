@@ -49,7 +49,7 @@ public class CameraController : MonoBehaviour
         {
             InputManager.Instance.OnActionMapChanged += OnActionMapChanged;
             // 현재 ActionMap 상태에 맞춰 초기화
-            OnActionMapChanged(InputManager.Instance.CurrentActionMapGroup);
+            OnActionMapChanged(InputManager.Instance.CurrentActionMap);
         }
     }
 
@@ -102,11 +102,11 @@ public class CameraController : MonoBehaviour
     /// <summary>
     /// ActionMap 변경 시 호출되는 콜백
     /// </summary>
-    private void OnActionMapChanged(string newActionMap)
+    private void OnActionMapChanged(Define.E_InputActionMap? newActionMap)
     {
-        bool isGamePlay = newActionMap == "GamePlay";
+        bool isGamePlay = newActionMap == Define.E_InputActionMap.Game;
 
-        // GamePlay가 아니면 모든 Cinemachine 입력 비활성화
+        // Game이 아니면 모든 Cinemachine 입력 비활성화
         if (isGamePlay == false)
         {
             DisableAllCMControllers();
@@ -121,8 +121,8 @@ public class CameraController : MonoBehaviour
         if (InputManager.Instance == null)
             return;
 
-        // GamePlay ActionMap이 아니면 비활성화
-        if (InputManager.Instance.CurrentActionMapGroup != "GamePlay")
+        // Game ActionMap이 아니면 비활성화
+        if (InputManager.Instance.CurrentActionMap != Define.E_InputActionMap.Game)
         {
             DisableAllCMControllers();
             return;

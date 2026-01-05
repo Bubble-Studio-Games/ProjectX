@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using static Define;
+using E_InputActionMap = Define.E_InputActionMap;
 
 public class InputManager : MonoBehaviour
 {
@@ -12,32 +13,10 @@ public class InputManager : MonoBehaviour
 
     public bool mouse_R_Hold;
 
-    private Stack<string> _actionMapStack = new();
+    private Stack<E_InputActionMap> _actionMapStack = new();
     private bool _isGameInputSubscribed = false;
-    public string CurrentActionMapGroup => _actionMapStack.Count > 0 ? _actionMapStack.Peek() : "None";
-    public Define.InputActionMap? CurrentActionMapType
-    {
-        get
-        {
-            if (_actionMapStack.Count == 0)
-                return null;
-
-            var currentName = _actionMapStack.Peek();
-            return currentName switch
-            {
-                "Lobby" => Define.InputActionMap.Lobby,
-                "Game" => Define.InputActionMap.Game,
-                "Dialogue" => Define.InputActionMap.Dialogue,
-                "Tutorial" => Define.InputActionMap.Tutorial,
-                _ => null
-            };
-        }
-    }
-
-    /// <summary>
-    /// ActionMap 변경 시 발생하는 이벤트 - 새로운 ActionMap 이름 전달
-    /// </summary>
-    public event Action<string> OnActionMapChanged;
+    public E_InputActionMap? CurrentActionMap => _actionMapStack.Count > 0 ? _actionMapStack.Peek() : null;
+    public event Action<E_InputActionMap?> OnActionMapChanged;
 
     private void Awake()
     {
@@ -49,10 +28,7 @@ public class InputManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
-
         InputActions = new PlayerInputActions();
-
-        // 기본 액션맵 제거 - 각 씬에서 필요한 액션맵을 직접 활성화
     }
 
     private void OnDestroy()
@@ -63,58 +39,27 @@ public class InputManager : MonoBehaviour
         InputActions.Dispose();
     }
 
-    #region ActionMap Stack 시스템
-
-    /// <summary>
-    /// 열거형 → 문자열 변환
-    /// </summary>
-    private string ActionMapTypeToString(Define.InputActionMap mapType)
-    {
-        var ret = mapType switch
-        {
-            Define.InputActionMap.Lobby => "Lobby",
-            Define.InputActionMap.Game => "Game",
-            Define.InputActionMap.Dialogue => "Dialogue",
-            Define.InputActionMap.Tutorial => "Tutorial",
-            _ => throw new ArgumentException($"지원하지 않는 ActionMapType: {mapType}")
-        };
-        return ret;
-    }
-
-    /// <summary>
-    /// ActionMap 그룹 추가 - 열거형 기반 타입 안전 버전
-    /// </summary>
-    public void PushActionMapGroup(Define.InputActionMap mapType)
-    {
-        var ret = ActionMapTypeToString(mapType);
-        PushActionMapGroup(ret);
-    }
-
     /// <summary>
     /// ActionMap 그룹 추가 - 이전 상태는 스택에 저장
     /// </summary>
-    public void PushActionMapGroup(string groupName)
+    public void PushActionMapGroup(Define.E_InputActionMap actionMap)
     {
         // 이미 최상단에 같은 그룹이 있으면 무시
-        if (_actionMapStack.Count > 0 && _actionMapStack.Peek() == groupName)
-        {
-            Debug.LogWarning($"[입력] {groupName}이 이미 활성화되어 있습니다.");
+        if (_actionMapStack.Count > 0 && _actionMapStack.Peek() == actionMap)
             return;
-        }
 
         // 현재 활성 그룹 비활성화
         if (_actionMapStack.Count > 0)
-        {
             DisableActionMapGroup(_actionMapStack.Peek());
-        }
 
-        _actionMapStack.Push(groupName);
-        EnableActionMapGroup(groupName);
+        _actionMapStack.Push(actionMap);
+        EnableActionMapGroup(actionMap);
 
-        Debug.Log($"[입력] 추가됨: {groupName} | 스택: [{string.Join(" → ", _actionMapStack)}]");
-
-        // ActionMap 변경 이벤트 발생
-        OnActionMapChanged?.Invoke(groupName);
+        OnActionMapChanged?.Invoke(actionMap);
+        
+#if UNITY_EDITOR
+        GlobalSettings.Instance?.Scene?.SyncInputStack(_actionMapStack);
+#endif
     }
 
     /// <summary>
@@ -122,7 +67,7 @@ public class InputManager : MonoBehaviour
     /// </summary>
     public void PopActionMapGroup()
     {
-        if (_actionMapStack.Count == 0)
+        if (_actionMapStack.Count <= 0)
         {
             Debug.LogWarning("[입력] 스택이 비어있습니다! Pop할 수 없습니다.");
             return;
@@ -136,61 +81,59 @@ public class InputManager : MonoBehaviour
         {
             var previous = _actionMapStack.Peek();
             EnableActionMapGroup(previous);
-            Debug.Log($"[입력] 제거됨: {current} | 복구됨: {previous}");
-
-            // ActionMap 변경 이벤트 발생
             OnActionMapChanged?.Invoke(previous);
         }
         else
         {
-            Debug.LogWarning("[입력] Pop 후 스택이 비어있습니다!");
-
-            // ActionMap이 없는 상태로 변경
-            OnActionMapChanged?.Invoke("None");
+            OnActionMapChanged?.Invoke(null);
         }
+        
+#if UNITY_EDITOR
+        GlobalSettings.Instance?.Scene?.SyncInputStack(_actionMapStack);
+#endif
     }
 
-    private void EnableActionMapGroup(string groupName)
+    private void EnableActionMapGroup(Define.E_InputActionMap actionMap)
     {
-        switch (groupName)
+        switch (actionMap)
         {
-            case "Lobby":
+            case Define.E_InputActionMap.Lobby:
                 InputActions.Lobby.Enable();
                 break;
 
-            case "Game":
-                SubscribeGameInput();
+            case Define.E_InputActionMap.Game:
+                SubGameInput();
                 InputActions.Game.Enable();
                 break;
 
-            case "Dialogue":
+            case Define.E_InputActionMap.Dialogue:
                 InputActions.Dialogue.Enable();
                 break;
 
-            case "Tutorial":
+            case Define.E_InputActionMap.Tutorial:
                 InputActions.Tutorial.Enable();
                 break;
         }
     }
 
-    private void DisableActionMapGroup(string groupName)
+    private void DisableActionMapGroup(Define.E_InputActionMap actionMap)
     {
-        switch (groupName)
+        switch (actionMap)
         {
-            case "Lobby":
+            case Define.E_InputActionMap.Lobby:
                 InputActions.Lobby.Disable();
                 break;
 
-            case "Game":
-                UnsubscribeGameInput();
+            case Define.E_InputActionMap.Game:
+                UnsubGameInput();
                 InputActions.Game.Disable();
                 break;
 
-            case "Dialogue":
+            case Define.E_InputActionMap.Dialogue:
                 InputActions.Dialogue.Disable();
                 break;
 
-            case "Tutorial":
+            case Define.E_InputActionMap.Tutorial:
                 InputActions.Tutorial.Disable();
                 break;
         }
@@ -198,7 +141,7 @@ public class InputManager : MonoBehaviour
 
     #region Game ActionMap 구독 관리
 
-    private void SubscribeGameInput()
+    private void SubGameInput()
     {
         if (_isGameInputSubscribed == true)
         {
@@ -214,7 +157,7 @@ public class InputManager : MonoBehaviour
         InputActions.Game.LeftClick.canceled += Handle_Mouse_Left_Canceled;
     }
 
-    private void UnsubscribeGameInput()
+    private void UnsubGameInput()
     {
         if (_isGameInputSubscribed == false)
         {
@@ -229,8 +172,6 @@ public class InputManager : MonoBehaviour
         InputActions.Game.LeftClick.performed -= Handle_Mouse_Left_Input;
         InputActions.Game.LeftClick.canceled -= Handle_Mouse_Left_Canceled;
     }
-
-    #endregion
 
     #endregion
 

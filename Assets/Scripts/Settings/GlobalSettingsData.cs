@@ -16,8 +16,8 @@ public class GlobalSettingsData : ScriptableObject
 	public DialogueSettings DialogueSettings => _dialogueSettings;
 
 	[Header("시작 설정")]
-	[SerializeField] private StartSettings _startSettings;
-	public StartSettings StartSettings => _startSettings;
+	[SerializeField] private SceneSettings _sceneSettings;
+	public SceneSettings SceneSettings => _sceneSettings;
 
 	[Header("인벤토리 설정")]
 	[SerializeField] private InventorySettings _inventorySettings;

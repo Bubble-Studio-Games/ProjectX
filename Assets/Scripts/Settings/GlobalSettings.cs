@@ -26,7 +26,7 @@ public class GlobalSettings : MonoBehaviour
 	public MouseSettings Mouse => SettingsData?.MouseSettings;
 	public NPCSettings NPC => SettingsData?.NPCSettings;
 	public DialogueSettings Dialogue => SettingsData?.DialogueSettings;
-	public StartSettings Start => SettingsData?.StartSettings;
+	public SceneSettings Scene => SettingsData?.SceneSettings;
 	public InventorySettings Inventory => SettingsData?.InventorySettings;
 
 	private void Awake()
@@ -46,9 +46,14 @@ public class GlobalSettings : MonoBehaviour
 		_eventSystem = this.GetComponentInChildren<EventSystem>();
 	}
 
-	
+    private void OnDestroy()
+    {
+        Scene?.Clear();
+    }
 
-	private bool Validate()
+
+
+    private bool Validate()
 	{
 		if (_settingsData == null)
 		{

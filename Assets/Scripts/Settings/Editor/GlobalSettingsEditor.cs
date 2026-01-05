@@ -1,5 +1,7 @@
 using UnityEditor;
 using UnityEngine;
+using System.Linq;
+using System.Reflection;
 
 /// <summary>
 /// GlobalSettings Custom Inspector - 탭 기반 설정 편집
@@ -10,21 +12,10 @@ public class GlobalSettingsEditor : Editor
 	private const string TAB_INDEX_KEY = "GlobalSettingsEditor_SelectedTab";
 	private const int MAX_TABS_PER_ROW = 4;
 
-	/// <summary>
-	/// 탭 정보 - 탭 이름과 프로퍼티 이름 매핑
-	/// </summary>
-	private readonly (string tabName, string propertyName)[] _tabs =
-	{
-		("마우스", "_mouseSettings"),
-		("NPC", "_npcSettings"),
-		("다이얼로그", "_dialogueSettings"),
-		("시작", "_startSettings"),
-		("인벤토리", "_inventorySettings"),
-	};
-
 	private SerializedProperty _settingsDataProp;
 	private SerializedObject _settingsDataObj;
 	private int _selectedTab;
+	private (string tabName, string propertyName)[] _tabs;
 	private string[] _tabNames;
 
 	private void OnEnable()
@@ -32,14 +23,46 @@ public class GlobalSettingsEditor : Editor
 		_settingsDataProp = serializedObject.FindProperty("_settingsData");
 		_selectedTab = EditorPrefs.GetInt(TAB_INDEX_KEY, 0);
 
-		// 탭 이름 배열 생성
-		_tabNames = new string[_tabs.Length];
-		for (int i = 0; i < _tabs.Length; i++)
-		{
-			_tabNames[i] = _tabs[i].tabName;
-		}
-
+		InitTabsFromReflection();
 		CacheSettingsDataObject();
+		
+		// 플레이 모드 중 인스펙터 자동 업데이트
+		EditorApplication.update += OnRepaint;
+	}
+	
+	private void OnDisable()
+	{
+		EditorApplication.update -= OnRepaint;
+	}
+	
+	private void OnRepaint()
+	{
+		if (EditorApplication.isPlaying)
+			Repaint();
+	}
+
+	private void InitTabsFromReflection()
+	{
+		var fields = typeof(GlobalSettingsData)
+			.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+			.Where(f => f.FieldType.IsSubclassOf(typeof(ScriptableObject)))
+			.OrderBy(f => f.MetadataToken)
+			.ToArray();
+
+		_tabs = fields.Select(f =>
+		{
+			var tabName = f.Name.Replace("_", "").Replace("Settings", "").Replace("settings", "");
+			if (tabName == "mouse") tabName = "마우스";
+			else if (tabName == "npc") tabName = "NPC";
+			else if (tabName == "dialogue") tabName = "다이얼로그";
+			else if (tabName == "scene") tabName = "씬";
+			else if (tabName == "inventory") tabName = "인벤토리";
+
+			var ret = (tabName, f.Name);
+			return ret;
+		}).ToArray();
+
+		_tabNames = _tabs.Select(t => t.tabName).ToArray();
 	}
 
 	/// <summary>
@@ -97,9 +120,18 @@ public class GlobalSettingsEditor : Editor
 	{
 		SerializedProperty categoryProp = _settingsDataObj.FindProperty(propertyName);
 
+		if (categoryProp == null)
+		{
+			EditorGUILayout.HelpBox(
+				$"[에러] '{propertyName}' 필드를 GlobalSettingsData에서 찾을 수 없습니다.\n" +
+				$"GlobalSettingsData.cs의 필드명과 에디터 스크립트의 매핑을 확인하세요.",
+				MessageType.Error
+			);
+			return;
+		}
+
 		EditorGUILayout.BeginVertical(EditorStyles.helpBox);
 
-		// SO 할당 필드
 		EditorGUILayout.PropertyField(categoryProp, new GUIContent("에셋"));
 
 		if (categoryProp.objectReferenceValue != null)

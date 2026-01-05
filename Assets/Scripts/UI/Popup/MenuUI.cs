@@ -25,7 +25,8 @@ public class MenuUI : UI_Popup
         SaveSlot_Btn,
         Setting_Btn,
         GameChallenges_Btn,
-        Quit_Btn
+        Quit_Btn,
+        GoToLobby_Btn,
     }
 
     public enum GameObjects
@@ -173,6 +174,14 @@ public class MenuUI : UI_Popup
         PressButtonSetAction(GetButton((int)Buttons.Save_Btn), OnSaveButtonClicked);
         PressButtonSetAction(GetButton((int)Buttons.Quit_Btn), OnQuitButtonClicked);
         PressButtonSetAction(GetComponentsInChildren<Button>(), OnAnyButtonClicked);
+        PressButtonSetAction(GetButton((int)Buttons.GoToLobby_Btn), OnGoToLobbyButtonClicked);
+    }
+
+    private async void OnGoToLobbyButtonClicked()
+    {
+        DisableAllButtons();
+        await Managers.Save.SaveAllData();
+        _ = Managers.Scene.LoadSceneAsync(Define.Scene.Start);
     }
 
     /// <summary>
@@ -194,6 +203,7 @@ public class MenuUI : UI_Popup
 
     private void OnContinueFromStart()
     {
+        DisableAllButtons();
         var data = Managers.Load.GetContinueSaveData();
         Managers.UI.ClosePopupUI<MenuUI>();
         Managers.Scene.LoadScene(data.LastScene);
@@ -207,6 +217,7 @@ public class MenuUI : UI_Popup
 
     private async void OnNewGameButtonClicked()
     {
+        DisableAllButtons();
         await Managers.Save.SaveAllData();
         Managers.Game.ResumeGame();
         Managers.UI.ClosePopupUI<MenuUI>();
@@ -290,6 +301,13 @@ public class MenuUI : UI_Popup
     private void Active(GameObject gameObject, bool active)
     {
         gameObject.SetActive(active);
+    }
+
+    private void DisableAllButtons()
+    {
+        var buttons = GetComponentsInChildren<Button>();
+        foreach (var button in buttons)
+            button.interactable = false;
     }
 
     public override void RefreshUI()

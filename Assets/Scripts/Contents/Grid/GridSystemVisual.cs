@@ -1,12 +1,10 @@
 using RootMotion.FinalIK;
-using SixLabors.ImageSharp.ColorSpaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using static Define;
-using static UnityEngine.UI.CanvasScaler;
 
 public class GridSystemVisual : MonoBehaviour
 {
