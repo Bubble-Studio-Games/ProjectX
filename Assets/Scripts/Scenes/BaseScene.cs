@@ -52,5 +52,5 @@ public abstract class BaseScene : MonoBehaviour
         }
     }
 
-	protected virtual InputActionMap GetRequiredActionMap() => InputActionMap.Lobby;
+	protected virtual E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Lobby;
 }

@@ -17,38 +17,14 @@ MonoBehaviour:
     m_SerializedData: []
   m_GUID: a6e337c4f19b8fd40a577ab41ad29c64
   m_SerializeEntries:
-  - m_GUID: 338c31623dc1cb942b4eb41d94aaf638
-    m_Address: Start
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Scene
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4fb076b546b0a3149845aa6d67b4863d
     m_Address: LMStartScene
     m_ReadOnly: 0
     m_SerializedLabels:
     - Scene
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b97294d76002f464a8a66d77d4157600
-    m_Address: Camp
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Scene
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c7139cded6abd8d4eb4589e295e47dcd
-    m_Address: LMGameScene
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Scene
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f0735bc72cb427c49926298e48912272
-    m_Address: Dungeon
-    m_ReadOnly: 0
-    m_SerializedLabels:
-    - Scene
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: fa24f99e7a737504a9f1265490e728ed
-    m_Address: Loading
+    m_Address: LMDungeonScene
     m_ReadOnly: 0
     m_SerializedLabels:
     - Scene

@@ -310,12 +310,15 @@ public partial class Define
         Loading,
         Camp, // 거점 구역
 
-        LMGameScene = -100,
-        LMCampScene = -200,
+
+
+
+
+        LMDungeonScene = -100,
         LMStartScene = -300,
     }
 
-    public enum InputActionMap
+    public enum E_InputActionMap
     {
         Lobby,
         Game,

@@ -17,8 +17,9 @@ public class CampScene : BaseScene
 
         tempButton.onClick.AddListener(async () =>
         {
+            tempButton.interactable = false;
             await Managers.Save.SaveAllData();
-            _ = Managers.Scene.LoadSceneAsync(Define.Scene.LMGameScene, () =>
+            _ = Managers.Scene.LoadSceneAsync(Define.Scene.Dungeon, () =>
             {
                 Debug.Log("캠프씬에서 던전씬으로 이동 완료");
             });
@@ -38,5 +39,5 @@ public class CampScene : BaseScene
         base.Clear();
     }
 
-    protected override InputActionMap GetRequiredActionMap() => InputActionMap.Lobby;
+    protected override E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Lobby;
 }

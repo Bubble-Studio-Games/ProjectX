@@ -167,7 +167,7 @@ public class DialogueManager
             Debug.LogError("InputManager가 존재하지 않습니다.");
             return;
         }
-        input.PushActionMapGroup(Define.InputActionMap.Dialogue);
+        input.PushActionMapGroup(Define.E_InputActionMap.Dialogue);
         SubscribeInput(input);
 
         _dialogueUI = Managers.UI.ShowPopupUI<DialogueUI>();

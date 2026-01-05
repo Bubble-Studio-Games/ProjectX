@@ -10,12 +10,10 @@ public class NPCSpawner : MonoBehaviour
     private const string GOAL_REACHED_NOTIFICATION = "✅ {0}이(가) 던전 코어에 도달했습니다.";
 
     private Coroutine _spawnCoroutine;
-    private GlobalSettings _settings;
 
     public void SetUp()
     {
-        return;
-        _settings = GlobalSettings.Instance;
+        Clear();
         _spawnCoroutine = StartCoroutine(SpawnNPCPeriodically());
     }
 
@@ -23,37 +21,39 @@ public class NPCSpawner : MonoBehaviour
     {
         StopAllCoroutines();
         _spawnCoroutine = null;
-        _settings = null;
     }
 
     private void OnDestroy()
     {
-        StopAllCoroutines();
-        _spawnCoroutine = null;
-        _settings = null;
+        Clear();
+    }
+
+    private void OnDisable()
+    {
+        Clear();
     }
 
     private IEnumerator SpawnNPCPeriodically()
     {
         while (true)
         {
-            yield return new WaitForSeconds(_settings.NPC.SpawnInterval);
-            SpawnNPC();
+            yield return new WaitForSeconds(3.0f /*_settings.NPC.SpawnInterval*/);
+            // SpawnNPC();
         }
     }
 
     private void SpawnNPC()
     {
-        int npcCount = _settings.NPC.NpcCountPerSpawn;
+        // int npcCount = _settings.NPC.NpcCountPerSpawn;
 
-        for (int i = 0; i < npcCount; i++)
-        {
-        }
+        // for (int i = 0; i < npcCount; i++)
+        // {
+        // }
 
-        string notification = npcCount == 1
-            ? string.Format(SPAWN_NOTIFICATION_SINGLE, "NPC")
-            : string.Format(SPAWN_NOTIFICATION_MULTIPLE, npcCount);
+        // string notification = npcCount == 1
+        //     ? string.Format(SPAWN_NOTIFICATION_SINGLE, "NPC")
+        //     : string.Format(SPAWN_NOTIFICATION_MULTIPLE, npcCount);
 
-        Debug.Log(notification);
+        // Debug.Log(notification);
     }
 }

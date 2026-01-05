@@ -17,5 +17,5 @@ public class TestScene : BaseScene
         base.Clear();
     }
 
-    protected override InputActionMap GetRequiredActionMap() => InputActionMap.Lobby;
+    protected override E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Lobby;
 }

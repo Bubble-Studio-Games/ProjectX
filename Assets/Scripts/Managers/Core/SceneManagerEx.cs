@@ -1,19 +1,23 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
 
 public class SceneManagerEx
 {
+    private const float DEFAULT_TIMEOUT_SECONDS = 30f;
+
     public BaseScene CurrentScene { get { return GameObject.FindFirstObjectByType<BaseScene>(); } }
     public Define.Scene NextScene { get; private set; }
 
-	public void LoadScene(Define.Scene type)
+    public void LoadScene(Define.Scene type)
     {
         Managers.Clear();
 
@@ -24,16 +28,39 @@ public class SceneManagerEx
     }
 
 
-    string GetSceneName(Define.Scene type)
+    public string GetSceneName(Define.Scene type)
     {
-        string name = System.Enum.GetName(typeof(Define.Scene), type);
-        return name;
+        if (GlobalSettings.Instance == null)
+        {
+            Debug.LogWarning("[SceneManagerEx] GlobalSettings가 없어 Enum 이름을 직접 사용합니다.");
+            var ret = Enum.GetName(typeof(Define.Scene), type);
+            return ret;
+        }
+
+        var sceneSettings = GlobalSettings.Instance.Scene;
+        if (sceneSettings == null)
+        {
+            Debug.LogWarning("[SceneManagerEx] SceneSettings가 없어 Enum 이름을 직접 사용합니다.");
+            var ret = Enum.GetName(typeof(Define.Scene), type);
+            return ret;
+        }
+
+        var sceneName = type switch
+        {
+            Define.Scene.Start => sceneSettings.GetStartScene().ToString(),
+            Define.Scene.Camp => sceneSettings.GetCampScene().ToString(),
+            Define.Scene.Dungeon => sceneSettings.GetDungeonScene().ToString(),
+            Define.Scene.Loading => sceneSettings.GetLoadingScene().ToString(),
+            _ => Enum.GetName(typeof(Define.Scene), type)
+        };
+
+        return sceneName;
     }
 
     public string GetNextSceneName()
     {
-        string name = System.Enum.GetName(typeof(Define.Scene), NextScene);
-        return name;
+        var ret = GetSceneName(NextScene);
+        return ret;
     }
 
     public string GetCurrentSceneName()
@@ -46,7 +73,6 @@ public class SceneManagerEx
     {
         CurrentScene.Clear();
         NextScene = Define.Scene.Unknown;
-        _sceneInstances.Clear();
     }
 
 
@@ -55,53 +81,75 @@ public class SceneManagerEx
 
     public async Task LoadSceneAsync(Define.Scene nextScene, Action onComplete = null)
     {
-        string currentSceneName = GetCurrentSceneName();
-
-        // 로딩씬 로드
-        var loadingTCS = new TaskCompletionSource<SceneInstance>();
-        Addressables.LoadSceneAsync(Define.Scene.Loading.ToString(), LoadSceneMode.Additive, activateOnLoad: true).Completed += (handle) =>
+        try
         {
-            SceneManager.SetActiveScene(handle.Result.Scene);
-            loadingTCS.SetResult(handle.Result);
-        };
-        await loadingTCS.Task;
+            Managers.Clear();
+            string currentSceneName = GetCurrentSceneName();
 
-        // 현재씬 언로드
-        var unLoadTCS = new TaskCompletionSource<bool>();
-        if (TryGetSceneInstance(currentSceneName, out var instance))
-        {
-            Addressables.UnloadSceneAsync(instance);
-            _sceneInstances.Remove(currentSceneName);
-            unLoadTCS.SetResult(true);
+            // 로딩씬 로드
+            var loadingHandle = Addressables.LoadSceneAsync(GetSceneName(Define.Scene.Loading), LoadSceneMode.Additive, activateOnLoad: true);
+            var loadingInstance = await loadingHandle.Task;
+
+            if (loadingHandle.Status != AsyncOperationStatus.Succeeded)
+            {
+                Debug.LogError($"[SceneManagerEx] 로딩 씬 로드 실패: {loadingHandle.Status}");
+                return;
+            }
+            SceneManager.SetActiveScene(loadingInstance.Scene);
+
+            // 현재씬 언로드
+            if (TryGetSceneInstance(currentSceneName, out var instance))
+            {
+                _sceneInstances.Remove(currentSceneName);
+                var unloadHandle = Addressables.UnloadSceneAsync(instance);
+                await Task.WhenAll(unloadHandle.Task, Task.Delay(3000));
+            }
+            else
+            {
+                await Task.Delay(3000);
+            }
+
+            // 다음씬 로드
+            string nextSceneName = GetSceneName(nextScene);
+            var nextHandle = Addressables.LoadSceneAsync(nextSceneName, LoadSceneMode.Additive, activateOnLoad: true);
+            var nextInstance = await nextHandle.Task;
+
+            if (nextHandle.Status != AsyncOperationStatus.Succeeded)
+            {
+                Debug.LogError($"[SceneManagerEx] 다음 씬 로드 실패: {nextSceneName}");
+                return;
+            }
+            SceneManager.SetActiveScene(nextInstance.Scene);
+            AddSceneInstance(nextSceneName, nextInstance);
+            onComplete?.Invoke();
+
+            // 로딩씬 언로드
+            await Addressables.UnloadSceneAsync(loadingInstance).Task;
         }
-        await Task.WhenAll(unLoadTCS.Task, Task.Delay(3000));
-
-        // 다음씬 로드
-        var nextTCS = new TaskCompletionSource<bool>();
-        Addressables.LoadSceneAsync(GetSceneName(nextScene), LoadSceneMode.Additive, activateOnLoad: true).Completed += (handle) =>
+        catch (Exception ex)
         {
-            SceneManager.SetActiveScene(handle.Result.Scene);
-            AddSceneIsntance(GetSceneName(nextScene), handle.Result);
-            onComplete?.Invoke();
-            nextTCS.SetResult(true);
-        };
-        await nextTCS.Task;
-
-        // 로딩씬 언로드
-        Addressables.UnloadSceneAsync(loadingTCS.Task.Result);
+            Debug.LogError($"[SceneManagerEx] 씬 전환 중 예외 발생: {ex.Message}");
+        }
     }
 
-    public void AddSceneAdditive(Define.Scene nextScene, Action onComplete = null)
+    public async void AddSceneAdditive(Define.Scene nextScene, Action onComplete = null)
     {
-        Addressables.LoadSceneAsync(GetSceneName(nextScene), LoadSceneMode.Additive).Completed += (handle) =>
+        string sceneName = GetSceneName(nextScene);
+        var handle = Addressables.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+        var instance = await handle.Task;
+
+        if (handle.Status != AsyncOperationStatus.Succeeded)
         {
-            SceneManager.SetActiveScene(handle.Result.Scene);
-            AddSceneIsntance(GetSceneName(nextScene), handle.Result);
-            onComplete?.Invoke();
-        };
+            Debug.LogError($"[SceneManagerEx] Additive 씬 로드 실패: {sceneName}");
+            return;
+        }
+
+        SceneManager.SetActiveScene(instance.Scene);
+        AddSceneInstance(sceneName, instance);
+        onComplete?.Invoke();
     }
 
-    private void AddSceneIsntance(string sceneName, SceneInstance instance)
+    private void AddSceneInstance(string sceneName, SceneInstance instance)
     {
         if (_sceneInstances.ContainsKey(sceneName) == false)
             _sceneInstances.Add(sceneName, instance);
