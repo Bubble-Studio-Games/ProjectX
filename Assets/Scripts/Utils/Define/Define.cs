@@ -355,6 +355,11 @@ public partial class Define
         Test = 3,
         Loading,
         Camp, // 거점 구역
+
+        // TODO 코드 리팩토링 작업 다하고 삭제 바람. (2026. 01. 06 작성)
+        LMGameScene = -100,
+        LMCampScene = -200,
+        LMStartScene = -300,
     }
 
     public enum Sound

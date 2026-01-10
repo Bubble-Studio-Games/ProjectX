@@ -1,11 +1,7 @@
 #define USE_NEW_INPUT_SYSTEM
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.Collections;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using static Define;
 
 
@@ -67,19 +63,30 @@ public enum E_InputEvent
 // 입력만 관리함
 [DisallowMultipleComponent]
 [EditorShowInfo(
-@"InputRouter
+@"
+역할:
+- Unity InputSystem(PlayerInputActions)으로부터 ""물리 입력""을 수신한다.
+- 입력을 게임 로직으로 직접 전달하지 않는다.
+- 모든 입력을 E_InputEvent 기준으로 정규화하여:
+    1) EventMap을 통해 ""순간 이벤트""를 발행하고
+    2) 내부 상태(HashSet<E_InputEvent>)로 ""현재 입력 상태""를 관리한다.
 
-• Collects raw input from Unity InputSystem
-• Normalizes input into E_InputEvent
-• Manages input states (Hold / Active)
-• Emits input events via EventMap
+책임:
+- 입력의 해석, 게임 규칙, 월드/선택 로직을 절대 포함하지 않는다.
+- MouseWorld, UI, Gameplay 시스템에 직접 의존하지 않는다.
 
-Responsibilities:
-- Input collection only
-- No gameplay logic
-- No MouseWorld / UI direct calls
+제공 인터페이스:
+- ICameraInput : 카메라 이동용 축 입력 제공
+- IInputQuery  : 현재 입력 상태 조회(Read-only)
+- EventMap     : 입력 이벤트 발행/구독용 버스
 
-This is the single source of truth for input state."
+의존성 방향:
+InputSystem → InputRouter → (EventMap / IInputQuery)
+
+❗주의:
+- InputRouter는 ""입력 발행자""일 뿐, 입력 소비자가 아니다.
+- Mouse 클릭, 선택, 커서 변경 등의 실제 동작은 InputBindings 또는 다른 시스템에서 처리한다.
+"
 )]
 public class InputRouter : 
     MonoBehaviour, 

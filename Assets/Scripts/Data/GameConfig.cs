@@ -1,3 +1,4 @@
+using Assets.Scripts.Data;
 using ProPixelizer.Tools;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ public static class GameConfig
 
     private static LayerData _layer;
     public static LayerData Layer
-        => _layer ??= Resources.Load<LayerData>($"{baseFolder}/LayerData"); // Resources/LayerData.asset
+        => _layer ??= Resources.Load<LayerData>($"{baseFolder}/LayerData");
 
     private static RuntimeSettingsData _runtimeSettings;
     public static RuntimeSettingsData RuntimeSettings
@@ -40,4 +41,7 @@ public static class GameConfig
         ? RuntimeSettings.mode
         : SteppedAnimation.StepMode.FixedRate;
 
+    private static SoundData _sound;
+    public static SoundData Sound
+        => _sound ??= Resources.Load<SoundData>($"{baseFolder}/SoundData");
 }

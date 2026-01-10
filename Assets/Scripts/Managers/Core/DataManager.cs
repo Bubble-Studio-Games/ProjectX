@@ -51,7 +51,6 @@ public class LocalFileStorage : IDataStorage
 }
 #endregion
 
-// TODO 나중에 easy save 에셋을 이용할 것
 public partial class DataManager
 {
     // 🔹 캐시: 모든 로드된 데이터 저장

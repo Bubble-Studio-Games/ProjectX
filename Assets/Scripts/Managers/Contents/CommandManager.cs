@@ -118,8 +118,19 @@ public class CommandManager
                 action = typeof(TAction),
                 GridPosition = gridPosition,
             });
+
+            if (typeof(TAction) == typeof(CommandMoveAction))
+            {
+                Managers.Sound.Play(GameConfig.Sound.m_CommandAction_CommandMoveAudioClip);
+            }
+
+            if (typeof(TAction) == typeof(CommandAttackAction))
+            {
+                Managers.Sound.Play(GameConfig.Sound.m_CommandAction_CommandAttackAudioClip);
+            }
         }
     }
+
 
     public List<(TClass unit, TAction action)>
         FilterUnitsWithAction<TAction, TClass>()
@@ -142,6 +153,17 @@ public class CommandManager
         {
             action = baseAction.GetType()
         });
+
+        // CommandMove, CommandAttack은 별도 선택이 없다.
+        if (baseAction.GetType() == typeof(CommandMoveAction))
+        {
+            Managers.Sound.Play(GameConfig.Sound.m_SelectAction_CommandMoveAudioClip);
+        }
+
+        if (baseAction.GetType() == typeof(CommandAttackAction))
+        {
+            Managers.Sound.Play(GameConfig.Sound.m_SelectAction_CommandAttackAudioClip);
+        }
 
         //Debug.Log($"({m_SelectedAction.GetActionName()}) Action 이 선택됨");
     }

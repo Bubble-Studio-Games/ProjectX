@@ -27,7 +27,7 @@ public class SelectionManager
         if (_selectedUnits.Add(obj))
             obj.OnSelected();
 
-        OnSelectionChanged?.Invoke();
+        SelectionChanged();
     }
 
     public void Deselect(ISelectable obj)
@@ -36,7 +36,7 @@ public class SelectionManager
         if (_selectedUnits.Remove(obj))
             obj.OnDeselected();
 
-        OnSelectionChanged?.Invoke();
+        SelectionChanged();
     }
 
     // (전체 해제)
@@ -47,7 +47,13 @@ public class SelectionManager
 
         _selectedUnits.Clear();
 
+        SelectionChanged();
+    }
+
+    private void SelectionChanged()
+    {
         OnSelectionChanged?.Invoke();
+        Managers.Sound.Play(GameConfig.Sound.m_SelectUnitAudioClip);
     }
 
     // (CTRL+클릭 기능)
