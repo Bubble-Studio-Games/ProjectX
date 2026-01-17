@@ -7,6 +7,8 @@ using static Define;
 
 public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridManager
 {
+    #region Field
+
     [SerializeField] private Transform gridDebugObjectPrefab;
     Dictionary<GridPosition, GridDebugObject> m_griddebug = new();
     [SerializeField] private int width;
@@ -59,11 +61,9 @@ public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridMana
         public List<GridPosition> ListGridPosition;
     }
 
-    private GridSystem<GridObject> GetGridSystem(int floor)
-    {
-        return GridSystemList[floor];
-    }
+    #endregion
 
+    #region Unity Life Cycle
 
     private void Awake()
     {
@@ -96,6 +96,12 @@ public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridMana
         OnChangeGrid += GridDebugObjectUpdate;
     }
 
+    private void OnDestroy()
+    {
+        ClearAllFloorCache();
+    }
+
+    #endregion
 
     #region IGridMutation
 
@@ -135,7 +141,6 @@ public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridMana
     }
 
     #endregion
-
 
     #region IGridQuery
 
@@ -220,6 +225,8 @@ public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridMana
 
     #endregion
 
+    private GridSystem<GridObject> GetGridSystem(int floor) => GridSystemList[floor];
+
     public List<(GridPosition, E_GridCheckType)> GetFloorGridPositionAndType(int floor)
     {
         // 1. floor가 유효한지 확인
@@ -284,13 +291,13 @@ public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridMana
         return gridPositions.All(pos => IsGridPositionCheckType(pos, types));
     }
 
-    public void ClearFloorCache(int floor)
+    private void ClearFloorCache(int floor)
     {
         if (m_DicFloorGridCache.ContainsKey(floor))
             m_DicFloorGridCache[floor].Clear();
     }
 
-    public void ClearAllFloorCache()
+    private void ClearAllFloorCache()
     {
         m_DicFloorGridCache.Clear();
     }
@@ -303,7 +310,6 @@ public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridMana
         foreach (var pos in info.ListGridPosition)
             m_griddebug[pos].UpdateGridObject();
     }
-
 
     #region IUnitGridManager
 
@@ -359,7 +365,6 @@ public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridMana
 
 
     #endregion
-
 
 #if UNITY_EDITOR
     #region Debug 용도

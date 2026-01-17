@@ -1,34 +1,10 @@
-using Data;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class LoadingScene : BaseScene
 {
-
-    LoadingScene()
-    {
-        SceneType = Define.Scene.Loading;
-    }
-
-    public override void Clear()
-    {
-    }
-
-    protected override void LoadNewGame()
-    {
-    }
-
-    protected override void LoadSavedGame(SaveSlotData data)
-    {
-    }
-
-    protected override void Start()
-    {
-        base.Start();
-
-        StartCoroutine(LoadSceneProcess());
-    }
+    LoadingScene() => SceneType = Define.Scene.Loading;
 
     IEnumerator LoadSceneProcess()
     {

@@ -2,8 +2,11 @@ using Data;
 using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// 발사체 아이템 - ItemObject 상속
+/// </summary>
 [RequireComponent(typeof(Poolable), typeof(Rigidbody))]
-public class Projectile : Item
+public class Projectile : ItemObject
 {
     // --- 이번 변경 핵심: kinematic + MovePosition 방식 ---
     // * Rigidbody는 항상 kinematic
@@ -163,7 +166,7 @@ public class Projectile : Item
         int layerBit = 1 << hitCol.gameObject.layer;
         bool isValidLayer =
             ((layerBit & GameConfig.Layer.HitColLayerMask) != 0) ||
-            ((layerBit & GameConfig.Layer.m_StructLayer) != 0);
+            ((layerBit & GameConfig.Layer.StructLayer) != 0);
 
         if (!isValidLayer) return;
 
@@ -191,7 +194,7 @@ public class Projectile : Item
     private void OnCollisionEnter(Collision col)
     {
         var go = col.gameObject.GetComponent<GameEntity>();
-        if (go != null || go.IsAlly(m_Owner) || go.m_IsSetuping) // 설치중이거나 아군이면 넘기기
+        if (go != null || go.IsAlly(m_Owner) || go.m_IsSpawning) // 설치중이거나 아군이면 넘기기
             return;
 
         // ✅ 혹시 Sweep가 아닌 실제 충돌이 들어왔을 때도 HandleHit로 통일

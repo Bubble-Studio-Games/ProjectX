@@ -193,7 +193,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2630800756228558878}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Projectile Spawn Transfoms
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -225,7 +225,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5450149644684448680}
   - component: {fileID: 6591080248724398949}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Audios
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -259,10 +259,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1e723113b8b50643ba6e13e3cc56f7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_AudiosTransform: {fileID: 5450149644684448680}
   SpawnClipList: []
   DeSpawnClipList: []
-  SpawnObjectSelectedClipList: []
   ReviveClipList: []
   DestroyClipList: []
   DamagedClipList: []
@@ -272,6 +270,7 @@ MonoBehaviour:
   WalkClipList: []
   RunClipList: []
   InteractClipList: []
+  SelectedClipList: []
 --- !u!1 &7406952615627690210
 GameObject:
   m_ObjectHideFlags: 0
@@ -286,7 +285,8 @@ GameObject:
   - component: {fileID: 1550714447738039147}
   - component: {fileID: 4974146151498624303}
   - component: {fileID: 2899878964087156818}
-  m_Layer: 7
+  - component: {fileID: 8183647321392844909}
+  m_Layer: 0
   m_Name: Base Game Entity
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -387,6 +387,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   IsUsing: 0
+--- !u!114 &8183647321392844909
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7406952615627690210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15f2cae7a75dc1d479c03956c57c10a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SnapPosition: 1
+  SnapEulerAngles: 1
+  SnapAngleStrategy: 0
+  angleResolution: 30
+  AlignPixelGrid: 0
+  PixelGridReference: {fileID: 0}
 --- !u!1 &8342223439303091451
 GameObject:
   m_ObjectHideFlags: 0
@@ -399,7 +417,7 @@ GameObject:
   - component: {fileID: 8211399888527920264}
   - component: {fileID: 4215238533416115747}
   - component: {fileID: 3812573763957634682}
-  m_Layer: 7
+  m_Layer: 0
   m_Name: Selected Visual
   m_TagString: Untagged
   m_Icon: {fileID: 0}

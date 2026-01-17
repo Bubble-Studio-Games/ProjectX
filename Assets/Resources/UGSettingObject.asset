@@ -15,8 +15,8 @@ MonoBehaviour:
   ScriptURL: https://script.google.com/macros/s/AKfycbzZRH5DXKadjcI0z_QpuH-VUD84tQhVU5mvxWin3Ytgmhc339nyMuLFqWmJD_3qM1Pf5A/exec
   ScriptPassword: projectX1234
   GoogleFolderID: 19_Gae2QEmV5aHkJNuGI-XgEH2fw3iQEz
-  GenerateCodePath: Assets/Scripts/UGS.Generated/
-  DataPath: Assets/Resources/Data/UGS.Generated/
+  GenerateCodePath: Assets/Scripts/UGS.Generated
+  DataPath: Assets/Resources/Data/UGS.Generated
   RuntimeDataPath: UGS/UGS.Data/
   CDN_URL: 
   base64: 0

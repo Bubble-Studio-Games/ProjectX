@@ -1,49 +1,37 @@
 using CodeMonkey.Utils;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using static Define;
 
-/// <summary>
-/// MouseWorld
-/// ------------------------------------------------------------
-/// 역할:
-/// - 마우스 위치를 월드 좌표 / 그리드 좌표로 변환한다.
-/// - 마우스 클릭, 드래그 박스, 선택, 커서 변경을 처리한다.
-/// - "마우스로 월드와 상호작용하는 모든 규칙"을 담당한다.
-///
-/// 책임:
-/// - 레이캐스트를 통한 오브젝트 판별
-/// - 드래그 박스 선택
-/// - 커서 아이콘 변경
-/// - 선택/해제 규칙 적용
-///
-/// 제공 서비스(SceneServices):
-/// - ICursor        : 마우스 월드/그리드 좌표 조회
-/// - ICursorEvents : 마우스 위치 변경 이벤트
-/// - IMouseClickHandler : 마우스 Down / Up 진입점
-///
-/// 의존성 방향:
-/// InputBindings → IMouseClickHandler(MouseWorld)
-///
-/// ❗주의:
-/// - InputSystem(InputAction)을 직접 사용하지 않는다.
-/// - 키 입력, 단축키, 상태 관리는 InputRouter의 책임이다.
-/// </summary>
-
 [EditorShowInfo(
-@"MouseWorld
+@"
+역할:
+- 마우스 위치를 월드 좌표 / 그리드 좌표로 변환한다.
+- 마우스 클릭, 드래그 박스, 선택, 커서 변경을 처리한다.
+- ""마우스로 월드와 상호작용하는 모든 규칙""을 담당한다.
 
-• Converts mouse position to world/grid
-• Handles selection & drag box
-• Updates cursor visuals
+책임:
+- 레이캐스트를 통한 오브젝트 판별
+- 드래그 박스 선택
+- 커서 아이콘 변경
+- 선택/해제 규칙 적용
 
-No InputSystem usage here."
+제공 서비스(SceneServices):
+- ICursor        : 마우스 월드/그리드 좌표 조회
+- ICursorEvents : 마우스 위치 변경 이벤트
+- IMouseClickHandler : 마우스 Down / Up 진입점
+
+의존성 방향:
+InputBindings → IMouseClickHandler(MouseWorld)
+
+❗주의:
+- InputSystem(InputAction)을 직접 사용하지 않는다.
+- 키 입력, 단축키, 상태 관리는 InputRouter의 책임이다.
+"
 )]
 public class MouseWorld : MonoBehaviour, ICursor, ICursorEvents, IMouseClickHandler
 {
@@ -70,6 +58,10 @@ public class MouseWorld : MonoBehaviour, ICursor, ICursorEvents, IMouseClickHand
     [SerializeField] Vector2 hotspot = Vector2.zero;
     private GameObject lastHoveredObject;
 
+    // InputAction 콜백에서 IsPointerOverGameObject() 사용 시 이전 프레임 상태 반환 문제 해결용
+    private bool _isPointerOverUI = false;
+    public bool IsPointerOverUI => _isPointerOverUI;
+
     private void Awake()
     {
         Managers.SceneServices.Register<ICursor>(this);
@@ -81,20 +73,20 @@ public class MouseWorld : MonoBehaviour, ICursor, ICursorEvents, IMouseClickHand
     {
         SelectionBox.gameObject.SetActive(false);
 
-        // Cursor
-        Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
+        // Cursor - GlobalSettings에서 활성화 여부 확인
+        if (IsCursorEnabled())
+            Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
     }
 
     private void Update()
     {
-        if (Managers.Scene.CurrentScene.SceneType == Define.Scene.Dungeon ||
-           Managers.Scene.CurrentScene.SceneType == Define.Scene.Camp)
-        {
-            MouseDrag();
-            UpdateCursor();
+        // InputAction 콜백에서 사용할 수 있도록 UI 상태 캐싱
+        _isPointerOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
 
-            UpdateGridPosition();
-        }
+        MouseDrag();
+        UpdateCursor();
+
+        UpdateGridPosition();
     }
 
     private void OnEnable()
@@ -136,11 +128,24 @@ public class MouseWorld : MonoBehaviour, ICursor, ICursorEvents, IMouseClickHand
         return grid.GetWorldPositionNormalize(pos);
     }
 
-    #region Click
+    /// <summary>
+    /// 마우스 커서가 활성화되어 있는지 확인
+    /// </summary>
+    private bool IsCursorEnabled()
+    {
+        return GameConfig.Mouse.IsMouseCursorEnabled;
+    }
+
+
 
     public void MouseUp(E_MouseClickType type)
     {
         m_isDragwing = false;
+        if (SelectionBox == null)
+        {
+            Debug.LogWarning("SelectionBox is null!");
+            return;
+        }
         SelectionBox.gameObject.SetActive(false);
     }
 
@@ -158,8 +163,8 @@ public class MouseWorld : MonoBehaviour, ICursor, ICursorEvents, IMouseClickHand
 
     public void MouseDown(E_MouseClickType type)
     {
-        // 다른 UI에 손을 못대게
-        if (EventSystem.current.IsPointerOverGameObject())
+        // 다른 UI에 손을 못대게 (캐싱된 값 사용 - InputAction 콜백 호환)
+        if (_isPointerOverUI)
             return;
         
         // Drag Box
@@ -233,19 +238,20 @@ public class MouseWorld : MonoBehaviour, ICursor, ICursorEvents, IMouseClickHand
         }
     }
 
-    #endregion
-
     #region Cursor
 
     private void UpdateCursor()
     {
         if (!Application.isFocused) return;
 
-        Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
+        // 커서 활성화 시 기본 커서 설정
+        if (IsCursorEnabled())
+            Cursor.SetCursor(DefaultCursor, hotspot, CursorMode.Auto);
+
         lastHoveredObject = null;
 
         // Select Object
-        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, GameConfig.Layer.ControllableObjectLayerMask)
+        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit, GameConfig.Layer.HitColLayerMask)
             && hit.collider.TryGetComponent<GameEntity>(out GameEntity result))
         {
             if (lastHoveredObject != result)
@@ -255,17 +261,21 @@ public class MouseWorld : MonoBehaviour, ICursor, ICursorEvents, IMouseClickHand
                     if (Managers.Selection.SelectedUnits.Count == 0)
                         return;
 
-                    Cursor.SetCursor(AttackCursor, hotspot, CursorMode.Auto);
+                    if (IsCursorEnabled())
+                        Cursor.SetCursor(AttackCursor, hotspot, CursorMode.Auto);
                 }
                 else if (result.m_EObjectType == E_ObjectType.Interact)
                 {
-                    Cursor.SetCursor(InteractCursor, hotspot, CursorMode.Auto);
-
+                    if (IsCursorEnabled())
+                        Cursor.SetCursor(InteractCursor, hotspot, CursorMode.Auto);
                 }
 
                 lastHoveredObject = result.gameObject;
             }
         }
+
+        if (IsCursorEnabled() == false)
+            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
     }
 
     #endregion

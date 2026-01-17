@@ -148,7 +148,7 @@ public partial class GameManager
     {
         yield return new WaitForEndOfFrame(); // 화면 렌더 끝난 후 캡처
 
-        Texture2D tex = Util.CaptureCamera();
+        Texture2D tex = Util.CaptureScreenshot();
         byte[] bytes = tex.EncodeToPNG();
 
 #if UNITY_EDITOR

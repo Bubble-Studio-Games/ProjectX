@@ -1,20 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using static CombatAction;
 using static Define;
-
-// 1. AttributeSystem의 "상태"만 담는 순수 데이터 클래스 (MonoBehaviour 상속 금지)
-[Serializable]
-public class BaseActionData
-{
-    public bool isActive;
-}
 
 public abstract class BaseAction : MonoBehaviour
 {
+    #region Field
     protected IGridVisualUpdateSource _gridUpdate;
     protected IGridQuery _grid;
     protected IDungeonCoreRegistry _dungeonCoreRegistry;
@@ -36,6 +27,10 @@ public abstract class BaseAction : MonoBehaviour
 
     public GridPosition DestGirdPosition { get; protected set; }
 
+    #endregion
+
+    #region Unity Life Cycle
+
     protected virtual void Awake()
     {
         m_GameEntity = GetComponentInParent<GameEntity>();
@@ -48,22 +43,18 @@ public abstract class BaseAction : MonoBehaviour
         _dungeonCoreRegistry = Managers.SceneServices.DungeonCores;
     }
 
+    protected virtual void Update() { }
 
+    #endregion
 
-    protected virtual void Update()
-    {
-    }
+    #region Method
 
     public abstract BaseAction TakeAction(GridPosition gridPosition = default);
 
     public virtual bool IsValidActionGridPosition(GridPosition gridPosition)
-    {
-        List<GridPosition> validGridPositionList = GetValidActionGridPositionList();
-        return validGridPositionList.Contains(gridPosition);
-    }
+        => GetValidActionGridPositionList().Contains(gridPosition);
 
-    public abstract List<GridPosition> GetValidActionGridPositionList();
-
+    public virtual List<GridPosition> GetValidActionGridPositionList() => default;
 
     public virtual void ActionStart()
     {
@@ -101,20 +92,12 @@ public abstract class BaseAction : MonoBehaviour
 
     }
 
-    public abstract EnemyAIAction GetEnemyAIAction(GridPosition gridPosition);
+    public virtual EnemyAIAction GetEnemyAIAction(GridPosition gridPosition) => default;
 
-    public virtual void ClearAction()
-    {
+    public virtual void ClearAction() { }
 
-    }
+    protected void DrawGridVisual() => _gridUpdate.DrawGridVisual();
+    protected void DrawGridVisual(AttackData e = null) => _gridUpdate.DrawGridVisual();
 
-    protected void DrawGridVisual()
-    {
-        _gridUpdate.DrawGridVisual();
-    }
-
-    protected void OnStartAttack_DrawGrid(AttackData e)
-    {
-        _gridUpdate.DrawGridVisual();
-    }
+    #endregion
 }

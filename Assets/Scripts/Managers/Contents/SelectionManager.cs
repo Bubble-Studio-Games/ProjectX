@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using static Define;
 
 public class SelectionManager
@@ -9,6 +8,10 @@ public class SelectionManager
     // 필드 / 프로퍼티 (유닛 리스트)
     private readonly HashSet<ISelectable> _selectedUnits = new();
     public IReadOnlyCollection<ISelectable> SelectedUnits => _selectedUnits;
+    public IEnumerable<TClass> SelectedUnitsT<TClass>() where TClass : GameEntity
+    { 
+        return _selectedUnits.OfType<TClass>();
+    }
 
     // Selection UI가 갱신되도록 하기 위해 필요.
     public event Action OnSelectionChanged;
@@ -69,19 +72,5 @@ public class SelectionManager
     public bool IsSelected(ISelectable obj)
     {
         return _selectedUnits.Contains(obj);
-    }
-
-    public IReadOnlyCollection<T> GetSelectedByClass<T>() where T : class
-    {
-        return _selectedUnits
-            .OfType<T>()
-            .ToList()
-            .AsReadOnly();
-    }
-
-
-    public void Clear()
-    {
-
     }
 }

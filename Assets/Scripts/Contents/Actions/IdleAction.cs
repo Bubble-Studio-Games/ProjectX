@@ -126,11 +126,6 @@ public class IdleAction : BaseAction
         return this;
     }
 
-    public override EnemyAIAction GetEnemyAIAction(GridPosition gridPosition)
-    {
-        throw new NotImplementedException();
-    }
-
     // 범위 내 모든 적들의 위치 탐색
     public override List<GridPosition> GetValidActionGridPositionList()
     {

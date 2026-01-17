@@ -25,7 +25,7 @@ public sealed class AttackPattern_Summon
     }
 
     /// <summary>
-    /// 소환의 경우 미리 소환할 만큼만 그리드 예약 <- TODO 저지 가능
+    /// 소환의 경우 미리 소환할 만큼만 그리드 예약
     /// </summary>
     /// <param name="attacker"></param>
     /// <param name="target"></param>

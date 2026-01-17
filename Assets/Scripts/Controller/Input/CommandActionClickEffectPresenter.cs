@@ -12,12 +12,7 @@ public class CommandActionClickEffectPresenter : MonoBehaviour
     private GameObject _activeEffect;
 
     private IGridQuery _grid;
-    private CommandManager _command;
 
-    private void Awake()
-    {
-        _command = Managers.Command; // Managers.Command가 CommandManager 인스턴스인 전제
-    }
 
     private void Start()
     {
@@ -26,14 +21,12 @@ public class CommandActionClickEffectPresenter : MonoBehaviour
 
     private void OnEnable()
     {
-        if (_command != null)
-            _command.OnCommandAction += HandleCommandAction;
+            Managers.Command.OnCommandAction += HandleCommandAction;
     }
 
     private void OnDisable()
     {
-        if (_command != null)
-            _command.OnCommandAction -= HandleCommandAction;
+            Managers.Command.OnCommandAction -= HandleCommandAction;
     }
 
     private void HandleCommandAction(CommandManager.OnCommandActionEventArgs e)

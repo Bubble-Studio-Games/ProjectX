@@ -4,21 +4,21 @@ using UnityEngine;
 using static Define;
 using Data;
 
+
+[EditorShowInfo("GameEntity의 스탯/공격 패턴/리젠/피해 계산/보상/이동 속도를 전부 관리하는 “능력치 시스템”")]
+// 유니티 라이프 사이클, 보상, 등급 강화/원복, 데이터 세이브/로드
 public partial class AttributeSystem : MonoBehaviour
 {
     private IUnitActionTickService _unitActionTickService;
 
-    /*
-     * 
-    OnUpdateStat 하나로 HP바/패널 갱신
-    OnStatDelta 하나로 팝업 표시 (현재까지는 Damage Display UI 용도로만 사용중임)
-    OnDamaged/OnDead는 전투 로직용으로만 유지
-
-     */
+    // OnDamaged/OnDead는 전투 로직용으로만 유지
     public event Action OnRevived; // 	HP 회복 등으로 다시 살아날 때
     public event Action<OnAttackInfoEventArgs> OnDead; // HP 0일 때 죽는 순간
     public event Action<OnAttackInfoEventArgs> OnDamaged; // 데미지를 받았을 때
+
+    // OnUpdateStat 하나로 HP바/패널 갱신
     public event Action OnUpdateStat;
+    // OnStatDelta 하나로 팝업 표시 (현재까지는 Damage Display UI 용도로만 사용중임)
     public event Action<OnStatDeltaEventArgs> OnStatDelta; 
 
     private GameEntity m_GameEntity;
@@ -26,34 +26,28 @@ public partial class AttributeSystem : MonoBehaviour
     [Header("RewardTable")]
     public RewardTable m_RewardTable;
 
-    public bool Validate()
+    public void Validate()
     {
         if (m_originalStat == null)
-        {
-            Debug.LogWarning($"{this.gameObject.name}: 스텟이 존재하지 않습니다.- AttributeSystem - Stat");
-            //return false;
-        }
+            Debug.Log($"{this.gameObject.name}: 스텟이 존재하지 않습니다.- AttributeSystem - Stat");
 
         if (m_originalAttackPatterns.Count == 0)
-        {
-            Debug.LogWarning($"{this.gameObject.name}: 공격 패턴이 존재하지 않습니다.- AttributeSystem - AttackPatterns");
-            //return false;
-        }
-
-        return true;
+            Debug.Log($"{this.gameObject.name}: 공격 패턴이 존재하지 않습니다.- AttributeSystem - AttackPatterns");
     }
+
+    #region Unity Life Cycle
 
     protected void Awake()
     {
         m_GameEntity = GetComponent<GameEntity>();
-        _unitActionTickService = Managers.SceneServices.UnitActionTick;
 
         StatInitInstantiate();
         AttackPatternInitInstantiate();
     }
 
-    private void Start()
+    protected void Start()
     {
+        _unitActionTickService = Managers.SceneServices.UnitActionTick;
         Validate();
     }
 
@@ -65,12 +59,10 @@ public partial class AttributeSystem : MonoBehaviour
         if (m_GameEntity is IUpgradeble cobj)
             cobj.OnChangeGrade += UpdateStatOfGrade;
 
-        _unitActionTickService.OnUpdateActionTick += UpdateTickStat;
+        if(_unitActionTickService ==null)
+            _unitActionTickService = Managers.SceneServices.UnitActionTick;
 
-        // TODO
-        // 쿨타임 초기화
-        // 오브젝트가 죽고 살아날때마다 하는 거.
-        // attackPatterns.ForEach(a => a.Init());
+        _unitActionTickService.OnUpdateActionTick += UpdateTickStat;
     }
 
     protected void OnDisable()
@@ -84,7 +76,9 @@ public partial class AttributeSystem : MonoBehaviour
         _unitActionTickService.OnUpdateActionTick -= UpdateTickStat;
     }
 
-    public void Init()
+    #endregion
+
+    private void Init()
     {
         // HP
         if(m_isInitWithFullHealth)
@@ -98,10 +92,7 @@ public partial class AttributeSystem : MonoBehaviour
     }
 
     // 되살아남
-    public void Revive()
-    {
-        OnRevived?.Invoke();
-    }
+    private void Revive() => OnRevived?.Invoke();
 
     private void UpdateStatOfGrade(Define.OnChangeGradeEventArgs args)
     {
@@ -124,7 +115,6 @@ public partial class AttributeSystem : MonoBehaviour
                 m_Stat.m_iMaxHP *= enhanveValue;
 
                 // 체력 재생률 상승
-                // TODO 개편 바람
                 m_Stat.m_fHPRegenrate += enhanveValue;
                 break;
             case E_ObjectEnhanceType.Magic:
@@ -191,10 +181,10 @@ public partial class AttributeSystem : MonoBehaviour
                     .ToList();
                 break;
             case E_ObjectEnhanceType.Range:
-                // 공격 사거리 대폭 증가 TODO
+                // 공격 사거리 대폭 증가
                 break;
             case E_ObjectEnhanceType.Skill:
-                // 스킬 추가 TODO
+                // 스킬 추가
                 break;
             default:
                 break;
@@ -203,7 +193,7 @@ public partial class AttributeSystem : MonoBehaviour
     }
 
     // 보물 상자, 몬스터 처치 등으로 보상 수령 가능
-    public void Reward(OnAttackInfoEventArgs e)
+    public void Reward(OnAttackInfoEventArgs e =null)
     {
         if (m_RewardTable == null)
             return;
@@ -255,4 +245,57 @@ public partial class AttributeSystem : MonoBehaviour
     #endregion
 
 
+    // TODO 개별 공격 패턴 데이터에 관한 저장과 세이트
+    //public AttackPatternData CaptureSaveData()
+    //{
+    //    return new AttackPatternData()
+    //    {
+    //        id = Id,
+    //        coolTime = CoolTime,
+    //        lastCoolTime = m_fLastCooltime,
+    //        manaCost = ManaCost,
+
+    //        physicalAttackDamage = m_iPhysicalAttackDamage,
+    //        magicAttackDamage = m_iMagicAttackDamage,
+
+    //        physicalFixedDamage = m_iPhysicalFixedDamage,
+    //        magicFixedDamage = m_iMagicFixedDamage,
+
+    //        physicalArmorPenetraion = m_fPhysicalArmorPenetraion,
+    //        magicalArmorPenetraion = m_fMagicalArmorPenetraion,
+
+    //        criticalChance = m_iCriticalChance,
+    //        criticalDamageUp = m_fCriticalDamageUp,
+
+    //        accuracy = m_fAccuracy,
+    //        attackSpeed = m_fAttackSpeed,
+    //        knockbackChance = m_iKnockbackChance,
+    //        lifeStealPercent = m_fLifeStealPercent,
+    //    };
+    //}
+
+    //public void RestoreSaveData(BaseData data)
+    //{
+    //    var attackData = data as AttackPatternData;
+    //    CoolTime = attackData.coolTime;
+    //    m_fLastCooltime = attackData.lastCoolTime;
+    //    ManaCost = attackData.manaCost;
+
+    //    m_iPhysicalAttackDamage = attackData.physicalAttackDamage;
+    //    m_iMagicAttackDamage = attackData.magicAttackDamage;
+
+    //    m_iPhysicalFixedDamage = attackData.physicalFixedDamage;
+    //    m_iMagicFixedDamage = attackData.magicFixedDamage;
+
+    //    m_fPhysicalArmorPenetraion = attackData.physicalArmorPenetraion;
+    //    m_fMagicalArmorPenetraion = attackData.magicalArmorPenetraion;
+
+    //    m_iCriticalChance = attackData.criticalChance;
+    //    m_fCriticalDamageUp = attackData.criticalDamageUp;
+
+    //    m_fAccuracy = attackData.accuracy;
+    //    m_fAttackSpeed = attackData.attackSpeed;
+    //    m_iKnockbackChance = attackData.knockbackChance;
+    //    m_fLifeStealPercent = attackData.lifeStealPercent;
+    //}
 }

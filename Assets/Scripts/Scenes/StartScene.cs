@@ -1,22 +1,17 @@
 using Data;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
 using static Define;
 
 public class StartScene : BaseScene
 {
+    StartScene() => SceneType = Define.Scene.Start;
 
-
-    StartScene()
-    {
-        SceneType = Define.Scene.Start;
-    }
-
+    [SerializeField] private GameObject m_goMenuUI;
     [SerializeField] private MenuUI m_MenuUI;
     [SerializeField] bool m_IsSkip = false;
+    [SerializeField] private bool m_animationSkip = false;
 
     [Header("Company")]
     [SerializeField] private AudioClip m_CompanyTitleSound;
@@ -27,25 +22,27 @@ public class StartScene : BaseScene
     [SerializeField] private float m_ShowAndHideTime = 1f;
     [SerializeField] private float m_UIShowAndHideInterval = 3f;
 
-    protected override void Init()
-    {
-        base.Init();
-
-        SceneType = Define.Scene.Start;
-    }
-
     protected override void Start()
     {
         base.Start();
 
+        if (m_animationSkip)
+        {
+            m_goMenuUI.SetActive(false);
+            m_CompanyTitle.enabled = false;
+            Managers.UI.FadeIn(m_CompanyTitle, 0.0f, EColorMode.HSV);
+            Managers.Sound.Play(m_CompanyTitleSound);
+            CompleteUI();
+            return;
+        }
+        
         StartCoroutine(IProcessUI());
-
     }
 
     public void SkipIntro()
     {
         // 마우스 클릭 체크
-        if(m_IsSkip == false)
+        if (m_IsSkip == false)
         {
             m_IsSkip = true;
 
@@ -102,21 +99,9 @@ public class StartScene : BaseScene
         Managers.Sound.Play(m_SceneMainTemaAudioclip, 1, Sound.Bgm);
         m_MenuUI.gameObject.SetActive(true);
         m_MenuUI.m_Animator.Play("Empty");
+
         m_IsSkip = true;
     }
 
-    public override void Clear()
-    {
-
-    }
-
-    protected override void LoadSavedGame(SaveSlotData data)
-    {
-        base.LoadSavedGame(data);
-    }
-
-    protected override void LoadNewGame()
-    {
-        base.LoadNewGame();
-    }
+    protected override E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Lobby;
 }

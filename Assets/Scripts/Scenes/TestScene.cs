@@ -2,23 +2,12 @@ using Data;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Define;
 
 public class TestScene : BaseScene
 {
-    TestScene()
-    {
+    TestScene() => 
         SceneType = Define.Scene.Test;
-    }
 
-    public override void Clear()
-    {
-    }
-
-    protected override void LoadSavedGame(SaveSlotData data)
-    {
-    }
-
-    protected override void LoadNewGame()
-    {
-    }
+    protected override E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Lobby;
 }

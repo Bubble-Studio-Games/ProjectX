@@ -1,0 +1,557 @@
+fileFormatVersion: 2
+guid: edd9b7a9c7634ea47a0b6579b780d861
+ModelImporter:
+  serializedVersion: 22200
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: model_rat_whole_New_clothes_1_lambertSG1.002
+    second: {fileID: 2100000, guid: 4844a84176ec33c4db81ee04e3d19861, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: model_rat_whole_blinn1SG1.002
+    second: {fileID: 2100000, guid: 6a1566f3221bf034ca9ba4cc46ff1a75, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: model_rat_whole_lambert3SG1.002
+    second: {fileID: 2100000, guid: ce495d470f8a7cf4dbe7ab6edbbcb869, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: model_rat_whole_lambert4SG1.002
+    second: {fileID: 2100000, guid: 98dbca74e52ee9341a2b3fd9fd75a3f9, type: 2}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 3
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: RatAttack1
+      takeName: mixamo.com
+      internalID: -203655887218126122
+      firstFrame: 0
+      lastFrame: 66
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 1
+      loopBlendPositionY: 1
+      loopBlendPositionXZ: 1
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 8
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importPhysicalCameras: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    strictVertexDataChecks: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human:
+    - boneName: model:rat_whole:Hips
+      humanName: Hips
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:LeftUpLeg
+      humanName: LeftUpperLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:RightUpLeg
+      humanName: RightUpperLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:LeftLeg
+      humanName: LeftLowerLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:RightLeg
+      humanName: RightLowerLeg
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:LeftFoot
+      humanName: LeftFoot
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:RightFoot
+      humanName: RightFoot
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:Spine
+      humanName: Spine
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:Spine1
+      humanName: Chest
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:Neck
+      humanName: Neck
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:Head
+      humanName: Head
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:LeftShoulder
+      humanName: LeftShoulder
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:RightShoulder
+      humanName: RightShoulder
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:LeftArm
+      humanName: LeftUpperArm
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:RightArm
+      humanName: RightUpperArm
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:LeftForeArm
+      humanName: LeftLowerArm
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:RightForeArm
+      humanName: RightLowerArm
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:LeftHand
+      humanName: LeftHand
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:RightHand
+      humanName: RightHand
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:LeftToeBase
+      humanName: LeftToes
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:RightToeBase
+      humanName: RightToes
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:LeftHandIndex1
+      humanName: Left Index Proximal
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:LeftHandIndex2
+      humanName: Left Index Intermediate
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:LeftHandIndex3
+      humanName: Left Index Distal
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:RightHandIndex1
+      humanName: Right Index Proximal
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:RightHandIndex2
+      humanName: Right Index Intermediate
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:RightHandIndex3
+      humanName: Right Index Distal
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    - boneName: model:rat_whole:Spine2
+      humanName: UpperChest
+      limit:
+        min: {x: 0, y: 0, z: 0}
+        max: {x: 0, y: 0, z: 0}
+        value: {x: 0, y: 0, z: 0}
+        length: 0
+        modified: 0
+    skeleton:
+    - name: RatAttack1(Clone)
+      parentName: 
+      position: {x: 0, y: 0, z: 0}
+      rotation: {x: 0, y: 0, z: 0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: model:rat_whole:polySurface1
+      parentName: RatAttack1(Clone)
+      position: {x: -0.000000019446015, y: 0.0000000011920929, z: 2.9802313e-10}
+      rotation: {x: 0.7071068, y: -0.0000000032927223, z: 0.0000000034573595, w: 0.7071067}
+      scale: {x: 0.01, y: 0.01, z: 0.01}
+    - name: model:rat_whole:Hips
+      parentName: RatAttack1(Clone)
+      position: {x: 0.00023913012, y: 0.9429767, z: 0.004213201}
+      rotation: {x: 0.000000042146848, y: 0.0067525115, z: -1.4268099e-16, w: 0.99997723}
+      scale: {x: 0.9999999, y: 1.0000001, z: 1}
+    - name: model:rat_whole:LeftUpLeg
+      parentName: model:rat_whole:Hips
+      position: {x: -0.21791919, y: -0.0665431, z: -0.021897467}
+      rotation: {x: -0.0023985205, y: 0.05937972, z: -0.99741924, w: -0.040288698}
+      scale: {x: 1.0000001, y: 0.9999996, z: 0.9999999}
+    - name: model:rat_whole:LeftLeg
+      parentName: model:rat_whole:LeftUpLeg
+      position: {x: 0.0000000011408245, y: 0.33098847, z: -9.561837e-10}
+      rotation: {x: -0.03168068, y: -0.0006430663, z: 0.020284003, w: 0.999292}
+      scale: {x: 1.0000002, y: 1.0000006, z: 1.0000001}
+    - name: model:rat_whole:LeftFoot
+      parentName: model:rat_whole:LeftLeg
+      position: {x: 3.177309e-10, y: 0.3556294, z: -0.000000005489075}
+      rotation: {x: -0.57462335, y: -0.06963867, z: 0.049161714, w: -0.8139667}
+      scale: {x: 1.0000007, y: 1.0000005, z: 1.0000004}
+    - name: model:rat_whole:LeftToeBase
+      parentName: model:rat_whole:LeftFoot
+      position: {x: -0.0000000016893559, y: 0.35419214, z: 9.880264e-10}
+      rotation: {x: 0.12591387, y: -0.007336336, z: -0.05770142, w: 0.9903346}
+      scale: {x: 1.0000002, y: 1.0000001, z: 1.0000001}
+    - name: model:rat_whole:LeftToe_End
+      parentName: model:rat_whole:LeftToeBase
+      position: {x: -4.603889e-10, y: 0.10935591, z: -6.0920935e-10}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: model:rat_whole:Spine
+      parentName: model:rat_whole:Hips
+      position: {x: -0, y: 0.11992658, z: 0.0026537592}
+      rotation: {x: 0.011062174, y: -8.4110165e-18, z: -1.6149742e-16, w: 0.99993885}
+      scale: {x: 1.0000001, y: 1, z: 0.9999999}
+    - name: model:rat_whole:Spine1
+      parentName: model:rat_whole:Spine
+      position: {x: -0, y: 0.13994852, z: 1.4205347e-10}
+      rotation: {x: -0.00000008940697, y: 1.5543068e-17, z: 2.2205233e-18, w: 1}
+      scale: {x: 1.0000001, y: 0.9999997, z: 1}
+    - name: model:rat_whole:Spine2
+      parentName: model:rat_whole:Spine1
+      position: {x: -0, y: 0.15994126, z: 1.2453283e-10}
+      rotation: {x: -0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1.0000002, z: 1.0000002}
+    - name: model:rat_whole:Neck
+      parentName: model:rat_whole:Spine2
+      position: {x: -0, y: 0.17993385, z: 6.208034e-11}
+      rotation: {x: -0.011062085, y: -7.106553e-18, z: 1.5910511e-16, w: 0.9999388}
+      scale: {x: 1.0000002, y: 1, z: 1.0000005}
+    - name: model:rat_whole:Head
+      parentName: model:rat_whole:Neck
+      position: {x: -0, y: 0.45046523, z: 0.066901505}
+      rotation: {x: 9.3132246e-10, y: 8.271805e-25, z: -2.4518147e-23, w: 1}
+      scale: {x: 1.0000001, y: 1.0000002, z: 1.0000004}
+    - name: model:rat_whole:HeadTop_End
+      parentName: model:rat_whole:Head
+      position: {x: -0, y: 0.19501413, z: 0.028962815}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: model:rat_whole:LeftShoulder
+      parentName: model:rat_whole:Spine2
+      position: {x: -0.10076526, y: 0.20729977, z: -0.0013916577}
+      rotation: {x: -0.42911083, y: 0.56348443, z: -0.4350346, w: -0.5559623}
+      scale: {x: 1.0000001, y: 1.0000005, z: 1.0000001}
+    - name: model:rat_whole:LeftArm
+      parentName: model:rat_whole:LeftShoulder
+      position: {x: -1.3495807e-10, y: 0.20883444, z: -0.0000000011108436}
+      rotation: {x: 0.14816941, y: -0.016035108, z: -0.0014975069, w: 0.9888309}
+      scale: {x: 0.9999999, y: 1.0000001, z: 0.99999994}
+    - name: model:rat_whole:LeftForeArm
+      parentName: model:rat_whole:LeftArm
+      position: {x: 6.3206235e-10, y: 0.35007584, z: -0.0000000031095244}
+      rotation: {x: 0.0060979417, y: -0.00013560707, z: -0.022231517, w: 0.9997342}
+      scale: {x: 1.0000002, y: 1.0000001, z: 1.0000005}
+    - name: model:rat_whole:LeftHand
+      parentName: model:rat_whole:LeftForeArm
+      position: {x: -4.6142784e-10, y: 0.34559587, z: -0.000000005120283}
+      rotation: {x: -0.009000644, y: -0.00038468838, z: 0.042704433, w: 0.99904716}
+      scale: {x: 1.0000001, y: 1, z: 1.0000001}
+    - name: model:rat_whole:LeftHandIndex1
+      parentName: model:rat_whole:LeftHand
+      position: {x: 2.3781007e-11, y: 0.1758205, z: -0.000000002562839}
+      rotation: {x: 0.075962864, y: 0.006081563, z: 0.025502257, w: 0.996766}
+      scale: {x: 1, y: 1.0000002, z: 0.9999998}
+    - name: model:rat_whole:LeftHandIndex2
+      parentName: model:rat_whole:LeftHandIndex1
+      position: {x: 9.4252585e-11, y: 0.028480388, z: 3.2416606e-10}
+      rotation: {x: -0.012080209, y: -0.000000041443833, z: 0.0067667994, w: 0.99990416}
+      scale: {x: 1, y: 1.0000005, z: 1.0000004}
+    - name: model:rat_whole:LeftHandIndex3
+      parentName: model:rat_whole:LeftHandIndex2
+      position: {x: 0.0023051375, y: 0.042908616, z: 0.00411579}
+      rotation: {x: -0.026466513, y: 0.00385251, z: -0.025340382, w: 0.9993211}
+      scale: {x: 1, y: 1, z: 1}
+    - name: model:rat_whole:LeftHandIndex4
+      parentName: model:rat_whole:LeftHandIndex3
+      position: {x: -0.0020518403, y: 0.037736364, z: 0.007880173}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: model:rat_whole:RightShoulder
+      parentName: model:rat_whole:Spine2
+      position: {x: 0.10076526, y: 0.20733453, z: 0.00017976573}
+      rotation: {x: 0.4323896, y: 0.5592234, z: -0.4315826, w: 0.5603972}
+      scale: {x: 1.0000006, y: 1.0000002, z: 1.0000006}
+    - name: model:rat_whole:RightArm
+      parentName: model:rat_whole:RightShoulder
+      position: {x: -5.4328e-11, y: 0.20883444, z: 0.0000000026623594}
+      rotation: {x: 0.14780666, y: 0.021856813, z: 0.0074456474, w: 0.98874676}
+      scale: {x: 1, y: 1, z: 1.0000001}
+    - name: model:rat_whole:RightForeArm
+      parentName: model:rat_whole:RightArm
+      position: {x: -8.084012e-11, y: 0.35033223, z: -5.370022e-10}
+      rotation: {x: 0.0054888725, y: 0.00014371052, z: 0.026168166, w: 0.99964255}
+      scale: {x: 0.99999994, y: 1.0000001, z: 1.0000001}
+    - name: model:rat_whole:RightHand
+      parentName: model:rat_whole:RightForeArm
+      position: {x: 2.702915e-10, y: 0.3456172, z: -0.000000013179219}
+      rotation: {x: -0.010215173, y: 0.00040224605, z: -0.03934754, w: 0.9991733}
+      scale: {x: 0.99999994, y: 1.0000004, z: 1.0000005}
+    - name: model:rat_whole:RightHandIndex1
+      parentName: model:rat_whole:RightHand
+      position: {x: -5.678997e-10, y: 0.17363435, z: 0.0000000048179896}
+      rotation: {x: 0.07653115, y: -0.00560817, z: -0.024117336, w: 0.99675965}
+      scale: {x: 1.0000002, y: 1.0000006, z: 1.000001}
+    - name: model:rat_whole:RightHandIndex2
+      parentName: model:rat_whole:RightHandIndex1
+      position: {x: 2.0974958e-10, y: 0.029442364, z: 3.01547e-10}
+      rotation: {x: -0.022243677, y: -0.00000010291108, z: -0.007362733, w: 0.99972546}
+      scale: {x: 1.0000001, y: 0.99999994, z: 0.9999998}
+    - name: model:rat_whole:RightHandIndex3
+      parentName: model:rat_whole:RightHandIndex2
+      position: {x: -0.001835057, y: 0.045462407, z: 0.0055438364}
+      rotation: {x: -0, y: -0, z: -0, w: 1}
+      scale: {x: 1.0000001, y: 0.99999994, z: 1.0000004}
+    - name: model:rat_whole:RightHandIndex4
+      parentName: model:rat_whole:RightHandIndex3
+      position: {x: -0.0024090698, y: 0.03748993, z: 0.0068914397}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    - name: model:rat_whole:RightUpLeg
+      parentName: model:rat_whole:Hips
+      position: {x: 0.21791919, y: -0.0665431, z: -0.013518096}
+      rotation: {x: 0.002435185, y: 0.060300708, z: -0.9973644, w: 0.040277567}
+      scale: {x: 0.9999999, y: 0.9999998, z: 1.0000001}
+    - name: model:rat_whole:RightLeg
+      parentName: model:rat_whole:RightUpLeg
+      position: {x: 0.0000000013084256, y: 0.3310616, z: 3.2641417e-10}
+      rotation: {x: -0.0366731, y: 0.0007452208, z: -0.020302812, w: 0.9991208}
+      scale: {x: 1.0000007, y: 1.0000006, z: 1.0000005}
+    - name: model:rat_whole:RightFoot
+      parentName: model:rat_whole:RightLeg
+      position: {x: -6.7159944e-10, y: 0.35642877, z: -0.0000000042329993}
+      rotation: {x: -0.5737153, y: 0.07136147, z: -0.05027219, w: -0.81438994}
+      scale: {x: 1, y: 1.0000004, z: 0.9999998}
+    - name: model:rat_whole:RightToeBase
+      parentName: model:rat_whole:RightFoot
+      position: {x: -3.5749997e-10, y: 0.34610623, z: 0.0000000017517522}
+      rotation: {x: 0.13487522, y: 0.0072876792, z: 0.053459715, w: 0.9893925}
+      scale: {x: 1.0000004, y: 1.0000006, z: 1.0000005}
+    - name: model:rat_whole:RightToe_End
+      parentName: model:rat_whole:RightToeBase
+      position: {x: -0.0000000014661963, y: 0.111083634, z: -8.3606155e-10}
+      rotation: {x: 0, y: -0, z: -0, w: 1}
+      scale: {x: 1, y: 1, z: 1}
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 8
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 1
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 3
+  humanoidOversampling: 1
+  avatarSetup: 1
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 1
+  remapMaterialsIfMaterialImportModeIsNone: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

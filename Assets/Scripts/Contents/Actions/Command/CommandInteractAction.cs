@@ -1,29 +1,15 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Cinemachine.Samples;
-using Unity.VisualScripting;
-using UnityEngine;
 using static Define;
 
 public class CommandInteractAction : BaseAction, ICommandAction
 {
-    public CommandInteractAction()
-    {
-        m_actionName = "Command Interact";
-    }
+    public CommandInteractAction() => m_actionName = "Command Interact";
 
     protected override void Start()
     {
         base.Start();
         m_iGetActionValidRange = m_GameEntity.m_AttributeSystem.m_Stat.m_iDetectRange;
-    }
-
-    public override EnemyAIAction GetEnemyAIAction(GridPosition gridPosition)
-    {
-        throw new NotImplementedException();
     }
 
     public override List<GridPosition> GetValidActionGridPositionList()
@@ -68,13 +54,15 @@ public class CommandInteractAction : BaseAction, ICommandAction
 
     public override BaseAction TakeAction(GridPosition gridPosition = default)
     {
-        var interactTarget = Managers.SceneServices.Grid.GetCellEntity(gridPosition);
+        var target = Managers.SceneServices.Grid.GetCellEntity(gridPosition);
+        var interact = target.GetComponent<IInteractable>();
+
         var attackerGridPosition = m_GameEntity.GetGridPosition();
-        m_GameEntity.SetTarget(interactTarget);
+        m_GameEntity.SetTarget(target);
 
         // 해당 인터렉트 중심으로 8방향 빈 그리드 찾기
         List<GridPosition> validGridPositionList = new();
-        var range = interactTarget.GetComponent<IInteractable>().GetInteractRange();
+        var range = interact.GetInteractRange();
         for (int x = -range; x <= range; x++)
         {
             for (int z = -range; z <= range; z++)
@@ -132,5 +120,14 @@ public class CommandInteractAction : BaseAction, ICommandAction
 
             return this;
         }
+    }
+
+    public override bool IsValidActionGridPosition(GridPosition grid)
+    {
+        if (GetValidActionGridPositionList().Contains(grid) == false)
+            return false;
+
+        var interact = Managers.SceneServices.Grid.GetCellEntity(grid).GetComponent<IInteractable>();
+        return interact!=null && interact.CanInteract(m_GameEntity) && GetValidActionGridPositionList().Contains(grid);
     }
 }

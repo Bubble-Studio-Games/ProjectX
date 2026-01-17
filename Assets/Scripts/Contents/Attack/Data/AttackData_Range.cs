@@ -44,8 +44,8 @@ public class AttackData_Range : AttackData
     public bool m_SpawnFromWeapon = true;
 
     [Header("최적화용도")]
-    [HideInInspector] public List<(Item obj, Transform spawnTransform)> keepList = new();
-    [HideInInspector] public List<(Item obj, Transform spawnTransform)> removeList = new();
+    [HideInInspector] public List<(ItemObject obj, Transform spawnTransform)> keepList = new();
+    [HideInInspector] public List<(ItemObject obj, Transform spawnTransform)> removeList = new();
 
     [HideInInspector] public E_AttackAnimationType m_EAttackAnimationType;
 

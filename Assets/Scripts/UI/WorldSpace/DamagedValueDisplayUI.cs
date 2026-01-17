@@ -37,18 +37,12 @@ public class DamagedValueDisplayUI : MonoBehaviour
         StatSystem = GetComponentInParent<AttributeSystem>();
     }
 
-    private void Start()
-    {
-    }
-
     private void OnEnable()
     {
         StatSystem.OnStatDelta += DisplayStatDelta;
 
         foreach (Transform child in transform)
-        {
             Managers.Resource.Destroy(child.gameObject);
-        }
     }
 
     private void OnDisable()
@@ -91,7 +85,6 @@ public class DamagedValueDisplayUI : MonoBehaviour
                 : E_DamagedValueTextDisplayType.MiddleBounce;
         }
 
-        // TODO 나중에 더 개선해야 됨
         if (e.Sign == E_StatDeltaSign.Plus)
         {
             PlayHealStyle(prefab, col);

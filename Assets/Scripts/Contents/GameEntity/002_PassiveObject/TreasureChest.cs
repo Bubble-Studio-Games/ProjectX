@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using static Define;
 
 public class TreasureChest : PassiveObject, IInteractable
 {
     public event Action OnInteracted;
+    bool m_isInteracted; // 상호작용 완료 여부 확인.
 
     public TreasureChest()
     {
@@ -15,7 +14,7 @@ public class TreasureChest : PassiveObject, IInteractable
 
     public bool CanInteract(GameEntity interactor)
     {
-        return true;
+        return !m_isInteracted;
     }
 
     public int GetInteractRange()
@@ -27,6 +26,8 @@ public class TreasureChest : PassiveObject, IInteractable
     {
         OnInteracted?.Invoke();
 
-        m_AttributeSystem.Reward(null);
+        m_AttributeSystem.Reward();
+
+        m_isInteracted = true;
     }
 }

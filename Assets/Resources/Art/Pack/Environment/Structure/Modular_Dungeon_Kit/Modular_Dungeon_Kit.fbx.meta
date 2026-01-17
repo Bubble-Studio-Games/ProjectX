@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Resources/Animation/Humanoid/Stand Up_B.fbx.meta
+guid: e4eeca70a6352ba4392571c29219cad6
+========
 guid: 8c84dbbc2043dbc4b87698842d89e63f
+>>>>>>>> develop:Assets/Resources/Art/Pack/Environment/Structure/Modular_Dungeon_Kit/Modular_Dungeon_Kit.fbx.meta
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []

@@ -3,8 +3,13 @@ using Unity.Android.Types;
 using UnityEngine;
 using static Define;
 
+/*
+실제 스탯 필드/프로퍼티
+HP/MP 계산, 리젠, 피해/힐 처리, 이동 상태/속도 계산 등
+ */
 public partial class AttributeSystem : MonoBehaviour
 {
+    #region Field
     [Header("Stat")]
     [SerializeField] private BaseStat m_originalStat;
     private BaseStat stat;
@@ -45,6 +50,8 @@ public partial class AttributeSystem : MonoBehaviour
 
     #endregion
 
+    #endregion
+
     private void StatInitInstantiate()
     {
         if (m_isStatInstantiate)
@@ -59,7 +66,7 @@ public partial class AttributeSystem : MonoBehaviour
         Init();
     }
 
-    public void ReStoreStat()
+    private void ReStoreStat()
     {
         m_Stat = m_originalStat;
 
@@ -85,20 +92,11 @@ public partial class AttributeSystem : MonoBehaviour
 
     #region Get
 
-    public float GetHealthNormalized()
-    {
-        return (float)health / healthMax;
-    }
-
-    public float GetManaNormalized()
-    {
-        return (float)mp / mpMax;
-    }
-
-    public bool IsManaCharacter()
-    {
-        return m_Stat.m_iMaxMP > 0;
-    }
+    public float GetHealthNormalized() => (float)health / healthMax;
+    public bool GetFillHeath() => health == healthMax;
+    public float GetManaNormalized() => (float)mp / mpMax;
+    public bool GetFillMana() => mp == mpMax;
+    public bool IsManaCharacter() => m_Stat.m_iMaxMP > 0;
 
     #endregion
 

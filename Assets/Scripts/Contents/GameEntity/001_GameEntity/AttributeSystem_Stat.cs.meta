@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scripts/Contents/GameEntity/001_GameEntity/AttributeSystem_Stat.cs.meta
 guid: f2f60d44af09c8747b07d70b2bdddc26
+========
+guid: 008b8a0426425564da49cabf6d95b56a
+>>>>>>>> Client_B:Assets/Scripts/Contents/Actions/NPCMoveAction.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

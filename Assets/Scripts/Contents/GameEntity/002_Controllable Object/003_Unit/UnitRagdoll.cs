@@ -43,7 +43,7 @@ public class UnitRagdoll : MonoBehaviour
         cachedVelocities = new Vector3[ragdollRigidbodies.Length];
         cachedAngularVelocities = new Vector3[ragdollRigidbodies.Length];
 
-        stepInterval = 1 / GameConfig.AnimationStepFps;
+        stepInterval = 1 / GameConfig.RuntimeSettings.animationStepFps;
 
         CacheOriginalPose();
         SetRagdollState(false);

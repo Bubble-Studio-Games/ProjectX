@@ -4,15 +4,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using static Define;
 
-/*
+
+[Serializable]
+[EditorShowInfo(@"
 1. 애니메이션을 오버라이드.
 2. 애니니메이션을 스텝 애니메이션으로 변경
 3. 나중에 실시간으로 fps를 조정할 수 있게.
- */
-
-[Serializable]
+")]
+[RequireComponent(typeof(Animator))]
 public class GameEntityAnimator : MonoBehaviour
 {
+    #region Field
     public event Action OnStep; // 발자국 이벤트
     public event Action OnAttackPoint;      // AttackPoint 애니 이벤트
     public event Action OnReadyFailPoint;   // ReadyFail 애니 이벤트
@@ -52,6 +54,10 @@ public class GameEntityAnimator : MonoBehaviour
     [Header("Value")]
     public  float m_AnimatorOriginalVale = 1f;
 
+    #endregion
+
+    #region Unity Life Cycle
+
     protected virtual void Awake()
     {
         m_GameEntity = GetComponentInParent<GameEntity>();
@@ -60,7 +66,7 @@ public class GameEntityAnimator : MonoBehaviour
         if (m_Animator?.runtimeAnimatorController != null)
             overrideController = new AnimatorOverrideController(m_Animator.runtimeAnimatorController);
 
-        m_Interactable = m_GameEntity.GetComponentInParent<IInteractable>();
+        m_Interactable = GetComponentInParent<IInteractable>();
     }
 
     protected virtual void Start()
@@ -99,7 +105,7 @@ public class GameEntityAnimator : MonoBehaviour
 
 
         // ✅ Action forward 구독
-        m_GameEntity.OnStartAttack += CombatAction_OnAttack;
+        m_GameEntity.OnStartAttack += AttackStart;
         m_GameEntity.OnStartMoving += MoveAction_OnStartMoving;
         m_GameEntity.OnStopMoving += MoveAction_OnStopMoving;
         m_GameEntity.OnChangedFloorsStarted += MoveAction_OnChangedFloorsStarted;
@@ -119,7 +125,7 @@ public class GameEntityAnimator : MonoBehaviour
         m_GameEntity.OnRevived -= Revived;
         m_GameEntity.OnDamaged -= Animation_Damaged;
 
-        m_GameEntity.OnStartAttack -= CombatAction_OnAttack;
+        m_GameEntity.OnStartAttack -= AttackStart;
         m_GameEntity.OnStartMoving -= MoveAction_OnStartMoving;
         m_GameEntity.OnStopMoving -= MoveAction_OnStopMoving;
         m_GameEntity.OnChangedFloorsStarted -= MoveAction_OnChangedFloorsStarted;
@@ -127,15 +133,24 @@ public class GameEntityAnimator : MonoBehaviour
         m_GameEntity.OnAttackReadyFailed -= AttackReadyFailPoint;
     }
 
+    #endregion
 
     protected virtual void Animation_Damaged(OnAttackInfoEventArgs e)
     {
-        if (m_GameEntity.m_IsSetuping)
+        // 스폰 중이면 패스
+        if (m_GameEntity.m_IsSpawning)
             return;
 
         // 공격 미스라면 넘기기
         if (e.EHitDeCisionType == E_HitDecisionType.AttackMiss)
             return;
+
+        // 공격 준비중이 아닐 경우에 넘기기
+        if (m_GameEntity.m_CurrentAction is CombatAction combat)
+        {
+            if (combat.m_ThisTimeAttack is not AttackData_Ready)
+                return;
+        }
 
         if (e.EHitDeCisionType == E_HitDecisionType.CriticalHit && m_CriticalDamagedAnimationClip.Length > 0)
         {
@@ -196,7 +211,8 @@ public class GameEntityAnimator : MonoBehaviour
     public void AnimatonSpeedRestoreOriginalSpeed() => m_Animator.speed = m_AnimatorOriginalVale;
 
     #region Attack
-    protected virtual void CombatAction_OnAttack(AttackData e)
+
+    protected virtual void AttackStart(AttackData e)
     {
         ChangeAnimationAtStart(E_GameEntityClipType.Attack.ToString(), e.selectInfoClip.AttackAnimationClip);
 
@@ -206,12 +222,13 @@ public class GameEntityAnimator : MonoBehaviour
         m_Animator.speed = e.m_fAttackSpeed;
     }
 
+    // 공격 애니메이션에 있는 Event에서 실행됨
     public virtual void AttackPoint() => OnAttackPoint?.Invoke();
+    
     public void AttackReadyFailPoint(AttackData ready) => OnReadyFailPoint?.Invoke();
 
     #endregion
 
-    BodyTilt m_BodyTilt;
     FullBodyBipedIK m_FullBodyBipedIK;
     public virtual void SetHandIKForWeapon(RightHandIKTarget rightHandTarget, LeftHandIKTarget leftHandTarget, bool isTwoHandingWeapon)
     {
@@ -246,7 +263,6 @@ public class GameEntityAnimator : MonoBehaviour
 
     #region Move
 
-
     private void MoveAction_OnStartMoving()
     {
         // 무브 스테이트에 따라 바꾸기
@@ -277,6 +293,7 @@ public class GameEntityAnimator : MonoBehaviour
             m_Animator.CrossFade("JumpDown", m_fCrossTime);
         }
     }
+    
     #endregion
 
 

@@ -17,10 +17,10 @@ MonoBehaviour:
   sprite: {fileID: 0}
   m_sDescription: 
   m_iMaxHP:
-    _value: 1
+    _value: 10
   m_iCurrentHp:
     _value: 1
-  m_iIsStepReduceHP: 0
+  m_iIsStepReduceHP: 1
   m_fHPRegenrate:
     _value: 0
   m_fMPRegenrate:

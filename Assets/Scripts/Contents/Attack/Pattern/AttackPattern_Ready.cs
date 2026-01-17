@@ -41,8 +41,8 @@ public sealed class AttackPattern_Ready : AttackPattern<AttackData_Ready>
         var existingList = attacker.m_CombatManager.m_AttackReadyItemObject;
 
         // 2) 비교용 리스트(지역변수)
-        var keepList = new List<(Item obj, Transform spawnTransform)>();
-        var removeList = new List<(Item obj, Transform spawnTransform)>();
+        var keepList = new List<(ItemObject obj, Transform spawnTransform)>();
+        var removeList = new List<(ItemObject obj, Transform spawnTransform)>();
 
         string prefabName = data.m_ReadyGameObjectPrefab.name.Replace("(Clone)", "").Trim();
 
@@ -89,7 +89,7 @@ public sealed class AttackPattern_Ready : AttackPattern<AttackData_Ready>
             else
                 spawnT = initSpawnTransforms[i % initSpawnTransforms.Count];
 
-            var newObj = Managers.Resource.Instantiate<Item>(data.m_ReadyGameObjectPrefab.gameObject, spawnT);
+            var newObj = Managers.Resource.Instantiate<ItemObject>(data.m_ReadyGameObjectPrefab.gameObject, spawnT);
             newObj.transform.localPosition = Vector3.zero;
             newObj.transform.localRotation = Quaternion.identity;
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System;
 using UnityEngine;
 
-/*
+[EditorShowInfo(@"
 역할: “건설 모드 상태(무엇을 짓는 중인지) + 배치 가능 검사 + 배치 이벤트 발행”
 
 IBuildPlacementService 구현체로서 “현재 배치 대상(Current)”을 관리한다. 
@@ -15,10 +15,13 @@ IGridQuery로 유효/Walkable인지 검사 후 성공하면 OnPlaced를 발행�
 RotateSelectObject()로 회전 입력을 처리하고 OnRotated 이벤트를 발행한다. 
 
 결론: **“배치 가능하냐/확정하냐”**를 판단하는 게임플레이 로직 담당.
- */
-
+")]
 public class GridBuildingSystem : MonoBehaviour, IBuildPlacementService
 {
+    private IGridQuery _grid;
+    private ICursor _cursor;
+
+
     public event Action<E_SetupObjectOffsetChange> OnSelectedChanged;
     public event Action<BuildPlacedEventArgs> OnPlaced;
     public event Action OnCanceled;
@@ -28,8 +31,7 @@ public class GridBuildingSystem : MonoBehaviour, IBuildPlacementService
 
     public GameEntity Current { get; private set; }
 
-    private IGridQuery _grid;
-    private ICursor _cursor;
+    public bool IsSetuping => Current != null;
 
     private void Awake()
     {
@@ -101,15 +103,12 @@ public class GridBuildingSystem : MonoBehaviour, IBuildPlacementService
     {
         if (Current == null) return;
 
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            Current.m_CurrentEDir = Current.GetNextDir();
+        Current.m_CurrentEDir = Current.GetNextDir();
 
-            var e = Current.m_IsRotateSymmetry
-                ? E_SetupObjectOffsetChange.None
-                : E_SetupObjectOffsetChange.XZOffset;
+        var e = Current.m_IsRotateSymmetry
+            ? E_SetupObjectOffsetChange.None
+            : E_SetupObjectOffsetChange.XZOffset;
 
-            OnRotated?.Invoke(e);
-        }
+        OnRotated?.Invoke(e);
     }
 }

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Define;
 
 /// <summary>
@@ -11,20 +6,7 @@ using static Define;
 /// </summary>
 public class InteractAction : BaseAction
 {
-    InteractAction()
-    {
-        m_actionName = "Interact";
-    }
-
-    public override EnemyAIAction GetEnemyAIAction(GridPosition gridPosition)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override List<GridPosition> GetValidActionGridPositionList()
-    {
-        return default;
-    }
+    InteractAction() => m_actionName = "Interact";
 
     public override BaseAction TakeAction(GridPosition gridPosition = default)
     {

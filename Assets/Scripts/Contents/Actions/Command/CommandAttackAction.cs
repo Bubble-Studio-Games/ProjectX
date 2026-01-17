@@ -1,17 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static Define;
 
 public class CommandAttackAction : BaseAction, ICommandAction
 {
-    CommandAttackAction()
-    {
-        m_actionName = "Command Attack";
-    }
-
+    CommandAttackAction() => m_actionName = "Command Attack";
     int m_iMaxDistance = 10;
 
     public override BaseAction TakeAction(GridPosition gridPosition = default)
@@ -25,11 +16,6 @@ public class CommandAttackAction : BaseAction, ICommandAction
         m_GameEntity.SetTarget(target);
 
         return m_GameEntity.GetAction<ChaseAction>();
-    }
-
-    public override EnemyAIAction GetEnemyAIAction(GridPosition gridPosition)
-    {
-        throw new NotImplementedException();
     }
 
     public override bool IsValidActionGridPosition(GridPosition gridPosition)
@@ -47,14 +33,9 @@ public class CommandAttackAction : BaseAction, ICommandAction
         // 얼마나 먼가?
         int pathfindingDistanceMultiplier = 10;
         int len = Managers.SceneServices.Pathfinder.GetPathLength(unitGridPosition, gridPosition);
-        if (len == 0 || len > m_iMaxDistance * pathfindingDistanceMultiplier) // 0의 의미는 길을 못 찾았다는 것.
+        if (len > m_iMaxDistance * pathfindingDistanceMultiplier) // 0의 의미는 길을 못 찾았다는 것.
             return false;
 
         return true;
-    }
-
-    public override List<GridPosition> GetValidActionGridPositionList()
-    {
-        throw new NotImplementedException();
     }
 }

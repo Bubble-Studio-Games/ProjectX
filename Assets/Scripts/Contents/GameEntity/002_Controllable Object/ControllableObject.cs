@@ -139,14 +139,6 @@ public class ControllableObject : GameEntity, IUpgradeble
             attackReadyItemData =
                 m_CombatManager?.m_AttackReadyItemObject.Select(item => item.obj.CaptureSaveData()).ToList(),
 
-            // TODO
-            //readyAttackPatternData =
-            //   m_CombatManager?.m_ReadyAttackPattern != null
-            //       ? m_CombatManager.m_ReadyAttackPattern
-            //           .Select(attack => attack?.CaptureSaveData())
-            //           .Where(data => data != null)
-            //           .ToHashSet()
-            //       : new HashSet<AttackPatternData>(),
 
             targetGuid = m_Target?.guid
         };
@@ -169,7 +161,8 @@ public class ControllableObject : GameEntity, IUpgradeble
         }
 
         m_OnChangeGradeEventArgs = cData.gradeArgs;
-        m_EObjectGrade = m_OnChangeGradeEventArgs.objGrade;
+        if (m_OnChangeGradeEventArgs != null)
+            m_EObjectGrade = m_OnChangeGradeEventArgs.objGrade;
 
         SetTarget(Managers.Object.FindByGuidObject<GameEntity>(cData.targetGuid));
     }

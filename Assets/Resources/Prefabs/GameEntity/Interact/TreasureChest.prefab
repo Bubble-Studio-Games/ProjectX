@@ -14,7 +14,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3729617502439001109, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 18
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 3729617502439001109, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
       propertyPath: m_LocalPosition.y
@@ -22,7 +22,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3729617502439001109, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 22
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 3729617502439001109, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -138,6 +138,7 @@ PrefabInstance:
     - {fileID: 8819425625777026193, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
     - {fileID: 1858603395750912314, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
     - {fileID: 7540657628865413251, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+    - {fileID: 9094740110015393887, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 8173256332975951686, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
@@ -228,6 +229,7 @@ MonoBehaviour:
   m_TeamId: 3
   currentAction: {fileID: 0}
   m_IsDirectDesawnAtDeath: 1
+  m_DisableDespawnFlowForAnimTest: 0
   m_IsTowardDungeonCore: 0
   crateDestroyedPrefab: {fileID: 0}
 --- !u!4 &6346229940170364630 stripped

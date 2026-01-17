@@ -30,13 +30,13 @@ public class CombatAction : BaseAction
 
     private void OnEnable()
     {
-        OnStartAttack += OnStartAttack_DrawGrid;
+        OnStartAttack += DrawGridVisual;
         OnEndAttack += DrawGridVisual;
     }
 
     private void OnDisable()
     {
-        OnStartAttack -= OnStartAttack_DrawGrid;
+        OnStartAttack -= DrawGridVisual;
         OnEndAttack -= DrawGridVisual;
     }
 
@@ -64,7 +64,6 @@ public class CombatAction : BaseAction
         // 1. 유닛이 특수 상태일 경우 페이즈 전환 (예: 2페이즈 보스)
         HandlePhaseTransition();
 
-        // TODO
         // 페이즈 대기
 
         // 현재 공격 후보들 추리기
@@ -94,8 +93,8 @@ public class CombatAction : BaseAction
         // 1. Success가 하나라도 있는가?
         if (grouped.TryGetValue(E_AttackCondition.Success, out var successList))
         {
-            // TODO 등급을 매겨서 우선순위 정하기
-            var toAttack = successList.RandomPick();
+            // 등급을 매겨서 우선순위 정하기
+            var toAttack = successList.OrderBy(list => list.pattern.m_iPriority).First();
             
             //Debug.Log($"{m_GameEntity}가 현재 선택한 공격 {toAttack.pattern}");
             ChangeAttack(toAttack.pattern);

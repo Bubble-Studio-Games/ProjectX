@@ -1,47 +1,61 @@
 using Assets.Scripts.Data;
-using ProPixelizer.Tools;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
-
-public static class GameConfig
+public static partial class GameConfig
 {
     private const string baseFolder = "Data/GameConfig";
 
-    private static LayerData _layer;
-    public static LayerData Layer
-        => _layer ??= Resources.Load<LayerData>($"{baseFolder}/LayerData");
+    // 타입별 설정 캐시
+    private static readonly Dictionary<Type, ScriptableObject> _configCache = new();
 
-    private static RuntimeSettingsData _runtimeSettings;
-    public static RuntimeSettingsData RuntimeSettings
+    #region 공통 로더
+
+    private static T LoadConfig<T>(string assetName = null) where T : ScriptableObject
     {
-        get
-        {
-            if (_runtimeSettings == null)
-                _runtimeSettings = Resources.Load<RuntimeSettingsData>($"{baseFolder}/RuntimeSettingsData");
+        var type = typeof(T);
 
-            return _runtimeSettings;
+        // 1차: 캐시에서 가져오기
+        if (_configCache.TryGetValue(type, out var cached) && cached != null)
+            return (T)cached;
+
+        // 2차: Resources에서 로드
+        string name = string.IsNullOrEmpty(assetName) ? type.Name : assetName;
+        string path = $"{baseFolder}/{name}";
+
+        var loaded = Resources.Load<T>(path);
+        _configCache[type] = loaded;
+
+#if UNITY_EDITOR
+        if (loaded == null)
+        {
+            Debug.LogError($"[GameConfig] {type.Name} not found at Resources/{path}.asset");
         }
+#endif
+
+        return loaded;
     }
 
     /// <summary>
-    /// 씬 시작 시점에 한번 호출해서 Resources 로드를 앞당김(예압).
+    /// 필요하면 전체 캐시를 비우고 다시 로딩하고 싶을 때 사용.
+    /// (에디터에서만 쓸 일 많을 듯)
     /// </summary>
-    public static void PreloadRuntimeSettings()
+    public static void ClearCache()
     {
-        _ = RuntimeSettings;
-        if (_runtimeSettings == null)
-            Debug.LogError($"[GameConfig] RuntimeSettingsData not found at Resources/{baseFolder}/RuntimeSettingsData.asset");
+        _configCache.Clear();
     }
 
-    // 편의 프로퍼티
-    public static int AnimationStepFps => RuntimeSettings != null ? RuntimeSettings.animationStepFps : 30;
-    public static AudioClip UIButtonClickClip => RuntimeSettings != null ? RuntimeSettings.m_UIButtonClickAudioClip : null;
-    public static SteppedAnimation.StepMode AnimationStepMode
-    => RuntimeSettings != null
-        ? RuntimeSettings.mode
-        : SteppedAnimation.StepMode.FixedRate;
+    #endregion
 
-    private static SoundData _sound;
-    public static SoundData Sound
-        => _sound ??= Resources.Load<SoundData>($"{baseFolder}/SoundData");
+    public static LayerSettings Layer => LoadConfig<LayerSettings>();
+    public static SoundSettings Sound => LoadConfig<SoundSettings>();
+    public static MouseSettings Mouse => LoadConfig<MouseSettings>();
+    public static NPCSettings NPC => LoadConfig<NPCSettings>();
+    public static DialogueSettings Dialogue => LoadConfig<DialogueSettings>();
+    public static SceneSettings Scene => LoadConfig<SceneSettings>();
+    public static InventorySettings Inventory => LoadConfig<InventorySettings>();
+    public static RuntimeSettings RuntimeSettings => LoadConfig<RuntimeSettings>();
+    public static TeamRelationSettings TeamRelation => LoadConfig<TeamRelationSettings>();
+
 }

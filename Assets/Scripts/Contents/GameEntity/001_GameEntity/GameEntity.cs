@@ -7,6 +7,7 @@ using UnityEngine;
 using static Define;
 using Material = UnityEngine.Material;
 
+
 [RequireComponent(typeof(AttributeSystem))]
 public class GameEntity : MonoBehaviour,
     ISaveable, 
@@ -43,8 +44,6 @@ public class GameEntity : MonoBehaviour,
     public event Action<AttackData> OnAttackPoint;
     public event Action<AttackData> OnAttackReadyFailed;
     public event Action OnPhaseChange;
-    //public event Action OnLeftArmEmptyRequested;
-    //public event Action<RightHandIKTarget, LeftHandIKTarget, bool> OnTwoHandIKRequested;
 
     // Move
     public event Action OnStartMoving;
@@ -52,14 +51,9 @@ public class GameEntity : MonoBehaviour,
     public event Action OnStep;
     public event Action<OnChangeFloorsStartedEventArgs> OnChangedFloorsStarted;
 
-
     public string _guid { get; private set; } = string.Empty; // private field로 변경하고 프로퍼티로 접근
     public string guid => _guid;
 
-    public void SetGUID(string inputGuid)
-    {
-        _guid = inputGuid;
-    }
 
     public GameEntityAnimator m_GameEntityAnimator { get; private set; }
     public AttributeSystem m_AttributeSystem { get; private set; }
@@ -78,7 +72,7 @@ public class GameEntity : MonoBehaviour,
     public E_TeamId m_TeamId;
 
     [Header("Action")]
-    [SerializeField, ReadOnly] protected BaseAction currentAction;
+    [SerializeField] protected BaseAction currentAction;
     public BaseAction m_CurrentAction
     {
         get => currentAction;
@@ -101,12 +95,10 @@ public class GameEntity : MonoBehaviour,
 
     [Header("Flag")]
     public bool m_IsDirectDesawnAtDeath = true; // 사망 후 바로 디스폰 처리 하는가?
-    public bool m_IsSetuping { get; protected set; } = false; // 카드에서 뽑아 소환 중인가?
+    public bool m_IsSpawning { get; protected set; } = false; // 카드에서 뽑아 소환 중인가?
     private bool _isSpawnRegistered = false;
 
-    [Header("Debug/Test")]
-    public bool m_DisableDespawnFlowForAnimTest = false;
-
+    [HideInInspector] public bool m_DisableDespawnFlowForAnimTest = false;
 
     [Tooltip("체크 되어 있을 경우 무조건 던전 코어를 향해 이동 (몬스터 전용)")]
     [HideInInspector] public bool m_IsTowardDungeonCore = false;
@@ -121,7 +113,7 @@ public class GameEntity : MonoBehaviour,
 
     #endregion
 
-    #region 기본 함수
+    #region Unity Life Cycle
 
     protected virtual void Awake()
     {
@@ -133,12 +125,6 @@ public class GameEntity : MonoBehaviour,
 
         foreach (var action in GetComponentsInChildren<BaseAction>())
             baseActionDict[action.GetType()] = action;
-
-        var ss = Managers.SceneServices;
-        _grid = ss.Grid;
-        _unitGrid = ss.UnitGrid;
-        _tick = ss.UnitActionTick;
-        _gridVisualSource = ss.GridVisualUpdateSource;
 
         m_HitCollider = GetChildColliders().FirstOrDefault();
     }
@@ -172,7 +158,7 @@ public class GameEntity : MonoBehaviour,
 
         CheckRotateSymmetry();
 
-        if (m_IsSetuping)
+        if (m_IsSpawning)
             return;
 
         // 맵에 그냥 배치되어 있을 경우
@@ -182,10 +168,10 @@ public class GameEntity : MonoBehaviour,
 
     protected virtual void OnEnable()
     {
-        if (baseActionDict.Count > 0)
-            Managers.SceneServices.UnitActionTick.OnUpdateActionTick += ExecuteAction;
+        ResolveServices();
 
-        m_IsSetuping = false;
+        if (baseActionDict.Count > 0)
+            _tick.OnUpdateActionTick += ExecuteAction;
 
         if (m_GameEntityAnimator != null)
         {
@@ -237,7 +223,6 @@ public class GameEntity : MonoBehaviour,
         m_AttributeSystem.OnDead -= HandleDead;
         m_AttributeSystem.OnRevived -= HandleRevived;
 
-
         if (_combatAction != null)
         {
             _combatAction.OnStartAttack -= HandleStartAttack;
@@ -261,19 +246,25 @@ public class GameEntity : MonoBehaviour,
 
     #endregion
 
-    public IEnumerable<(Material mat, GameObject obj)> GetModelsMaterial()
+    private void ResolveServices()
     {
-        if (m_ModelMaterials == null || m_ModelMaterials.Count == 0)
-        {
-            m_ModelMaterials = GetComponentsInChildren<Renderer>(true)
-                .SelectMany(r => r.materials
-                    .Where(m => m != null)
-                    .Select(m => (mat: m, obj: r.gameObject)))
-                .ToHashSet();
-        }
+        var ss = Managers.SceneServices;
 
-        return m_ModelMaterials;
+        if (_grid == null || ss.IsNull(_grid))
+            _grid = ss.Grid;
+
+        if (_unitGrid == null || ss.IsNull(_unitGrid))
+            _unitGrid = ss.UnitGrid;
+
+        if (_tick == null || ss.IsNull(_tick))
+            _tick = ss.UnitActionTick;
+
+        if (_gridVisualSource == null || ss.IsNull(_gridVisualSource))
+            _gridVisualSource = ss.GridVisualUpdateSource;
     }
+
+
+    #region Grid
 
     public List<Collider> GetChildColliders()
     {
@@ -311,6 +302,69 @@ public class GameEntity : MonoBehaviour,
     }
 
     public GridPosition GetGridPosition() => m_GridPosition;
+
+    public (int Min, int Max) GetGridPositionYOffset()
+    {
+        int min = 0;
+        int max = 0;
+
+        if (m_GridPositionOffsets.Length > 0)
+        {
+            min = m_GridPositionOffsets.Min(offset => offset.floor);
+            max = m_GridPositionOffsets.Max(offset => offset.floor);
+        }
+
+        return (min, max);
+    }
+    private void CheckRotateSymmetry()
+    {
+        string prefabKey = _guid;
+
+        // 딕셔너리 2번 조회 대신 TryGetValue 한 번
+        if (!s_RotateSymmetryCache.TryGetValue(prefabKey, out bool isSymmetry))
+        {
+            // enum 0~3: West, South, East, North
+            // 첫 방향 기준 좌표 계산
+            var basePos = Util.ToGridPosition(m_GridPositionOffsets, m_GridPosition, E_Dir.West);
+
+            isSymmetry = true;
+
+            // 나머지 3방향과 비교
+            for (int i = 1; i < 4; i++)
+            {
+                E_Dir dir = (E_Dir)i; // 1: South, 2: East, 3: North
+                var pos = Util.ToGridPosition(m_GridPositionOffsets, m_GridPosition, dir);
+
+                if (pos != basePos)
+                {
+                    isSymmetry = false;
+                    break;
+                }
+            }
+
+            s_RotateSymmetryCache[prefabKey] = isSymmetry;
+        }
+
+        m_IsRotateSymmetry = isSymmetry;
+    }
+
+    #endregion
+
+    public IEnumerable<(Material mat, GameObject obj)> GetModelsMaterial()
+    {
+        if (m_ModelMaterials == null || m_ModelMaterials.Count == 0)
+        {
+            m_ModelMaterials = GetComponentsInChildren<Renderer>(true)
+                .SelectMany(r => r.materials
+                    .Where(m => m != null)
+                    .Select(m => (mat: m, obj: r.gameObject)))
+                .ToHashSet();
+        }
+
+        return m_ModelMaterials;
+    }
+
+    public void SetGUID(string inputGuid) => _guid = inputGuid;
 
     #region Select
 
@@ -356,7 +410,7 @@ public class GameEntity : MonoBehaviour,
         var result = new List<GridPosition> { pivot };
 
         // m_GridPositionOffsets의 오프셋들을 pivot 기준으로 회전 적용
-        result.AddRange(Util.ToGridPosition(this, pivot));
+        result.AddRange(Util.ToGridPosition(m_GridPositionOffsets, pivot, m_CurrentEDir));
 
         return result;
     }
@@ -376,8 +430,7 @@ public class GameEntity : MonoBehaviour,
 
     #endregion
 
-    #region Setup & Spawn
-
+    #region Setup & DeSpawn
 
     // 플레이어가 오브젝트를 배치중일 때
     public void SelectSpawnObject()
@@ -388,7 +441,7 @@ public class GameEntity : MonoBehaviour,
             m_HitCollider = GetChildColliders().FirstOrDefault();
 
         m_HitCollider.enabled = false;
-        m_IsSetuping = true;
+        m_IsSpawning = true;
 
 
 
@@ -405,6 +458,9 @@ public class GameEntity : MonoBehaviour,
         SpawnRegister();
 
         OnObjectSpawnStart?.Invoke();
+
+        // 회전 대칭 cache 제거
+        s_RotateSymmetryCache.Remove(_guid);
     }
 
 
@@ -414,7 +470,7 @@ public class GameEntity : MonoBehaviour,
         // ✅ 씬 배치(Start에서 SpawnComplete만 호출) 같은 경우 대비
         SpawnRegister();
 
-        m_IsSetuping = false;
+        m_IsSpawning = false;
 
         // Base Action
         if (m_CurrentAction == null && baseActionDict.Count > 0)
@@ -478,41 +534,6 @@ public class GameEntity : MonoBehaviour,
 
     #endregion
 
-
-
-    public (int Min, int Max) GetGridPositionYOffset()
-    {
-        int min = 0;
-        int max = 0;
-
-        if (m_GridPositionOffsets.Length > 0)
-        {
-            min = m_GridPositionOffsets.Min(offset => offset.floor);
-            max = m_GridPositionOffsets.Max(offset => offset.floor);
-        }
-
-        return (min, max);
-    }
-
-    private void CheckRotateSymmetry()
-    {
-        string prefabKey = gameObject.name; // Prefab 이름 기준 (필요하면 GUID 기반으로 교체)
-
-        if (!s_RotateSymmetryCache.ContainsKey(prefabKey))
-        {
-            // 실제 체크 로직 실행
-            var dirs = new[] { E_Dir.West, E_Dir.South, E_Dir.North, E_Dir.East };
-            var results = dirs.Select(d => Util.ToGridPosition(this, d)).ToList();
-
-            bool isSymmetry = results.All(r => r == results[0]);
-
-            s_RotateSymmetryCache[prefabKey] = isSymmetry;
-        }
-
-        m_IsRotateSymmetry = s_RotateSymmetryCache[prefabKey];
-    }
-
-
     #region Action
 
     /// <summary>
@@ -545,7 +566,6 @@ public class GameEntity : MonoBehaviour,
         var type = nextAction.GetType();
 
         // 디버그 / UI / 로그용 Action 변경 이벤트
-        // TODO 2개 된 거 수정해야 됨.
         OnActionChanged?.Invoke(type);
     }
 
@@ -690,10 +710,10 @@ public class GameEntity : MonoBehaviour,
     #region Team Service
 
     public bool IsEnemy(GameEntity target)
-    => target != null && TeamRules.IsEnemy(m_TeamId, target.m_TeamId);
+    => target != null && GameConfig.TeamRelation.IsEnemy(m_TeamId, target.m_TeamId);
 
     public bool IsAlly(GameEntity target)
-        => target != null && TeamRules.IsAlly(m_TeamId, target.m_TeamId);
+        => target != null && GameConfig.TeamRelation.IsAlly(m_TeamId, target.m_TeamId);
 
     public GameEntity m_Target { get; protected set; }
 
@@ -754,73 +774,65 @@ public class GameEntity : MonoBehaviour,
 
     }
 
-
-
     public virtual void RestoreSaveData(BaseData data)
     {
-        //GameEntityData gdata = data as GameEntityData;
-        //_guid = gdata.guid;
-        //transform.position = gdata.position;
-        //transform.rotation = gdata.rotation;
-        ////m_AttributeSystem.RestoreSaveData(gdata.attributeSystemData);
-        //m_CurrentAction = GetActionByEActionType(gdata.CurrentActionType);
-        //m_BeforeAction = GetActionByEActionType(gdata.BeforeActionType);
-        //m_NextAction = GetActionByEActionType(gdata.NextActionType);
+        return;
+        GameEntityData gdata = data as GameEntityData;
+        _guid = gdata.guid;
+        transform.position = gdata.position;
+        transform.rotation = gdata.rotation;
+        //m_AttributeSystem.RestoreSaveData(gdata.attributeSystemData);
+        m_CurrentAction = GetActionByEActionType(gdata.CurrentActionType);
+        m_BeforeAction = GetActionByEActionType(gdata.BeforeActionType);
+        m_NextAction = GetActionByEActionType(gdata.NextActionType);
 
-        //GameEntityAnimationData animData = gdata.gameEntityAnimationData;
-        //if (animData != null)
-        //{
-        //    var animManager = GetAnimationsManager().FirstOrDefault();
-        //    if (animManager != null)
-        //    {
-        //        var animator = animManager.GetComponent<Animator>();
+        GameEntityAnimationData animData = gdata.gameEntityAnimationData;
+        if (animData != null)
+        {
+            var animator = GetComponentInChildren<Animator>();
 
-        //        if (animator != null)
-        //        {
+            if (animator != null)
+            {
 
-        //            // 2. 저장된 스테이트와 진행 정도(Normalized Time)부터 재생 시작
-        //            // Animator.Play(int stateNameHash, int layer, float normalizedTime) 사용
-        //            animator.Play(animData.stateNameHash, 0, animData.normalizedTime);
+                // 2. 저장된 스테이트와 진행 정도(Normalized Time)부터 재생 시작
+                // Animator.Play(int stateNameHash, int layer, float normalizedTime) 사용
+                animator.Play(animData.stateNameHash, 0, animData.normalizedTime);
 
-        //            animator.speed = animData.speed;
-        //            // 로드 후 애니메이터가 멈춰 있을 수 있으므로 speed를 복구합니다.
-        //            animManager.AnimationPlay();
+                animator.speed = animData.speed;
 
-        //        }
-        //    }
-        //}
+            }
+        }
 
-        //if(m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
-        //{
-        //    combatAction.m_ThisTimeAttack = m_AttributeSystem.m_AttackPatterns.FirstOrDefault(attack => attack.ID == gdata.thisAttackPattern.id);
-        //}
+        if (m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
+        {
+            //combatAction.m_ThisTimeAttack = m_AttributeSystem.m_AttackPatterns.FirstOrDefault(attack => attack.ID == gdata.thisAttackPattern.id);
+        }
 
-        //// TODO 구조 변경
-        //BaseAction GetActionByEActionType(E_ActionType action)
-        //{
-        //    if (action == E_ActionType.None)
-        //        return null;
+        BaseAction GetActionByEActionType(E_ActionType action)
+        {
+            if (action == E_ActionType.None)
+                return null;
 
-        //    switch (action)
-        //    {
-        //        case E_ActionType.None:
-        //            return null;
-        //        case E_ActionType.Idle:
-        //            return GetAction<IdleAction>();
-        //        case E_ActionType.Chase:
-        //            return GetAction<ChaseAction>();
-        //        case E_ActionType.Combat:
-        //            return GetAction<CombatAction>();
-        //        case E_ActionType.Patrol:
-        //            return GetAction<PatrolAction>();
-        //        case E_ActionType.CommandAttack:
-        //            return GetAction<CommandAttackAction>();
-        //        case E_ActionType.CommandMove:
-        //            return GetAction<CommandMoveAction>();
-        //        default:
-        //            return null;
-        //    }
-        //}
+            switch (action)
+            {
+                case E_ActionType.None:
+                    return null;
+                case E_ActionType.Idle:
+                    return GetAction<IdleAction>();
+                case E_ActionType.Chase:
+                    return GetAction<ChaseAction>();
+                case E_ActionType.Combat:
+                    return GetAction<CombatAction>();
+                case E_ActionType.Patrol:
+                    return GetAction<PatrolAction>();
+                case E_ActionType.CommandAttack:
+                    return GetAction<CommandAttackAction>();
+                case E_ActionType.CommandMove:
+                    return GetAction<CommandMoveAction>();
+                default:
+                    return null;
+            }
+        }
     }
 
     #endregion
@@ -835,6 +847,7 @@ public class GameEntity : MonoBehaviour,
     private void HandleDead(OnAttackInfoEventArgs e)
     {
         OnDead?.Invoke(e); // 기존 호환용
+        m_CurrentAction.ClearAction();
         ClearAction();
     }
 
@@ -842,7 +855,6 @@ public class GameEntity : MonoBehaviour,
     {
         OnDamaged?.Invoke(e);
     }
-
 
     private void HandleRevived()
     {
@@ -900,47 +912,4 @@ public class GameEntity : MonoBehaviour,
 
 }
 
-public static class TeamRules
-{
-    static TeamRules()
-    {
-        if (Enemy.GetLength(0) != (int)E_TeamId.Count)
-            Debug.LogError("TeamRules matrix size mismatch with E_TeamId.Count");
-    }
-
-    // [A, B] : A 기준으로 B가 적인가?
-    private static readonly bool[,] Enemy =
-    {
-        //             Player   NPC     Monster  None
-        /* Player */  { false,  false,  true,    false },
-        /* NPC    */  { false,  false,  true,    false },
-        /* Monster*/  { true,   true,   false,   false },
-        /* None  */   { false,  false,  false,   false },
-    };
-
-    // [A, B] : A 기준으로 B가 아군인가?
-    private static readonly bool[,] Ally =
-    {
-        //             Player   NPC     Monster  None
-        /* Player */  { true,   true,   false,   false },
-        /* NPC    */  { true,   true,   false,   false },
-        /* Monster*/  { false,  false,  true,    false },
-        /* None  */   { false,  false,  false,   false },
-    };
-
-    public static bool IsEnemy(E_TeamId self, E_TeamId other)
-    {
-        if ((uint)self >= (uint)E_TeamId.Count || (uint)other >= (uint)E_TeamId.Count)
-            return false;
-        return Enemy[(int)self, (int)other];
-    }
-
-    public static bool IsAlly(E_TeamId self, E_TeamId other)
-    {
-        if ((uint)self >= (uint)E_TeamId.Count || (uint)other >= (uint)E_TeamId.Count)
-            return false;
-        return Ally[(int)self, (int)other];
-    }
-
-}
 

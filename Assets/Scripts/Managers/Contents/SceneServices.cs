@@ -38,7 +38,9 @@ public sealed class SceneServices
     public IMouseClickHandler MouseClickHandler => Get<IMouseClickHandler>();
     public ICameraInput CameraInput => Get<ICameraInput>();
     public IInputQuery InputQuery => Get<IInputQuery>();
-    public InputRouter.EventMap InputEventMap => Get<InputRouter.EventMap>();
+    public IInputEvents InputEvents => Get<IInputEvents>();
+
+    public IInputActionMapController InputActionMapController => Get<IInputActionMapController>();
 
     #endregion
 
@@ -69,6 +71,7 @@ public sealed class SceneServices
 
     #endregion
 
+
     public void Register<T>(T service) where T : class
     {
         var type = typeof(T);
@@ -77,8 +80,21 @@ public sealed class SceneServices
         {
             if (!ReferenceEquals(existing, service))
             {
-                // 기존이 Null이면 정상 교체로 보고 경고를 줄이기
-                if (ReferenceEquals(existing, NullService<T>.Instance))
+                // 🔹 기존 값이 NullService Proxy였다면, 여기서 한 번 이관
+                if (existing is INullServiceProxy<T> proxy)
+                {
+                    try
+                    {
+                        proxy.TransferTo(service);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"[SceneServices] {type.Name} Null→Real 이관 중 예외: {e}");
+                    }
+
+                    Debug.Log($"[SceneServices] {type.Name} registered (migrated from NullService): {service}");
+                }
+                else if (ReferenceEquals(existing, NullService<T>.Instance))
                 {
                     Debug.Log($"[SceneServices] {type.Name} registered (replacing NullService): {service}");
                 }
@@ -92,7 +108,8 @@ public sealed class SceneServices
         _services[type] = service;
     }
 
-    private T Get<T>() where T : class
+
+    public T Get<T>() where T : class
     {
         var type = typeof(T);
 

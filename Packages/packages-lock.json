@@ -14,7 +14,7 @@
       "dependencies": {
         "com.unity.test-framework": "1.1.9"
       },
-      "hash": "38fecf55e4fd94ccfe58a92ed8ad1a529ba1694e"
+      "hash": "53e1baac3cde90c46934f82ee1d61802d2bd6651"
     },
     "com.shlifedev.ugs": {
       "version": "https://github.com/shlifedev/uni-google-sheets.git?path=src/",

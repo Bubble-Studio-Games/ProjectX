@@ -50,10 +50,71 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7406952615627690210, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
       propertyPath: m_Name
-      value: Base Game Entity (Interact) Variant
+      value: Base Game Entity (Interact)
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7406952615627690210, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9094740110015393887}
+    - targetCorrespondingSourceObject: {fileID: 1205706770750537166, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7180099738473067391}
   m_SourcePrefab: {fileID: 100100000, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+--- !u!1 &1555174706120998681 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1205706770750537166, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+  m_PrefabInstance: {fileID: 373395027916604119}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7180099738473067391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1555174706120998681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eadbda4725da5ae44991d96900ccc767, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_fCrossTime: 0
+  m_SpawnAnimationClip: []
+  m_DeSpawnAnimationClip: []
+  m_ReviveAnimationClip: []
+  m_DeathAnimationClip: []
+  m_CriticalDamagedAnimationClip: []
+  m_DamagedAnimationClip: []
+  m_IdleAnimationClip: []
+  m_WalkAnimationClip: []
+  m_RunAnimationClip: []
+  m_InteractAnimationClip: []
+  m_AnimatorOriginalVale: 1
+--- !u!1 &7197975847926387253 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7406952615627690210, guid: c2164656178e98a4181dbae12d72ff0f, type: 3}
+  m_PrefabInstance: {fileID: 373395027916604119}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &9094740110015393887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7197975847926387253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb541832ceb6124eb8ad2c846f7860d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_GridPositionOffsets: []
+  m_EObjectType: 0
+  m_CurrentEDir: 4
+  m_TeamId: 3
+  currentAction: {fileID: 0}
+  m_IsDirectDesawnAtDeath: 1
+  m_DisableDespawnFlowForAnimTest: 0
+  m_IsTowardDungeonCore: 0
+  crateDestroyedPrefab: {fileID: 0}

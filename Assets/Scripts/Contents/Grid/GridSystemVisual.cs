@@ -1,12 +1,12 @@
+using SixLabors.ImageSharp.ColorSpaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static Define;
 
-/*
-역할: “그리드 타일을 실제로 그려주는 렌더러(표시/숨김/색상/강도)”
-
+[EditorShowInfo(@"
+역할: 그리드 타일을 실제로 그려주는 렌더러(표시/숨김/색상/강도)
 IGridPlacementVisualizer 구현체로 등록되고, Show / HideAll로 타일을 표시한다. 
 그리드 전체 타일 오브젝트를 생성해두고(BuildVisualTiles), 머티리얼 캐시를 만든다. 
 IGridVisualUpdateSource의 OnDirty만 구독하고, Dirty가 오면 Refresh()에서 그린다. 
@@ -15,8 +15,7 @@ Refresh()는 updateSource 상태로 모드 분기:
 평소면 UpdateGridVisual(selectedActionType)로 일반 표시(예: 이동/전투 범위) 
 
 결론: “판단은 하지 않고, 받은 정보로 그리기만 하는” 시각화 전용 클래스.
- 
- */
+")]
 public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
 {
     public bool m_isShowReservationGrid;
@@ -44,26 +43,26 @@ public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
     {
         Managers.SceneServices.Register<IGridPlacementVisualizer>(this);
         InitializeMaterialCache();
+
+        _grid = Managers.SceneServices.Grid;
+        _update = Managers.SceneServices.GridVisualUpdateSource;
     }
 
     private void Start()
     {
-        _grid = Managers.SceneServices.Grid;
-        _update = Managers.SceneServices.GridVisualUpdateSource;
 
         BuildVisualTiles();
-
-        // 이제 갱신 트리거는 updateSource 하나로만 받는다
-        if (_update != null)
-            _update.OnDirty += Refresh;
-
         Refresh();
+    }
+
+    private void OnEnable()
+    {
+        _update.OnDirty += Refresh;
     }
 
     private void OnDestroy()
     {
-        if (_update != null)
-            _update.OnDirty -= Refresh;
+        _update.OnDirty -= Refresh;
     }
 
     private void BuildVisualTiles()
@@ -92,9 +91,7 @@ public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
         }
     }
 
-    // =========================
     // Material cache
-    // =========================
     private void InitializeMaterialCache()
     {
         _materialCache = new Dictionary<E_GridVisualType_Color, Dictionary<E_GridVisualType_Intensity, Material>>();
@@ -107,8 +104,8 @@ public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
 
             _materialCache[colorType][E_GridVisualType_Intensity.Medium] = item.material;
 
-            Material lightMat = Util.AdjustMaterialHSV(Instantiate(item.material), 2, -item.DownIntensity);
-            Material strongMat = Util.AdjustMaterialHSV(Instantiate(item.material), 2, item.UpIntensity);
+            Material lightMat = Util.ColorUtil.AdjustMaterialHSV(Instantiate(item.material), 2, -item.DownIntensity);
+            Material strongMat = Util.ColorUtil.AdjustMaterialHSV(Instantiate(item.material), 2, item.UpIntensity);
 
             _materialCache[colorType][E_GridVisualType_Intensity.Light] = lightMat;
             _materialCache[colorType][E_GridVisualType_Intensity.Strong] = strongMat;
@@ -139,9 +136,7 @@ public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
         return list.Except(reserved);
     }
 
-    // =========================
     // Visualizer API
-    // =========================
     public void HideAll()
     {
         foreach (var floorPair in _floorVisuals)
@@ -173,17 +168,9 @@ public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
         }
     }
 
-    // =========================
     // Refresh entrypoint
-    // =========================
     private void Refresh()
     {
-        // updateSource 없거나 그리드 없으면 그냥 지워두기
-        if (_grid == null || _update == null)
-        {
-            HideAll();
-            return;
-        }
 
         // ✅ 배치 중이면 배치용 그리드만
         if (_update.IsPlacing)
@@ -212,7 +199,7 @@ public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
 
     private void GetCommonAttackGridFromUnits<TAction>() where TAction : BaseAction
     {
-        var filter = Managers.Command.FilterUnitsWithAction<TAction, GameEntity>();
+        var filter = Util.FilterGameEntityHasAction<TAction, GameEntity>(Managers.Selection.SelectedUnitsT<GameEntity>());
 
         if (typeof(TAction) == typeof(CommandMoveAction))
         {

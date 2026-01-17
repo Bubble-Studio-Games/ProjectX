@@ -89,22 +89,37 @@ public static class NullServiceAutoGenerator
         var className = $"Null{iface.Name.Substring(1)}";
         var sb = new StringBuilder();
 
-        sb.AppendLine($"    public sealed class {className} : {iface.Name}");
+        sb.AppendLine($"    public sealed class {className} : {iface.Name}, INullServiceProxy<{iface.Name}>");
         sb.AppendLine("    {");
         sb.AppendLine($"        public static readonly {className} Instance = new();");
         sb.AppendLine($"        private {className}() {{ }}");
         sb.AppendLine();
 
-        // events
-        foreach (var evt in iface.GetEvents())
-        {
-            sb.AppendLine(
-                $"        public event {evt.EventHandlerType.GetFriendlyName()} {evt.Name}" +
-                " { add { } remove { } }");
-        }
+        // 1) 이벤트 목록 가져오기
+        var events = iface.GetEvents();
 
-        if (iface.GetEvents().Length > 0)
+        // 1-1) 백킹 필드
+        foreach (var evt in events)
+        {
+            var handlerType = evt.EventHandlerType.GetFriendlyName();
+            sb.AppendLine($"        private {handlerType} _{evt.Name};");
+        }
+        if (events.Length > 0)
             sb.AppendLine();
+
+        // 1-2) event 구현
+        foreach (var evt in events)
+        {
+            var handlerType = evt.EventHandlerType.GetFriendlyName();
+            sb.AppendLine($"        public event {handlerType} {evt.Name}");
+            sb.AppendLine("        {");
+            sb.AppendLine($"            add    => _{evt.Name} += value;");
+            sb.AppendLine($"            remove => _{evt.Name} -= value;");
+            sb.AppendLine("        }");
+        }
+        if (events.Length > 0)
+            sb.AppendLine();
+
 
         // properties
         foreach (var prop in iface.GetProperties())
@@ -179,6 +194,26 @@ public static class NullServiceAutoGenerator
                 sb.AppendLine($" => {GetDefaultValue(method.ReturnType)};");
             }
         }
+
+        if (events.Length > 0)
+        {
+            sb.AppendLine($"        public void TransferTo({iface.Name} real)");
+            sb.AppendLine("        {");
+            foreach (var evt in events)
+            {
+                sb.AppendLine($"            if (_{evt.Name} != null) real.{evt.Name} += _{evt.Name};");
+                sb.AppendLine($"            _{evt.Name} = null;");
+            }
+            sb.AppendLine("        }");
+            sb.AppendLine();
+        }
+        else
+        {
+            // 이벤트가 하나도 없는 인터페이스는 빈 구현
+            sb.AppendLine($"        public void TransferTo({iface.Name} real) {{ }}");
+            sb.AppendLine();
+        }
+
 
         sb.AppendLine("    }");
         sb.AppendLine();

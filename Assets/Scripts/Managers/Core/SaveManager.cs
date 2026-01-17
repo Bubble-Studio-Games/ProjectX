@@ -41,8 +41,9 @@ public class SaveManager
 
                 saveDic[slotId].dungeondata = new DungeonSaveData
                 {
-                    gameEntityDatas = Managers.Object._objects
-                            .Select(obj => obj.GetComponent<ISaveable>())
+                    gameEntityDatas = Managers.Object?._objects?
+                            .Where(obj => obj != null)
+                            .Select(obj => obj?.GetComponent<ISaveable>())
                             .Where(isave => isave != null)
                             .Select(isave => isave.CaptureSaveData())
                             .ToList(),

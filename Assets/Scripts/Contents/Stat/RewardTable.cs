@@ -218,8 +218,7 @@ public class RewardCard : BaseReward
 
     public override void Execute(GameEntity source)
     {
-        var ui = Managers.SceneServices.BuildingCardUI;
-        ui?.AddCard(m_GameEntity, source.transform.position);
+        Managers.SceneServices.BuildingCardUI.AddCard(m_GameEntity, source.transform.position);
     }
 }
 

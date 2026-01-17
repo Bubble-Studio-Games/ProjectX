@@ -5,7 +5,6 @@ using System.Linq;
 using System;
 using System.Collections;
 using Unity.VisualScripting;
-using UnityEngine.Rendering.Universal;
 
 public abstract class AttackPattern
 {
@@ -235,7 +234,10 @@ public abstract class AttackPattern
         if (checkAttackData.GridCheckTypes.Count == 0)
         {
             var t = Managers.SceneServices.Grid.GetCellEntity(checkGridPosition);
-            return attacker.IsEnemy(t);
+            if (t == null)
+                return false;
+            // 같은 팀원이 아닌 경우에 모두 공격 판단
+            return !attacker.IsAlly(t);
         }
 
         foreach (var type in checkAttackData.GridCheckTypes)

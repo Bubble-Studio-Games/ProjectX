@@ -212,7 +212,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6429107872145000504}
-  - component: {fileID: 7808551783411200003}
+  - component: {fileID: 4815824169462652449}
   - component: {fileID: 7405677636233259612}
   m_Layer: 0
   m_Name: InputSystem
@@ -236,9 +236,11 @@ Transform:
   m_Children:
   - {fileID: 1259175317398639128}
   - {fileID: 2978064264777743814}
+  - {fileID: 1220331218480996961}
+  - {fileID: 8562404338813178864}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7808551783411200003
+--- !u!114 &4815824169462652449
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -247,15 +249,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 7770737454546026551}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70cbe44ce6e349a48bfaf4be24cc1c7e, type: 3}
+  m_Script: {fileID: 11500000, guid: 8f1a4e84594304f4cadc63b432c3a4f4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SelectionBox: {fileID: 1952576922811877725}
-  DragDelay: 0.5
-  DefaultCursor: {fileID: 2800000, guid: 3d79a601f9b4ff74183a2c36e0620ef6, type: 3}
-  AttackCursor: {fileID: 2800000, guid: b527280135183c0409d99d02ae74d4d0, type: 3}
-  InteractCursor: {fileID: 2800000, guid: 666cb20ceaf566c458153761ab1a7a0f, type: 3}
-  hotspot: {x: 0, y: 0}
 --- !u!114 &7405677636233259612
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -268,6 +264,72 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc6fb1b00e6951f4e8ba73b43d594529, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &8079288656318270292
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8562404338813178864}
+  - component: {fileID: 7321875233875843703}
+  - component: {fileID: 2086962435892594618}
+  m_Layer: 0
+  m_Name: Mouse
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8562404338813178864
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8079288656318270292}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6429107872145000504}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7321875233875843703
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8079288656318270292}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70cbe44ce6e349a48bfaf4be24cc1c7e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SelectionBox: {fileID: 1952576922811877725}
+  DragDelay: 0.5
+  DefaultCursor: {fileID: 2800000, guid: 3d79a601f9b4ff74183a2c36e0620ef6, type: 3}
+  AttackCursor: {fileID: 2800000, guid: b527280135183c0409d99d02ae74d4d0, type: 3}
+  InteractCursor: {fileID: 2800000, guid: 666cb20ceaf566c458153761ab1a7a0f, type: 3}
+  hotspot: {x: 0, y: 0}
+--- !u!114 &2086962435892594618
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8079288656318270292}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1139994ecc91ee94cb71f8f89ac9bb9c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  worldUITransform: {fileID: 2978064264777743814}
+  commandActionAtGridEffectPrefab: {fileID: 4789093421501283934, guid: 6b4438215d264334c953f359eb20f5b7, type: 3}
+  defaultHeight: 4
 --- !u!1 &8113138680818179873
 GameObject:
   m_ObjectHideFlags: 0
@@ -343,3 +405,34 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &8129606175114217549
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1220331218480996961}
+  m_Layer: 0
+  m_Name: Keyboard
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1220331218480996961
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8129606175114217549}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6429107872145000504}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

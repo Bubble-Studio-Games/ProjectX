@@ -124,10 +124,7 @@ public partial class GameManager
                 }
 
                 break;
-            case E_RangeShapeType.Checker:
-                // TODO
-                // 대각선의 경우에도 대각 선 방향일 때에도 격자가 진행되도록 해야 됨
-                // 또한 매번 격자가 항상 바뀔지, 아니면 그대로 할지도 정해야 됨. 
+            case E_RangeShapeType.Checker: 
                 for (int f = range.MinFloor; f <= range.MaxFloor; f++)
                 {
                     for (int x = range.MinX; x <= range.MaxX; x++)

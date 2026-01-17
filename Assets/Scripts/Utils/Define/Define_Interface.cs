@@ -1,14 +1,93 @@
 using Data;
+using GoogleSheet;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using UnityEditor;
 using UnityEngine;
-using static Define;
 
 public partial class Define
 {
+    public interface INullServiceProxy<T> where T : class
+    {
+        /// <summary>
+        /// 진짜 서비스가 Register 될 때 SceneServices가 한 번 호출해 줌.
+        /// 여기서 Null 쪽에 쌓인 이벤트/상태를 real로 옮기고, 자기 쪽은 비워버리면 됨.
+        /// </summary>
+        void TransferTo(T real);
+    }
+
+
+    #region MapChange
+    [GenerateNullService]
+    public interface IInputEvents
+    {
+        void Subscribe(E_InputEvent type, Action handler);
+        void Unsubscribe(E_InputEvent type, Action handler);
+        void Invoke(E_InputEvent type);
+    }
+
+    /// <summary>
+    /// New Input System 액션맵 스택 / 상태를 관리하는 컨트롤러
+    /// (예: Lobby / Game / Dialogue / Tutorial)
+    /// </summary>
+    [GenerateNullService]
+    public interface IInputActionMapController
+    {
+        /// <summary>현재 활성화된 그룹 이름 (예: "Game", "Lobby", "Dialogue")</summary>
+        string CurrentActionMapGroup { get; }
+
+        /// <summary>타입 세이프 버전 (없으면 null)</summary>
+        Define.E_InputActionMap? CurrentActionMapType { get; }
+
+        /// <summary>ActionMap 변경 시 문자열 그룹 이름을 알림</summary>
+        event Action<string> OnActionMapChanged;
+
+        /// <summary>타입 기반 Push</summary>
+        void PushActionMapGroup(Define.E_InputActionMap mapType);
+
+        /// <summary>문자열 기반 Push (호환용)</summary>
+        void PushActionMapGroup(string groupName);
+
+        /// <summary>마지막으로 Push한 그룹 Pop</summary>
+        void PopActionMapGroup();
+    }
+
+    public interface IRawInputActions
+    {
+        PlayerInputActions Actions { get; }
+    }
+
+
+    #endregion
+
+    /// <summary>
+    /// 비동기 닫힘 대기 인터페이스 - UI가 닫힐 때 비동기적으로 대기
+    /// </summary>
+    public interface IAsyncCloseable
+    {
+        public Action OnClose { get; set; }
+    }
+
+    /// <summary>
+    /// 아이템 호버 정책 인터페이스 - 부모 UI가 호버 패널 표시 여부 및 방식 결정
+    /// </summary>
+    public interface IItemHoverPolicy
+    {
+        /// <summary>
+        /// 아이템 호버 패널 표시
+        /// </summary>
+        public void ShowItemHover(Item.Data data, UnityEngine.Vector2 screenPos);
+
+        /// <summary>
+        /// 아이템 호버 패널 숨김
+        /// </summary>
+        public void HideItemHover();
+    }
+
+    public interface IItemBoxUI
+    {
+        public ITable Table { get; }
+    }
 
     public interface IUpgradeble
     {
@@ -156,6 +235,14 @@ public partial class Define
 
         bool TryPlace(); // 설치 시도(검사 포함)
         void ChangeSelection(GameEntity toChangeObject, bool isInputNumberPad = false);
+
+        /// <summary>
+        /// 설치 하려는 오브젝트 회전
+        /// </summary>
+        void RotateSelectObject();
+
+        /// <summary> 현재 오브젝트 설치 중인지 확인 </summary>
+        bool IsSetuping { get; }
     }
 
     public sealed class BuildPlacedEventArgs : EventArgs
@@ -270,7 +357,6 @@ public partial class Define
 
     public interface ICommandAction
     {
-
     }
 
     public interface IInteractable

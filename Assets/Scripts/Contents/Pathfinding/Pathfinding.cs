@@ -1,11 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
-using UnityEditor.TerrainTools;
 using UnityEngine;
 using static Define;
 
+[DefaultExecutionOrder(-20)]
 public class Pathfinding : MonoBehaviour, IPathfinder
 {
     private IGridQuery _grid;

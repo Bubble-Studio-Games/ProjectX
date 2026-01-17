@@ -59,8 +59,6 @@ public class BuildingTypeSelectUI : MonoBehaviour, ISaveable, IBuildingCardUI
         if (ShowGameEntityCard.Count >= m_iMaxHaveCard)
         {
             RemoveCard(ShowGameEntityCard[0]);
-
-            // TODO 자원 획득
         }
 
         BuildingCard card = Managers.Resource.Instantiate<BuildingCard>(m_BuildingCardPrefab.gameObject, transform.parent);
@@ -139,8 +137,6 @@ public class BuildingTypeSelectUI : MonoBehaviour, ISaveable, IBuildingCardUI
     public void TrySummonEntity(BuildingCard card, GameEntity entity, Vector2 originalPos)
     {
         bool isSusccess = Managers.SceneServices.BuildPlacementService.TryPlace();
-
-        // TODO 금화
 
         if (isSusccess)
         {

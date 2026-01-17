@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using static Define;
 
-/*
+[EditorShowInfo(@"
  역할: “언제 GridSystemVisual이 다시 그려야 하는지(Dirty) 판단해주는 어댑터”
 
 IGridVisualUpdateSource로 등록되고, OnDirty 이벤트만 발행한다. 
@@ -14,8 +14,7 @@ MouseGridPosition (현재 마우스 그리드)
 SelectedActionType (선택된 액션 타입) 
 
 결론: **“그리드 시각화가 언제/무엇을 기준으로 갱신할지”**를 결정하는 트리거/상태 공급자.
- */
-
+")]
 public class GridVisualUpdateSource_Default : MonoBehaviour, IGridVisualUpdateSource
 {
     public event Action OnDirty;

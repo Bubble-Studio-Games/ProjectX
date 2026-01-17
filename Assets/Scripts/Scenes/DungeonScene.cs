@@ -1,33 +1,24 @@
 using Data;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using static Define;
-
 
 public class DungeonScene : BaseScene
 {
     IBuildingCardUI _buildingCardUI;
-    DungeonScene()
-    {
-        SceneType = Scene.Dungeon;
-    }
+    DungeonScene() => SceneType = Scene.Dungeon;
 
     protected override void Start()
     {
+        _buildingCardUI = Managers.SceneServices.BuildingCardUI;
+
         base.Start();
 
         // Sound
         Managers.Sound.Play(m_SceneMainTemaAudioclip, 1, Sound.Bgm);
-        _buildingCardUI = Managers.SceneServices.BuildingCardUI;
     }
 
-    public override void Clear()
-    {
-        
-    }
+    protected override E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Game;
 
     protected override void LoadSavedGame(SaveSlotData data)
     {
@@ -39,7 +30,7 @@ public class DungeonScene : BaseScene
         Managers.Load.ObjectInfoLoad(data.dungeondata.gameEntityDatas);
         Managers.Load.ObjectRestoreSaveData(data.dungeondata.gameEntityDatas);
 
-        _buildingCardUI?.RestoreSaveDatas(data.dungeondata.buildingCardDatas);
+        _buildingCardUI.RestoreSaveDatas(data.dungeondata.buildingCardDatas);
 
         Managers.SceneServices.InventoryWrite.AddDownJam(data.dungeondata.downJam);
 
@@ -63,5 +54,4 @@ public class DungeonScene : BaseScene
                  Managers.SceneServices.DungeonCores.Cores.First().Rotation);
         }
     }
-
 }

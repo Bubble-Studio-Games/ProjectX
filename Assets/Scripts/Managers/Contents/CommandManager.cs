@@ -1,7 +1,6 @@
 using UnityEngine;
 using System;
 using static Define;
-using static UnitActionSystem;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -40,7 +39,7 @@ public class CommandManager
                 case E_ObjectType.Unit:
                 case E_ObjectType.Building:
                     if (target.m_TeamId == E_TeamId.Monster)
-                        CommandAttack(target);
+                        CommandAttack(target, gridPos);
                     break;
 
                 case E_ObjectType.Interact:
@@ -58,7 +57,7 @@ public class CommandManager
             obj = null;
 
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),
-                                out RaycastHit hit, GameConfig.Layer.PlayerInteractableLayerMask))
+                                out RaycastHit hit, GameConfig.Layer.HitColLayerMask))
             {
                 obj = hit.collider.GetComponentInParent<GameEntity>();
             }
@@ -73,16 +72,14 @@ public class CommandManager
         ExecuteCommand<CommandMoveAction>(gridPos);
     }
 
-    public void CommandAttack(GameEntity target)
+    public void CommandAttack(GameEntity target, GridPosition gridPos)
     {
-        var pos = target.GetGridPosition();
-        ExecuteCommand<CommandAttackAction>(pos);
+        ExecuteCommand<CommandAttackAction>(gridPos);
     }
 
     public void CommandInteract(GameEntity target)
     {
         var pos = target.GetGridPosition();
-        Debug.Log($"{target.name} 상호작용 시작");
         ExecuteCommand<CommandInteractAction>(pos);
     }
 
@@ -90,10 +87,13 @@ public class CommandManager
         (GridPosition gridPosition)
         where TAction : BaseAction
     {
+        // 조작 가능 유닛만 가져오기
+        var selectedEntities = Managers.Selection.SelectedUnits.OfType<ControllableObject>();  // ISelectable -> GameEntity 로 필터링/캐스팅
+        
         // ✔ 액션 가능 유닛만 가져오기
-        var filtered = FilterUnitsWithAction<TAction, ControllableObject>();
+        var filtered = Util.FilterGameEntityHasAction<TAction, ControllableObject>(selectedEntities);
 
-        if (filtered.Count == 0)
+        if (filtered.Count() == 0)
             return;
 
         bool executedAny = false;
@@ -119,32 +119,24 @@ public class CommandManager
                 GridPosition = gridPosition,
             });
 
-            if (typeof(TAction) == typeof(CommandMoveAction))
-            {
-                Managers.Sound.Play(GameConfig.Sound.m_CommandAction_CommandMoveAudioClip);
-            }
-
-            if (typeof(TAction) == typeof(CommandAttackAction))
-            {
-                Managers.Sound.Play(GameConfig.Sound.m_CommandAction_CommandAttackAudioClip);
-            }
+            DiectActionSoundPlay<TAction>();
         }
     }
 
-
-    public List<(TClass unit, TAction action)>
-        FilterUnitsWithAction<TAction, TClass>()
-        where TAction : BaseAction 
-        where TClass : GameEntity
+    private void DiectActionSoundPlay<TAction>() where TAction : BaseAction
     {
-        var selectedUnits = Managers.Selection.GetSelectedByClass<TClass>();
+        if (typeof(TAction) == typeof(CommandMoveAction))
+        {
+            Managers.Sound.Play(GameConfig.Sound.m_CommandAction_CommandMoveAudioClip);
+        }
 
-        return selectedUnits
-            .Select(unit => (unit, action: unit.GetAction<TAction>()))
-            .Where(pair => pair.action != null)
-            .ToList();
+        if (typeof(TAction) == typeof(CommandAttackAction))
+        {
+            Managers.Sound.Play(GameConfig.Sound.m_CommandAction_CommandAttackAudioClip);
+        }
     }
 
+    // 커맨드 액션 선택
     public void SetSelectedAction(BaseAction baseAction)
     {
         m_SelectAction = baseAction;

@@ -1,8 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
-using UnityEngine;
 using static Define;
 
 public class CommandMoveAction : MoveAction, ICommandAction
@@ -126,5 +122,13 @@ public class CommandMoveAction : MoveAction, ICommandAction
         }
 
         return validGridPositionList;
+    }
+
+    public override bool IsValidActionGridPosition(GridPosition grid)
+    {
+        if (GetValidActionGridPositionList().Contains(grid) == false)
+            return false;
+
+        return true;
     }
 }

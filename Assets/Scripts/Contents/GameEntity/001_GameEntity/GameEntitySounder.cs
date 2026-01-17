@@ -39,7 +39,7 @@ public  class GameEntitySounder : MonoBehaviour
 
         // Event Set 
         m_GameEntity = GetComponentInParent<GameEntity>();
-        m_Interactable = m_GameEntity.GetComponentInParent<IInteractable>();
+        m_Interactable = GetComponentInParent<IInteractable>();
     }
 
     private void OnEnable()
@@ -111,9 +111,6 @@ public  class GameEntitySounder : MonoBehaviour
 
     public virtual void DamagedSoundPlay(OnAttackInfoEventArgs e) 
     {
-        if(e.AttackPattern != null || e.AttackPattern is not AttackData_Ready)
-            return;
-
         switch (e.EHitDeCisionType)
         {
             case E_HitDecisionType.Hit:

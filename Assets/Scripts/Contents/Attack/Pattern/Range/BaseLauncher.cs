@@ -3,7 +3,7 @@ using UnityEngine;
 public class BaseLauncher
 {
     // ✅ 스텝 이동 FPS (애니메이션 스텝이랑 통일하고 싶으면 이걸 사용)
-    protected float StepFps => GameConfig.AnimationStepFps;
+    protected float StepFps => GameConfig.RuntimeSettings.animationStepFps;
 
     // ✅ 위치 스냅 단위 (픽셀/도트 느낌 강도 조절)
     protected const float SNAP_UNIT = 0.05f;
@@ -18,7 +18,7 @@ public class BaseLauncher
     protected Collider ignoreCol;
 
     protected int GetLayerMask()
-        => GameConfig.Layer.HitColLayerMask | GameConfig.Layer.m_StructLayer;
+        => GameConfig.Layer.HitColLayerMask | GameConfig.Layer.StructLayer;
 
     protected Vector3 GetTargetPosition(GameEntity target)
     {

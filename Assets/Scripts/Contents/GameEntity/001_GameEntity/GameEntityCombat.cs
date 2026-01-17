@@ -8,7 +8,7 @@ using static Define;
 public class GameEntityCombat : MonoBehaviour
 {
     #region Field
-    public List<(Item obj, Transform spawnTransform)> m_AttackReadyItemObject = new();
+    public List<(ItemObject obj, Transform spawnTransform)> m_AttackReadyItemObject = new();
     public HashSet<AttackData_Ready> m_ReadyAttackPattern = new HashSet<AttackData_Ready>();
 
     private GameEntity m_GameEntity;

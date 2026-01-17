@@ -1,8 +1,5 @@
-using Data;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using static Define;
 
@@ -29,6 +26,7 @@ public  partial class AttackData : ScriptableObject
     public string AttackName;                    // 예: "전방3칸", "부채꼴" 등
     public E_AttackType AttackType;
     public bool EnableSelfAttack; // 공격자가 대상자에 포함되는가?, 나도 공격/버프 당할 수 있는가?
+    [Range(1, 100)] public int m_iPriority = 1; // 공격 우선순위 (공격 발생 확률이 높다.)
 
     [Header("Range & Shape")]
     public E_RangeFillType m_ERangeFillType;
@@ -76,5 +74,7 @@ public  partial class AttackData : ScriptableObject
     [HideInInspector] public AttackPatternInfoClip selectInfoClip;
 
     #endregion
+
+
 }
 

@@ -1,5 +1,3 @@
-using static Define;
-
 public sealed class AttackPattern_Melee : AttackPattern<AttackData_Melee>
 {
     public override void Attack(GameEntity attacker, GameEntity target, AttackData_Melee data)

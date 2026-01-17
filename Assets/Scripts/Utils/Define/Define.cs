@@ -1,9 +1,38 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public partial class Define
 {
+
+    public enum E_InputEvent
+    {
+        // 순간 이벤트
+        EscPressed,
+        RPressed,
+
+        // 상태 키
+        RightHold,
+        Sprint,
+
+        // 상태 전이 이벤트
+        RightHoldStarted,
+        RightHoldEnded,
+        SprintStarted,
+        SprintEnded,
+
+        // 마우스 순간 이벤트
+        MouseLeftDown,
+        MouseLeftUp,
+
+        MouseRightDown,
+        MouseRightUp,
+
+        MouseWheelDown,
+        MouseWheelUp,
+
+        // 🔽 다이얼로그 입력
+        DialogueSubmit,
+        DialogueCancel,
+    }
+
+
     public enum E_StatDeltaKind { HP, MP, Shield, /* ... */ }
     public enum E_StatDeltaSign { Plus, Minus, Zero }
     public enum E_StatDeltaCause { Damage, Heal, LifeSteal, Regen, Cost, Unknown }
@@ -240,15 +269,17 @@ public partial class Define
 
     public enum E_Dir
     {
-        North,
+        West,   // 0°
+        South,  // 90°
+        East,   // 180°
+        North,  // 270°
+
         NorthEast,
-        NorthWest,
-        East,
-        South,
         SouthEast,
         SouthWest,
-        West
+        NorthWest
     }
+
 
     public enum E_MoveType
     {
@@ -266,7 +297,8 @@ public partial class Define
         AutoTrigger = 4,
         Obstacle,
         Skill,
-        PassiveObject
+        PassiveObject,
+        NPC
     }
 
 
@@ -356,10 +388,20 @@ public partial class Define
         Loading,
         Camp, // 거점 구역
 
-        // TODO 코드 리팩토링 작업 다하고 삭제 바람. (2026. 01. 06 작성)
-        LMGameScene = -100,
-        LMCampScene = -200,
+
+
+
+
+        LMDungeonScene = -100,
         LMStartScene = -300,
+    }
+
+    public enum E_InputActionMap
+    {
+        Lobby,
+        Game,
+        Dialogue,
+        Tutorial
     }
 
     public enum Sound
@@ -382,7 +424,11 @@ public partial class Define
         Pressed,
         PointerDown,
         PointerUp,
-        
+        Hover,
+        HoverExit,
+        BeginDrag,
+        Drag,
+        EndDrag,
     }
 
     public enum CursorType
@@ -391,6 +437,46 @@ public partial class Define
         Arrow,
         Hand,
         Look,
+    }
+
+    public enum E_NPCState
+    {
+        Neutral,
+        Hostile,
+        Friendly,
+    }
+
+    public enum E_NPC
+    {
+        None,
+        Shop,
+        Quest,
+        Event,
+    }
+
+    #endregion
+
+    #region Manager
+
+    /// <summary>
+    /// Manager 카테고리 - 씬별 생명주기 관리
+    /// </summary>
+    public enum E_ManagerCategory
+    {
+        /// <summary>
+        /// 모든 씬에서 유지되는 Core Manager
+        /// </summary>
+        Core,
+
+        /// <summary>
+        /// Camp 씬 전용 Manager
+        /// </summary>
+        Camp,
+
+        /// <summary>
+        /// Dungeon 씬 전용 Manager
+        /// </summary>
+        Dungeon,
     }
     #endregion
 }

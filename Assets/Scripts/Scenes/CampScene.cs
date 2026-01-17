@@ -3,39 +3,28 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using static Define;
 
 public class CampScene : BaseScene
 {
     public Button tempButton;
 
-    CampScene()
-    {
-        SceneType = Define.Scene.Camp;
-    }
+    CampScene() => SceneType = Define.Scene.Camp;
 
-    protected override void Init()
+    protected override void Awake()
     {
-        base.Init();
+        base.Awake();
 
         tempButton.onClick.AddListener(async () =>
         {
+            tempButton.interactable = false;
             await Managers.Save.SaveAllData();
-            Managers.Scene.LoadScene(Define.Scene.Dungeon);
+            _ = Managers.Scene.LoadSceneAsync(Define.Scene.Dungeon, () =>
+            {
+                Debug.Log("??");
+            });
         });
     }
 
-    public override void Clear()
-    {
-        
-    }
-
-    protected override void LoadSavedGame(SaveSlotData data)
-    {
-        base.LoadSavedGame(data);
-    }
-
-    protected override void LoadNewGame()
-    {
-        base.LoadNewGame();
-    }
+    protected override E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Lobby;
 }

@@ -3,11 +3,8 @@ using UnityEditor;
 using System.Collections.Generic;
 using ProPixelizer.Tools;
 using System.IO;
-using System.Collections;
 using System.Reflection;
-using UnityEngine.EventSystems;
 using System;
-using Unity.VisualScripting;
 using static ProPixelizer.Tools.SteppedAnimation;
 
 public class SettingManager
@@ -21,8 +18,8 @@ public class SettingManager
 
     public void Init()
     {
-        fps = GameConfig.AnimationStepFps;
-        mode = GameConfig.AnimationStepMode;
+        fps = GameConfig.RuntimeSettings.animationStepFps;
+        mode = GameConfig.RuntimeSettings.mode;
     }
 
 
