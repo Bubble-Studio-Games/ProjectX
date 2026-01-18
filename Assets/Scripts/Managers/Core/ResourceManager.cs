@@ -24,9 +24,9 @@ public class ResourceManager
         T resource = Resources.Load<T>(path);
 
         // 🔹 성공/실패 여부 로그
-        //if (resource == null)
-        //    Debug.LogError($"[Resource Load ❌] Failed to load: {path}");
-        //else
+        if (resource == null)
+           Debug.LogError($"[Resource Load ❌] Failed to load: {path}");
+        // else
         //    Debug.Log($"[Resource Load ✅] Successfully loaded: {path}");
 
         return resource;

@@ -21,8 +21,8 @@ public class DownJamUI : UI_Base
 
     public void Start()
     {
-        Inventory.Instance.OnChangeDownjam += ChangeShowEffectMoney;
-        m_CurrentDownjamAmount.text = Inventory.Instance.m_iDownJamAmount.ToString();
+        Managers.SceneServices.InventoryRead.DownJamChanged += ChangeShowEffectMoney;
+        m_CurrentDownjamAmount.text = Managers.SceneServices.InventoryRead.DownJamAmount.ToString();
         m_ChangeDownjamAmount.gameObject.SetActive(true);
         m_ChangeDownjamAmount.enabled = false;
 
@@ -30,7 +30,7 @@ public class DownJamUI : UI_Base
         originalPos = m_ChangeDownjamAmount.rectTransform.anchoredPosition;
     }
 
-    public void ChangeShowEffectMoney(object sender, int changeAmount)
+    public void ChangeShowEffectMoney(int changeAmount)
     {
         if (changeAmount == 0)
             return;
@@ -65,7 +65,7 @@ public class DownJamUI : UI_Base
 
         // 현재 보유량 숫자 부드럽게 변경
         int startAmount = int.Parse(m_CurrentDownjamAmount.text);
-        int endAmount = Inventory.Instance.m_iDownJamAmount;
+        int endAmount = Managers.SceneServices.InventoryRead.DownJamAmount;
 
         numberTween = DOTween.To(
             () => startAmount,

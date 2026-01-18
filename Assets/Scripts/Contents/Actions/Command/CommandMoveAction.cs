@@ -1,20 +1,20 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
-using UnityEngine;
 using static Define;
 
-public class CommandMoveAction : MoveAction
+public class CommandMoveAction : MoveAction, ICommandAction
 {
-    protected override void Awake()
+    CommandMoveAction()
     {
-        base.Awake();
-
-        m_iMaxMoveDistance = m_StatSystem.m_Stat.m_iCommandMoveDistance;
+        m_actionName = "Command Move";
     }
 
-    public override BaseAction TakeAction(GridPosition gridPosition, Action onActionComplete)
+    protected override void Start()
+    {
+        base.Start();
+        m_iGetActionValidRange = m_GameEntity.m_AttributeSystem.m_Stat.m_iCommandMoveRange;
+    }
+
+    public override BaseAction TakeAction(GridPosition gridPosition)
     {
         if(gridPosition != default)
             DestGirdPosition = gridPosition;
@@ -24,12 +24,12 @@ public class CommandMoveAction : MoveAction
             DestGirdPosition = default;
             m_iPathCurrentCount = 0;
             ActionComplete();
-            return m_BaseObject.GetAction<IdleAction>();
+            return m_GameEntity.GetAction<IdleAction>();
         }
 
         // Find Path
         List<GridPosition> pathGridPositionList = 
-            Pathfinding.Instance.FindPath(m_BaseObject.GetGridPosition(), 
+            Managers.SceneServices.Pathfinder.FindPath(m_GameEntity.GetGridPosition(), 
             DestGirdPosition, 
             out int pathLength);
 
@@ -40,17 +40,17 @@ public class CommandMoveAction : MoveAction
             int count = pathGridPositionList.Count;
 
             // 마지막 위치 & 다음 위치에 유닛이 있는가?
-            if (!LevelGrid.Instance.HasAnyUnitOnGridPosition(pathGridPositionList[0]))
+            if (Managers.SceneServices.Grid.GetCellEntity(pathGridPositionList[0]) == null)
             {
                 if (forwardPosition != default)
-                    LevelGrid.Instance.SetGridPositionCellInfo(LevelGrid.Instance.GetGridPosition(forwardPosition), E_GridCheckType.Walkable);
+                    Managers.SceneServices.GridMut.SetCellType(Managers.SceneServices.Grid.GetGridPosition(forwardPosition), E_GridCheckType.Walkable);
 
-                forwardPosition = LevelGrid.Instance.GetWorldPosition(pathGridPositionList[0]);
+                forwardPosition = Managers.SceneServices.Grid.GetWorldPosition(pathGridPositionList[0]);
 
-                LevelGrid.Instance.SetGridPositionCellInfo(pathGridPositionList[0], E_GridCheckType.Reserve, m_BaseObject);
+                Managers.SceneServices.GridMut.SetCellType(pathGridPositionList[0], E_GridCheckType.Reserve, m_GameEntity);
 
                 // Event
-                ActionStart(onActionComplete);
+                ActionStart();
             }
             else
             {
@@ -78,18 +78,18 @@ public class CommandMoveAction : MoveAction
     {
         List<GridPosition> validGridPositionList = new List<GridPosition>();
 
-        GridPosition unitGridPosition = m_BaseObject.GetGridPosition();
+        GridPosition unitGridPosition = m_GameEntity.GetGridPosition();
 
-        for (int x = -m_iMaxMoveDistance; x <= m_iMaxMoveDistance; x++)
+        for (int x = -m_iGetActionValidRange; x <= m_iGetActionValidRange; x++)
         {
-            for (int z = -m_iMaxMoveDistance; z <= m_iMaxMoveDistance; z++)
+            for (int z = -m_iGetActionValidRange; z <= m_iGetActionValidRange; z++)
             {
-                for (int floor = -m_iMaxMoveDistance; floor <= m_iMaxMoveDistance; floor++)
+                for (int floor = -m_iGetActionValidRange; floor <= m_iGetActionValidRange; floor++)
                 {
                     GridPosition offsetGridPosition = new GridPosition(x, z, floor);
                     GridPosition testGridPosition = unitGridPosition + offsetGridPosition;
 
-                    if (!LevelGrid.Instance.IsValidGridPosition(testGridPosition))
+                    if (!Managers.SceneServices.Grid.IsValidGridPosition(testGridPosition))
                     {
                         continue;
                     }
@@ -101,17 +101,16 @@ public class CommandMoveAction : MoveAction
                     }
 
                     // 빈 곳이어야만 함.
-                    if (!LevelGrid.Instance.IsGridPositionCheckType(testGridPosition, E_GridCheckType.Walkable))
+                    if (!Managers.SceneServices.Grid.IsGridPositionCheckType(testGridPosition, E_GridCheckType.Walkable))
                         continue;
 
-
-                    if (!Pathfinding.Instance.HasPath(unitGridPosition, testGridPosition))
+                    if (!Managers.SceneServices.Pathfinder.HasPath(unitGridPosition, testGridPosition))
                     {
                         continue;
                     }
 
                     int pathfindingDistanceMultiplier = 10;
-                    if (Pathfinding.Instance.GetPathLength(unitGridPosition, testGridPosition) > m_iMaxMoveDistance * pathfindingDistanceMultiplier)
+                    if (Managers.SceneServices.Pathfinder.GetPathLength(unitGridPosition, testGridPosition) > m_iGetActionValidRange * pathfindingDistanceMultiplier)
                     {
                         // Path length is too long
                         continue;
@@ -123,5 +122,13 @@ public class CommandMoveAction : MoveAction
         }
 
         return validGridPositionList;
+    }
+
+    public override bool IsValidActionGridPosition(GridPosition grid)
+    {
+        if (GetValidActionGridPositionList().Contains(grid) == false)
+            return false;
+
+        return true;
     }
 }

@@ -1,36 +1,30 @@
+using Data;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using static Define;
 
 public class CampScene : BaseScene
 {
     public Button tempButton;
 
-    protected override void Init()
+    CampScene() => SceneType = Define.Scene.Camp;
+
+    protected override void Awake()
     {
-        base.Init();
-
-        SceneType = Define.Scene.Camp;
-
+        base.Awake();
 
         tempButton.onClick.AddListener(async () =>
         {
+            tempButton.interactable = false;
             await Managers.Save.SaveAllData();
-            Managers.Scene.LoadScene(Define.Scene.Dungeon);
+            _ = Managers.Scene.LoadSceneAsync(Define.Scene.Dungeon, () =>
+            {
+                Debug.Log("??");
+            });
         });
     }
 
-    protected override void Start()
-    {
-        base.Start();
-
-        // 데이거 긁어오기
-        var data = Managers.Load.GetContinueSaveData();
-    }
-
-    public override void Clear()
-    {
-        
-    }
+    protected override E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Lobby;
 }

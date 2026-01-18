@@ -7,7 +7,7 @@ using static Define;
 
 public class UIManager
 {
-    int _order = 10;
+    private int _order = 10;
 
     public Stack<UI_Popup> _popupStack = new Stack<UI_Popup>();
     public UI_Scene SceneUI { get; set; }
@@ -82,6 +82,19 @@ public class UIManager
 		return sceneUI;
 	}
 
+	public T ShowNotificationUI<T>(string name = null) where T : UI_Notification
+	{
+		if (string.IsNullOrEmpty(name))
+			name = typeof(T).Name;
+
+		GameObject go = Managers.Resource.Instantiate($"UI/Notification/{name}");
+		T notification = Util.GetOrAddComponent<T>(go);
+
+		go.transform.SetParent(Root.transform);
+
+		return notification;
+	}
+
 	public T ShowPopupUI<T>(string name = null) where T : UI_Popup
     {
         if (string.IsNullOrEmpty(name))
@@ -103,7 +116,7 @@ public class UIManager
         
         if (_popupStack.Peek() != popup)
         {
-            Debug.Log("Close Popup Failed!");
+            Debug.LogWarning("Close Popup Failed!");
             return;
         }
 
@@ -164,6 +177,12 @@ public class UIManager
             .FirstOrDefault(x => x.name == name); // 이름 일치하는 것 반환
     }
 
+    public bool TryGetUIBase<T>(out T ui, string name = null) where T : UI_Base
+    {
+        ui = GetUIBase<T>(name);
+        return ui != null;
+    }
+
 
 
 
@@ -200,7 +219,7 @@ public class UIManager
     /// <param name="colorMode">색상 모드 (RGB, RGB01, HSV)</param>
     public void FadeIn(Image image, float duration, EColorMode colorMode = EColorMode.RGB)
     {
-        CoroutineRunner.Instance.StartCoroutine(FadeRoutine(image, duration, true, colorMode));
+        Managers.SceneServices.CoroutineRunner.Run(FadeRoutine(image, duration, true, colorMode));
     }
 
     /// <summary>
@@ -208,7 +227,7 @@ public class UIManager
     /// </summary>
     public  void FadeOut(Image image, float duration, EColorMode colorMode = EColorMode.RGB)
     {
-        CoroutineRunner.Instance.StartCoroutine(FadeRoutine(image, duration, false, colorMode));
+        Managers.SceneServices.CoroutineRunner.Run(FadeRoutine(image, duration, false, colorMode));
     }
 
     public IEnumerator FadeRoutine(Image image, float duration, bool fadeIn, EColorMode colorMode)

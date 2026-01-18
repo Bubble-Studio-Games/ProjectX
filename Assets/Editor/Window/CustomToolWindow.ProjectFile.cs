@@ -588,7 +588,6 @@ public partial class CustomToolWindow
     private List<string> favorites = new List<string>();
     private List<string> recentFolders = new List<string>();
     private int recentSelectedIndex = -1;
-    private int favoriteSelectedIndex = -1;
 
     void Handle_DeleteFile()
     {

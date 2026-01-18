@@ -28,7 +28,7 @@ public class WeaponHolderSlot : MonoBehaviour
         }
     }
 
-    public void LoadWeaponModel(Item weaponItem)
+    public void LoadWeaponModel(ItemObject weaponItem)
     {
         UnloadWeaponAndDestroy();
 

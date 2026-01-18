@@ -12,8 +12,8 @@ public class PathfindingLinkMonoBehaviour : MonoBehaviour
     public PathfindingLink GetPathfindingLink()
     {
         return new PathfindingLink {
-            gridPositionA = LevelGrid.Instance.GetGridPosition(linkPositionA),
-            gridPositionB = LevelGrid.Instance.GetGridPosition(linkPositionB)
+            gridPositionA = Managers.SceneServices.Grid.GetGridPosition(linkPositionA),
+            gridPositionB = Managers.SceneServices.Grid.GetGridPosition(linkPositionB)
         };
     }
 

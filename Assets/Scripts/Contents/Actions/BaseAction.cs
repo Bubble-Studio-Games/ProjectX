@@ -1,91 +1,71 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-
-// 1. AttributeSystem의 "상태"만 담는 순수 데이터 클래스 (MonoBehaviour 상속 금지)
-[Serializable]
-public class BaseActionData
-{
-    public bool isActive;
-}
+using static Define;
 
 public abstract class BaseAction : MonoBehaviour
 {
-    public static event EventHandler OnAnyActionStarted;
-    public static event EventHandler OnAnyActionCompleted;
+    #region Field
+    protected IGridVisualUpdateSource _gridUpdate;
+    protected IGridQuery _grid;
+    protected IDungeonCoreRegistry _dungeonCoreRegistry;
+
+    public event Action OnActionStarted;
+    public event Action OnActionCompleted;
 
     public class OnChangeMoveGridEventArgs : EventArgs
     {
         public ControllableObject obj;
     }
 
-    public GameEntity m_BaseObject { get; protected set; }
-    protected AttributeSystem m_StatSystem;
+    [Header("Ref")]
     protected bool m_bIsActive;
-    protected Action onActionComplete;
+    protected GameEntity m_GameEntity;
 
-    [Header("Grid Position")]
-    public GridPosition DestGirdPosition;
+    public string m_actionName { get; protected set; }
+    protected int m_iGetActionValidRange;
+
+    public GridPosition DestGirdPosition { get; protected set; }
+
+    #endregion
+
+    #region Unity Life Cycle
 
     protected virtual void Awake()
     {
-        m_BaseObject = GetComponentInParent<GameEntity>();
-        m_StatSystem = GetComponentInParent<AttributeSystem>();
+        m_GameEntity = GetComponentInParent<GameEntity>();
     }
 
     protected virtual void Start()
     {
-
+        _gridUpdate = Managers.SceneServices.GridVisualUpdateSource;
+        _grid = Managers.SceneServices.Grid;
+        _dungeonCoreRegistry = Managers.SceneServices.DungeonCores;
     }
 
-    protected virtual void Update()
-    {
-        if (m_BaseObject.name == "Unit (5)")
-        {
-            //Debug.Log($"{GetActionName()} : {DestGirdPosition}");
-        }
-    }
+    protected virtual void Update() { }
 
-    public abstract string GetActionName();
+    #endregion
 
-    public abstract BaseAction TakeAction(GridPosition gridPosition = default, Action onActionComplete = null);
+    #region Method
+
+    public abstract BaseAction TakeAction(GridPosition gridPosition = default);
 
     public virtual bool IsValidActionGridPosition(GridPosition gridPosition)
-    {
-        List<GridPosition> validGridPositionList = GetValidActionGridPositionList();
-        return validGridPositionList.Contains(gridPosition);
-    }
+        => GetValidActionGridPositionList().Contains(gridPosition);
 
-    public abstract List<GridPosition> GetValidActionGridPositionList();
+    public virtual List<GridPosition> GetValidActionGridPositionList() => default;
 
-
-    public virtual void ActionStart(Action onActionComplete)
+    public virtual void ActionStart()
     {
         m_bIsActive = true;
-        //this.onActionComplete = onActionComplete;
-
-        OnAnyActionStarted?.Invoke(this, EventArgs.Empty);
+        OnActionStarted?.Invoke();
     }
 
     protected virtual void ActionComplete()
     {
         m_bIsActive = false;
-        onActionComplete?.Invoke();
-
-        OnAnyActionCompleted?.Invoke(this, EventArgs.Empty);
-    }
-
-    public void SetActionComlete(Action onActionComplete)
-    {
-        this.onActionComplete = onActionComplete;
-
-    }
-
-    public GameEntity GetObject()
-    {
-        return m_BaseObject;
+        OnActionCompleted?.Invoke();
     }
 
     public EnemyAIAction GetBestEnemyAIAction()
@@ -112,10 +92,12 @@ public abstract class BaseAction : MonoBehaviour
 
     }
 
-    public abstract EnemyAIAction GetEnemyAIAction(GridPosition gridPosition);
+    public virtual EnemyAIAction GetEnemyAIAction(GridPosition gridPosition) => default;
 
-    public virtual void ClearAction()
-    {
+    public virtual void ClearAction() { }
 
-    }
+    protected void DrawGridVisual() => _gridUpdate.DrawGridVisual();
+    protected void DrawGridVisual(AttackData e = null) => _gridUpdate.DrawGridVisual();
+
+    #endregion
 }

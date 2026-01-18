@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scripts/Contents/GameEntity/001_GameEntity/AttributeSystem_Attack.cs.meta
+guid: 8c1d5fcd8cf99b34b984ef0c1a8993ae
+========
+guid: 72d1c9ee81bcc944e9bf6a9f95610e15
+>>>>>>>> Client_B:Assets/Scripts/Contents/GameEntity/001_GameEntity/GameEntityExtensions.cs.meta
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

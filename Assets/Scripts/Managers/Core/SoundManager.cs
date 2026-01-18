@@ -45,7 +45,7 @@ public class SoundManager
         }
 
         string[] soundNames = System.Enum.GetNames(typeof(T));
-        for (int i = 0; i < soundNames.Length - 1; i++)
+        for (int i = 0; i < soundNames.Length; i++)
         {
             if (!dic.TryGetValue(soundNames[i], out AudioSource value))
             {

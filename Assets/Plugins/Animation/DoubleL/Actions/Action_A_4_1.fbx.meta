@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Resources/Animation/Humanoid/Stand Up_F.fbx.meta
+guid: 0ea7d8ef9faed984eb8fd1bf06dad513
+========
 guid: f2d8be638e6d8c844a1aa72c6da50775
+>>>>>>>> develop:Assets/Plugins/Animation/DoubleL/Actions/Action_A_4_1.fbx.meta
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []

@@ -7,6 +7,6 @@ public class AutoTrigger : PassiveObject
     AutoTrigger()
     {
         m_TeamId = E_TeamId.None;
-        m_ObjectType = E_ObjectType.AutoTrigger;
+        m_EObjectType = E_ObjectType.AutoTrigger;
     }
 }

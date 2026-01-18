@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78c37a08149180b49ab810b26c0645c6, type: 3}
+  m_Name: Fireball
+  m_EditorClassIdentifier: 
+  Id: 15
+  AttackName: Fireball
+  AttackType: 2
+  EnableSelfAttack: 0
+  m_ERangeFillType: 1
+  m_ERangeShapeType: 6
+  m_RangeOffset:
+  - x: 0
+    z: 4
+    floor: 0
+  m_ArcAngle: 90
+  GridCheckTypes: 
+  ApplyTargetTendency: 2
+  NextAttacks: []
+  ConditionPrevAttack: {fileID: 11400000, guid: 6b3e633896ebf844e89cd94d991b5e3c, type: 2}
+  m_fLastCooltime:
+    _value: -2
+  CoolTime:
+    _value: 5
+  ManaCost:
+    _value: 3
+  IsTwoHandAttack: 0
+  m_iPhysicalAttackDamage:
+    _value: 0
+  m_iMagicAttackDamage:
+    _value: 30
+  m_iPhysicalFixedDamage:
+    _value: 0
+  m_iMagicFixedDamage:
+    _value: 0
+  m_fPhysicalArmorPenetraion:
+    _value: 0
+  m_fMagicalArmorPenetraion:
+    _value: 0
+  m_iCriticalChance:
+    _value: 0
+  m_fCriticalDamageUp:
+    _value: 0
+  m_fAccuracy:
+    _value: 95
+  m_fAttackSpeed:
+    _value: 1
+  m_iKnockbackChance:
+    _value: 0
+  m_fLifeStealPercent:
+    _value: 0
+  m_AttackPatternInfoClips:
+  - AttackSuccessAudioClip: {fileID: 0}
+    AttackMissAudioClip: {fileID: 0}
+    AttackFailAudioClip: {fileID: 0}
+    AttackAnimationClip: {fileID: 3060610079319413300, guid: abf2d29f82292ab4babcab703e4b63aa, type: 3}
+    ReadyFailAnimationClip: {fileID: 0}
+  - AttackSuccessAudioClip: {fileID: 0}
+    AttackMissAudioClip: {fileID: 0}
+    AttackFailAudioClip: {fileID: 0}
+    AttackAnimationClip: {fileID: 3060610079319413300, guid: 0d7053a350f838e41838b2246836e306, type: 3}
+    ReadyFailAnimationClip: {fileID: 0}
+  selectInfoClip:
+    AttackSuccessAudioClip: {fileID: 0}
+    AttackMissAudioClip: {fileID: 0}
+    AttackFailAudioClip: {fileID: 0}
+    AttackAnimationClip: {fileID: 0}
+    ReadyFailAnimationClip: {fileID: 0}
+  m_ProjectilePrefab: {fileID: 8731590995680581366, guid: 10d0ba2a8b5d01745b450df4406acb00, type: 3}
+  m_SpawnProjectiles: []
+  _selectType: 1
+  m_iSpawnProjectileCount: 1
+  m_IsImmediateLaunch: 0
+  m_SpawnFromWeapon: 1
+  m_EAttackAnimationType: 0

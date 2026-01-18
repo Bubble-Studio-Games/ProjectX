@@ -19,7 +19,8 @@ public class CheckUI : UI_Popup
 
         // UI 공통 사운드
         PressButtonSetAction(GetComponentsInChildren<Button>(),
-            () => Managers.Sound.Play(SettingManager.Instance.m_UIButtonClickAudioClip));
+            () => 
+            Managers.Sound.Play(GameConfig.RuntimeSettings.m_UIButtonClickAudioClip));
 
         return false;
     }

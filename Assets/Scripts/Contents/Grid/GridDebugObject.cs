@@ -18,9 +18,10 @@ public class GridDebugObject : MonoBehaviour
 
     public void UpdateGridObject()
     {
-        var cellInfo = LevelGrid.Instance.GetGridPositionCellInfo(LevelGrid.Instance.GetGridPosition(transform.position));
-        var unit = cellInfo.Entity;
-        var gridType = cellInfo.gridType;
+        var grid = Managers.SceneServices.Grid.GetGridPosition(transform.position);
+
+        var unit = Managers.SceneServices.Grid.GetCellEntity(grid);
+        var gridType = Managers.SceneServices.Grid.GetCellType(grid);
 
         if(gridType == Define.E_GridCheckType.GameEntity || gridType == Define.E_GridCheckType.Reserve)
         {

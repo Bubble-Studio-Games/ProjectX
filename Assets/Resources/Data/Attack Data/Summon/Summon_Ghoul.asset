@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7442596ccadf5bd42af18b0bbe396f46, type: 3}
+  m_Name: Summon_Ghoul
+  m_EditorClassIdentifier: 
+  m_EAttackDataType: 4
+  Id: 20
+  AttackName: "\uAD6C\uC6B8 \uC18C\uD658"
+  AttackType: 7
+  EnableSelfAttack: 0
+  m_ERangeFillType: 0
+  m_ERangeShapeType: 0
+  m_RangeOffset:
+  - x: -1
+    z: -1
+    floor: 0
+  - x: 1
+    z: 1
+    floor: 0
+  m_ArcAngle: 90
+  GridCheckTypes: 
+  ApplyTargetTendency: 0
+  NextAttacks: []
+  ConditionPrevAttack: {fileID: 0}
+  m_fLastCooltime:
+    _value: -20
+  CoolTime:
+    _value: 0
+  ManaCost:
+    _value: 0
+  IsTwoHandAttack: 0
+  m_iPhysicalAttackDamage:
+    _value: 0
+  m_iMagicAttackDamage:
+    _value: 0
+  m_iPhysicalFixedDamage:
+    _value: 0
+  m_iMagicFixedDamage:
+    _value: 0
+  m_fPhysicalArmorPenetraion:
+    _value: 0
+  m_fMagicalArmorPenetraion:
+    _value: 0
+  m_iCriticalChance:
+    _value: 0
+  m_fCriticalDamageUp:
+    _value: 0
+  m_fAccuracy:
+    _value: 100
+  m_fAttackSpeed:
+    _value: 1
+  m_iKnockbackChance:
+    _value: 0
+  m_fLifeStealPercent:
+    _value: 0
+  m_AttackPatternInfoClips:
+  - AttackSuccessAudioClip: {fileID: 0}
+    AttackMissAudioClip: {fileID: 0}
+    AttackFailAudioClip: {fileID: 0}
+    AttackAnimationClip: {fileID: -203655887218126122, guid: 59d23756b5cd61f40bb39d293fa46ba4, type: 3}
+    ReadyFailAnimationClip: {fileID: 0}
+  selectInfoClip:
+    AttackSuccessAudioClip: {fileID: 0}
+    AttackMissAudioClip: {fileID: 0}
+    AttackFailAudioClip: {fileID: 0}
+    AttackAnimationClip: {fileID: 0}
+    ReadyFailAnimationClip: {fileID: 0}
+  _summonUnitPrefab: {fileID: 103766868601941155, guid: 7e61593bf8511f445a2318b1e13a0236, type: 3}
+  m_IsRandomSpawnCount: 0
+  _minSummonCount: 3
+  _maxSummonCount: 3
+  _summonInstances: []
+  m_IsInfiniteSpawn: 0
+  m_iThisAttackSummonCount: 0
+  selectedPositions: []

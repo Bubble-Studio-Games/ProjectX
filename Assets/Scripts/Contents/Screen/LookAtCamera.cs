@@ -4,12 +4,9 @@ using UnityEngine;
 
 public class LookAtCamera : MonoBehaviour
 {
-
     [SerializeField] private bool invert;
 
-
     private Transform cameraTransform;
-
 
     private void Awake()
     {
