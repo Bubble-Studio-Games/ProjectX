@@ -83,7 +83,6 @@ public class ObjectManager
     public void Add(GameObject go)
     {
         _objects.Add(go);
-        OnAdd?.Invoke(go, EventArgs.Empty);
     }
 
     public void Remove(GameObject go)
