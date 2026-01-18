@@ -89,7 +89,7 @@ public class InventoryManager
     /// </summary>
     private void LoadInventorySetting()
     {
-        var inventorySettings = GlobalSettings.Instance?.Inventory;
+        var inventorySettings = GameConfig.Inventory;
         if (inventorySettings == null)
         {
             Debug.LogError("[InventoryManager] InventorySettings가 GlobalSettings에 설정되지 않음");

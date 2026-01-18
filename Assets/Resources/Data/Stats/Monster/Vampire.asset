@@ -33,9 +33,9 @@ MonoBehaviour:
     _value: 1
   m_fWalkSpeed:
     _value: 1
-  m_iCommandMoveDistance: 0
-  m_iDetectRange: 4
-  m_iChaseRange: 4
+  m_iCommandMoveRange: 0
+  m_iDetectRange: 3
+  m_iChaseRange: 3
   m_iPhysicalBaseDamamge:
     _value: 0
   m_iMagicalBaseDamamge:

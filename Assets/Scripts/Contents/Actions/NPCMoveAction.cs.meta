@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scripts/Contents/Actions/NPCMoveAction.cs.meta
 guid: 008b8a0426425564da49cabf6d95b56a
+========
+guid: 175875b2fcf28f240b673ce9affadf30
+>>>>>>>> upstream/develop:Assets/Scripts/Contents/GameEntity/NPC/NPC.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

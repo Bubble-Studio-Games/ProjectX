@@ -1,67 +1,73 @@
 using Data;
-using GLTF.Schema;
-using RootMotion.FinalIK;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.Mathematics;
-using Unity.VisualScripting;
+using Unity.Collections;
 using UnityEngine;
 using static Define;
-using static UnityEngine.UI.Image;
 using Material = UnityEngine.Material;
-using Random = UnityEngine.Random;
-using Type = System.Type;
 
-
-public interface IAccessories<TAnimator, TSounder> 
-    where TAnimator : GameEntityAnimator 
-    where TSounder : GameEntitySounder
-{
-    public  List<TAnimator> GetAnimationsManager();
-    public  TSounder GetSounderManager();
-}
 
 [RequireComponent(typeof(AttributeSystem))]
-public class GameEntity : 
-    MonoBehaviour, 
-    IAccessories<GameEntityAnimator,  GameEntitySounder>, 
+public class GameEntity : MonoBehaviour,
     ISaveable, 
     IGuidObject,
-    IInteractable
+    ISelectable
 {
-    // Event
-    public event EventHandler OnSpawnObjectSelected; // 오브젝트를 배치하려고 할 때
-    public event EventHandler OnObjectSpawned; // 씬에 생성되거나 활성화될 때
-    public event EventHandler OnObjectDespawned; // 파괴되거나 비활성화될 때
-    public event EventHandler OnSelectedEvent;
-    public event EventHandler OnDeselectedEvent;
+    #region Field
+
+    private IGridQuery _grid;
+    private IUnitGridManager _unitGrid;
+    private IUnitActionTickService _tick;
+    private IGridVisualUpdateSource _gridVisualSource;
+
+    // Spawn & DeSpawn
+    public event Action OnSpawnObjectSelected; // 오브젝트를 배치하려고 할 때
+    public event Action OnObjectSpawnStart; // 씬에 생성되거나 활성화될 때
+    public event Action OnSpawnCompleted; // 씬에 생성되거나 활성화될 때
+    public event Action OnObjectDespawned; // 파괴되거나 비활성화될 때
+
+    // Select
+    public event Action OnSelectedEvent;
+    public event Action OnDeselectedEvent;
+
+    // Attribute
+    public event Action<OnAttackInfoEventArgs> OnDamaged;
+    public event Action<OnAttackInfoEventArgs> OnDead;
+    public event Action OnRevived;
+
+    // Action
+    public event Action<Type> OnActionChanged;
+
+    // Battle
+    public event Action<AttackData> OnStartAttack;
+    public event Action<AttackData> OnAttackPoint;
+    public event Action<AttackData> OnAttackReadyFailed;
+    public event Action OnPhaseChange;
+
+    // Move
+    public event Action OnStartMoving;
+    public event Action OnStopMoving;
+    public event Action OnStep;
+    public event Action<OnChangeFloorsStartedEventArgs> OnChangedFloorsStarted;
 
     public string _guid { get; private set; } = string.Empty; // private field로 변경하고 프로퍼티로 접근
     public string guid => _guid;
 
-    public void SetGUID(string inputGuid)
-    {
-        _guid = inputGuid;
-    }
 
-    // Ref
-    [Header("Ref")]
-    protected List<GameEntityAnimator> m_AnimatorManagers;
-    protected GameEntitySounder m_SounderManager;
-    [SerializeField] public AttributeSystem m_AttributeSystem;
+    public GameEntityAnimator m_GameEntityAnimator { get; private set; }
+    public AttributeSystem m_AttributeSystem { get; private set; }
     public Collider m_HitCollider { get; protected set; }
-    public SetupAnimation m_SetupAnimation { get; private set; }
+    private SetupAnimation m_SetupAnimation;
+    public GameEntityCombat m_CombatManager { get; private set; }
+    public ProjectileSpawnProvider m_ProjectileSpawnProvider { get; private set; }
 
-    [SerializeField] public Transform[] m_ModelTransforms;
-    protected HashSet<(Material mat, GameObject obj)> m_ModelMaterials = new();
+    private HashSet<(Material mat, GameObject obj)> m_ModelMaterials = new();
 
     [Header("Info")]
     public GridPosition[] m_GridPositionOffsets;
-    public GridPosition m_GridPosition { get; protected set; }
-    public E_ObjectType m_ObjectType;
+    private GridPosition m_GridPosition;
+    public E_ObjectType m_EObjectType;
     public E_Dir m_CurrentEDir = E_Dir.South;
     public E_TeamId m_TeamId;
 
@@ -72,98 +78,193 @@ public class GameEntity :
         get => currentAction;
         protected set => currentAction = value;
     }
+    protected BaseAction m_NextAction;
+    protected BaseAction m_BeforeAction;
 
-    [SerializeField] protected BaseAction m_NextAction;
-    [SerializeField] protected BaseAction m_BeforeAction;
-
-    public Transform m_ActionsTransform;
+    private CombatAction _combatAction;
+    private MoveAction[] _moveActions;
 
     protected Dictionary<Type, BaseAction> baseActionDict = new Dictionary<Type, BaseAction>();
 
-    [SerializeField] float m_fDelayDestroyTime = 3f;
+    [Tooltip("현재 객체에 할당된 Action 큐")]
+    protected Queue<(BaseAction action, GridPosition grid)> m_ActionQueue = new();
+    
+    // 지정 명령 예약
+    // 1, 2 번의 Action이 들어왔을 때 1번 Action이 완전히 끝나면 2번 Action이 실행되게 만든다.
+    protected bool m_IsCommandAction = false;
 
     [Header("Flag")]
     public bool m_IsDirectDesawnAtDeath = true; // 사망 후 바로 디스폰 처리 하는가?
-    public bool m_IsSetuping { get; protected set; } = false; // 카드에서 뽑아 소환 중인가?
+    public bool m_IsSpawning { get; protected set; } = false; // 카드에서 뽑아 소환 중인가?
+    private bool _isSpawnRegistered = false;
+
+    [HideInInspector] public bool m_DisableDespawnFlowForAnimTest = false;
+
+    [Tooltip("체크 되어 있을 경우 무조건 던전 코어를 향해 이동 (몬스터 전용)")]
+    [HideInInspector] public bool m_IsTowardDungeonCore = false;
 
     // 전역 캐시 (Prefab 단위)
     private static Dictionary<string, bool> s_RotateSymmetryCache = new();
     public bool m_IsRotateSymmetry { get; private set; }
 
-    public bool IsDead => m_AttributeSystem.m_IsDead;
-    public float MaxHP => m_AttributeSystem.m_Stat.m_iMaxHP;
-    
+    // Getter
+    public E_MoveType CurrentMoveType => m_AttributeSystem.m_EMoveType;
+    public string AnimKeyName => m_AttributeSystem.m_Stat.Name;
+
+    #endregion
+
+    #region Unity Life Cycle
+
     protected virtual void Awake()
     {
-        // 씬에 배치된 오브젝트인 경우, GUID가 없으면 새로 생성
-        if (string.IsNullOrEmpty(_guid))
-        {
-            _guid = Guid.NewGuid().ToString(); // System.Guid를 사용하여 새 GUID 생성
-        }
-
         m_AttributeSystem = GetComponent<AttributeSystem>();
-
-        if(m_AnimatorManagers == null)
-            m_AnimatorManagers = GetComponentsInChildren<GameEntityAnimator>().ToList();
-        if(m_SounderManager == null)
-            m_SounderManager = GetComponent<GameEntitySounder>();
-
+        m_GameEntityAnimator = GetComponentInChildren<GameEntityAnimator>();
+        m_CombatManager = GetComponent<GameEntityCombat>();
         m_SetupAnimation = GetComponent<SetupAnimation>();
+        m_ProjectileSpawnProvider = GetComponent<ProjectileSpawnProvider>();
 
         foreach (var action in GetComponentsInChildren<BaseAction>())
             baseActionDict[action.GetType()] = action;
 
-        m_AttributeSystem.OnDead += ClearAction;
+        m_HitCollider = GetChildColliders().FirstOrDefault();
     }
 
     protected virtual void Start()
     {
+        // 해당 조건은 몬스터 전용이다.
+        if (m_TeamId != E_TeamId.Monster && m_IsTowardDungeonCore)
+        {
+            m_IsTowardDungeonCore = false;
+            Debug.Log($"{name}의 팀 타입이 변경됩니다. 해당 조건은 팀 타입이 몬스터일 때에만 허용됩니다.");
+        }
+
+        // 씬에 배치된 오브젝트인 경우, GUID가 없으면 새로 생성
+        if (string.IsNullOrEmpty(_guid))
+            _guid = Guid.NewGuid().ToString(); // System.Guid를 사용하여 새 GUID 생성
+
+
+        // 현재 Command Action에만 지정 명령 종료를 지정함.
+        GetActions()
+            .Where(action => action.GetComponent<ICommandAction>() != null)
+            .ToList()
+            .ForEach(a =>
+            {
+                a.OnActionCompleted += () =>
+                {
+                    m_IsCommandAction = false;
+                    //Debug.Log($"{a.m_actionName}의 실행 종료");
+                };
+            });
+
         CheckRotateSymmetry();
 
-        if (m_IsSetuping)
+        if (m_IsSpawning)
             return;
 
         // 맵에 그냥 배치되어 있을 경우
-        InitSpawn();
+        SpawnRegister();   
         SpawnComplete();
     }
 
-    protected void OnEnable()
+    protected virtual void OnEnable()
     {
-        // 이미 월드 내에 배치되어 있는 경우
-        // 오브젝트를 배치하지 않은 상태에서 삭제한 경우를 대비하여
-        m_IsSetuping = false;
-    }
+        ResolveServices();
 
-    public virtual void OnDestroy()
-    {
-    }
+        if (baseActionDict.Count > 0)
+            _tick.OnUpdateActionTick += ExecuteAction;
 
-    protected virtual void Update()
-    {
-
-    }
-
-    public IEnumerable<(Material mat, GameObject obj)> GetModelsMaterial()
-    {
-        if (m_ModelMaterials == null || m_ModelMaterials.Count == 0)
+        if (m_GameEntityAnimator != null)
         {
-            // 렌더러 리스트를 먼저 구해서 즉시 평가
-            var renderers = m_ModelTransforms
-                .Where(t => t != null)
-                .SelectMany(t => t.GetComponentsInChildren<Renderer>(true))
-                .ToArray(); // ✅ ToArray()로 즉시 평가 (지연 실행 방지)
-
-            // 이제 renderer.materials로 개별 인스턴스 생성
-            m_ModelMaterials = Enumerable.ToHashSet( renderers
-                .SelectMany(r => r.materials   // ✅ 인스턴스화 발생
-                    .Where(m => m != null)
-                    .Select(m => (mat: m, obj: r.gameObject)))
-                );
+            m_GameEntityAnimator.OnSpawnAnimFinished += SpawnComplete;
+            m_GameEntityAnimator.OnDespawnAnimFinished += DeSpawnComplete;
+            m_GameEntityAnimator.OnStep += HandleStep;
+            m_GameEntityAnimator.OnAttackPoint += HandleAttackPoint;
         }
 
-        return m_ModelMaterials;
+        //m_AttributeSystem.OnDead += ClearAction;
+        m_AttributeSystem.OnDamaged += HandleDamaged;
+        m_AttributeSystem.OnDead += HandleDead;
+        m_AttributeSystem.OnRevived += HandleRevived;
+
+        // CombatAction
+        _combatAction = GetAction<CombatAction>();
+        if (_combatAction != null)
+        {
+            _combatAction.OnStartAttack += HandleStartAttack;
+            _combatAction.OnPhaseChange += HandlePhaseChange;
+        }
+
+        // MoveAction
+        _moveActions = GetComponentsInChildren<MoveAction>(true);
+        foreach (var move in _moveActions)
+        {
+            move.OnStartMoving += HandleStartMoving;
+            move.OnStopMoving += HandleStopMoving;
+            move.OnChangedFloorsStarted += HandleChangedFloorsStarted;
+        }
     }
+
+    protected virtual void OnDisable()
+    {
+        if (baseActionDict.Count > 0)
+            _tick.OnUpdateActionTick -= ExecuteAction;
+
+        if (m_GameEntityAnimator != null)
+        {
+            m_GameEntityAnimator.OnSpawnAnimFinished -= SpawnComplete;
+            m_GameEntityAnimator.OnDespawnAnimFinished -= DeSpawnComplete;
+            m_GameEntityAnimator.OnStep -= HandleStep;
+            m_GameEntityAnimator.OnAttackPoint -= HandleAttackPoint;
+        }
+
+        // ✅ Forwarding 해제
+        //m_AttributeSystem.OnDead -= ClearAction;
+        m_AttributeSystem.OnDamaged -= HandleDamaged;
+        m_AttributeSystem.OnDead -= HandleDead;
+        m_AttributeSystem.OnRevived -= HandleRevived;
+
+        if (_combatAction != null)
+        {
+            _combatAction.OnStartAttack -= HandleStartAttack;
+            _combatAction.OnPhaseChange -= HandlePhaseChange;
+        }
+
+        if (_moveActions != null)
+        {
+            foreach (var move in _moveActions)
+            {
+                move.OnStartMoving -= HandleStartMoving;
+                move.OnStopMoving -= HandleStopMoving;
+                move.OnChangedFloorsStarted -= HandleChangedFloorsStarted;
+            }
+        }
+    }
+
+    protected virtual void OnDestroy()
+    {
+    }
+
+    #endregion
+
+    private void ResolveServices()
+    {
+        var ss = Managers.SceneServices;
+
+        if (_grid == null || ss.IsNull(_grid))
+            _grid = ss.Grid;
+
+        if (_unitGrid == null || ss.IsNull(_unitGrid))
+            _unitGrid = ss.UnitGrid;
+
+        if (_tick == null || ss.IsNull(_tick))
+            _tick = ss.UnitActionTick;
+
+        if (_gridVisualSource == null || ss.IsNull(_gridVisualSource))
+            _gridVisualSource = ss.GridVisualUpdateSource;
+    }
+
+
+    #region Grid
 
     public List<Collider> GetChildColliders()
     {
@@ -172,7 +273,7 @@ public class GameEntity :
         // root 포함 모든 자식 탐색
         foreach (Transform child in GetComponentsInChildren<Transform>(true))
         {
-            if (((1 << child.gameObject.layer) & Managers.Layer.HitColLayerMask) != 0)
+            if (((1 << child.gameObject.layer) & GameConfig.Layer.HitColLayerMask) != 0)
             {
                 Collider col = child.GetComponent<Collider>();
                 if (col != null)
@@ -185,9 +286,9 @@ public class GameEntity :
         return colliders;
     }
 
-    protected void UpdateGridPosition()
+    public void UpdateGridPosition()
     {
-        GridPosition newGridPosition = LevelGrid.Instance.GetGridPosition(transform.position);
+        GridPosition newGridPosition = _grid.GetGridPosition(transform.position);
 
         if (newGridPosition != m_GridPosition)
         {
@@ -196,41 +297,90 @@ public class GameEntity :
             m_GridPosition = newGridPosition;
             List<GridPosition> newGridPositions = GetGridPositionListAtCurrentDir();
 
-            LevelGrid.Instance.UnitMovedGridPosition(this, oldGridPositions, newGridPositions);
+            _unitGrid.MoveUnit(this, oldGridPositions, newGridPositions);
         }
     }
+
+    public GridPosition GetGridPosition() => m_GridPosition;
+
+    public (int Min, int Max) GetGridPositionYOffset()
+    {
+        int min = 0;
+        int max = 0;
+
+        if (m_GridPositionOffsets.Length > 0)
+        {
+            min = m_GridPositionOffsets.Min(offset => offset.floor);
+            max = m_GridPositionOffsets.Max(offset => offset.floor);
+        }
+
+        return (min, max);
+    }
+    private void CheckRotateSymmetry()
+    {
+        string prefabKey = _guid;
+
+        // 딕셔너리 2번 조회 대신 TryGetValue 한 번
+        if (!s_RotateSymmetryCache.TryGetValue(prefabKey, out bool isSymmetry))
+        {
+            // enum 0~3: West, South, East, North
+            // 첫 방향 기준 좌표 계산
+            var basePos = Util.ToGridPosition(m_GridPositionOffsets, m_GridPosition, E_Dir.West);
+
+            isSymmetry = true;
+
+            // 나머지 3방향과 비교
+            for (int i = 1; i < 4; i++)
+            {
+                E_Dir dir = (E_Dir)i; // 1: South, 2: East, 3: North
+                var pos = Util.ToGridPosition(m_GridPositionOffsets, m_GridPosition, dir);
+
+                if (pos != basePos)
+                {
+                    isSymmetry = false;
+                    break;
+                }
+            }
+
+            s_RotateSymmetryCache[prefabKey] = isSymmetry;
+        }
+
+        m_IsRotateSymmetry = isSymmetry;
+    }
+
+    #endregion
+
+    public IEnumerable<(Material mat, GameObject obj)> GetModelsMaterial()
+    {
+        if (m_ModelMaterials == null || m_ModelMaterials.Count == 0)
+        {
+            m_ModelMaterials = GetComponentsInChildren<Renderer>(true)
+                .SelectMany(r => r.materials
+                    .Where(m => m != null)
+                    .Select(m => (mat: m, obj: r.gameObject)))
+                .ToHashSet();
+        }
+
+        return m_ModelMaterials;
+    }
+
+    public void SetGUID(string inputGuid) => _guid = inputGuid;
+
+    #region Select
 
     public void OnDeselected()
     {
         //Debug.Log($"{name} DeSelect");
-        OnDeselectedEvent?.Invoke(this, EventArgs.Empty);
+        OnDeselectedEvent?.Invoke();
     }
 
     public void OnSelected()
     {
         //Debug.Log($"{name} Select");
-        OnSelectedEvent?.Invoke(this, EventArgs.Empty);
+        OnSelectedEvent?.Invoke();
     }
 
-    public GridPosition GetGridPosition()
-    {
-        return m_GridPosition;
-    }
-
-    public Vector3 GetWorldPosition()
-    {
-        return transform.position;
-    }
-
-    public List<GameEntityAnimator> GetAnimationsManager()
-    {
-        return m_AnimatorManagers;
-    }
-
-    public GameEntitySounder GetSounderManager()
-    {
-        return m_SounderManager;
-    }
+    #endregion
 
     #region Dir
 
@@ -260,7 +410,7 @@ public class GameEntity :
         var result = new List<GridPosition> { pivot };
 
         // m_GridPositionOffsets의 오프셋들을 pivot 기준으로 회전 적용
-        result.AddRange(LevelGrid.Instance.ToGridPosition(this, pivot));
+        result.AddRange(Util.ToGridPosition(m_GridPositionOffsets, pivot, m_CurrentEDir));
 
         return result;
     }
@@ -280,119 +430,105 @@ public class GameEntity :
 
     #endregion
 
-    #region Setup & Spawn
+    #region Setup & DeSpawn
 
-    // 몬스터의 경우 몬스터 스포너에서 소환
-    // 플레이어의 경우 카드 선택 -> 드로우 소환
-    public virtual void SpawnStart()
-    {
-        InitSpawn();
-
-        m_IsSetuping = true;
-
-        OnObjectSpawned?.Invoke(this, EventArgs.Empty);
-    }
-
-    protected virtual void InitSpawn()
-    {
-        Managers.Object.Add(gameObject);
-
-        //Level grid 
-        m_GridPosition = LevelGrid.Instance.GetGridPosition(transform.position);
-        LevelGrid.Instance.SetGridPositionCellInfo(GetGridPositionListAtCurrentDir(), E_GridCheckType.Walkable);
-        LevelGrid.Instance.AddUnitAtGridPosition(GetGridPositionListAtCurrentDir(), this);
-
-        // 타격 콜라이더 켜기
-
-        // Find Hit Collider
-        if (m_HitCollider == null)
-        {
-            m_HitCollider = GetChildColliders().FirstOrDefault();
-            m_HitCollider.enabled = true;
-        }
-    }
-
-    // 조작 가능해짐
-    public virtual void SpawnComplete()
-    {
-        m_IsSetuping = false;
-        m_AnimatorManagers.ToList().ForEach(animator => animator.AnimationPlay());
-    }
-
-    // 보통은 디스폰을 사망 애니메이션이 끝나면 바로 호출.
-    public void DeSpawnStart()
-    {
-        OnObjectDespawned?.Invoke(this, EventArgs.Empty);
-    }
-
-    //
-    public virtual void DeSpawnComplete()
-    {
-        LevelGrid.Instance.RemoveUnitAtGridPosition(GetGridPositionListAtCurrentDir(), this);
-
-        Managers.Object.Remove(gameObject);
-
-        Managers.Resource.Destroy(gameObject);
-
-        Managers.Selection.Deselect(this);
-    }
-
-    // 플레이어가 카드에서 오브젝트를 드래그 해서 선택 중일 때
+    // 플레이어가 오브젝트를 배치중일 때
     public void SelectSpawnObject()
     {
         // 타격 콜라이더 끄기
         // Find Hit Collider
         if (m_HitCollider == null)
-        {
             m_HitCollider = GetChildColliders().FirstOrDefault();
-        }
 
         m_HitCollider.enabled = false;
+        m_IsSpawning = true;
 
-        m_IsSetuping = true;
 
-        // 고스트 메테리얼은 buildingGhost에서
 
-        OnSpawnObjectSelected?.Invoke(this, EventArgs.Empty);
-
-        if (m_AnimatorManagers == null)
-            m_AnimatorManagers = GetComponentsInChildren<GameEntityAnimator>().ToList();
-        if (m_SounderManager == null)
-            m_SounderManager = GetComponent<GameEntitySounder>();
-
-        m_AnimatorManagers.ToList().ForEach(a => a.AnimationStop());
+        OnSpawnObjectSelected?.Invoke();
     }
 
-    public (int Min, int Max) GetGridPositionYOffset()
+    // 배치 완료 되었을 때 실행됨
+    public void SpawnStart()
     {
-        int min = 0;
-        int max = 0;
+        // 지금부터 공격 당할 수 있음.
+        m_HitCollider.enabled = true;
 
-        if(m_GridPositionOffsets.Length > 0)
-        {
-            min = m_GridPositionOffsets.Min(offset => offset.floor);
-            max = m_GridPositionOffsets.Max(offset => offset.floor);
-        }
+        // ✅ 등록은 여기서(배치 시작 시점부터 맞을 수 있어야 하니까)
+        SpawnRegister();
 
-        return (min, max);
+        OnObjectSpawnStart?.Invoke();
+
+        // 회전 대칭 cache 제거
+        s_RotateSymmetryCache.Remove(_guid);
     }
 
-    private void CheckRotateSymmetry()
+
+    // 소환 완료 후
+    public void SpawnComplete()
     {
-        string prefabKey = gameObject.name; // Prefab 이름 기준 (필요하면 GUID 기반으로 교체)
+        // ✅ 씬 배치(Start에서 SpawnComplete만 호출) 같은 경우 대비
+        SpawnRegister();
 
-        if (!s_RotateSymmetryCache.ContainsKey(prefabKey))
+        m_IsSpawning = false;
+
+        // Base Action
+        if (m_CurrentAction == null && baseActionDict.Count > 0)
         {
-            // 실제 체크 로직 실행
-            var dirs = new[] { E_Dir.West, E_Dir.South, E_Dir.North, E_Dir.East };
-            var results = dirs.Select(d => LevelGrid.Instance.ToGridPosition(this, d)).ToList();
-
-            bool isSymmetry = results.All(r => r == results[0]);
-
-            s_RotateSymmetryCache[prefabKey] = isSymmetry;
+            var action = baseActionDict.First().Value;
+            if (action != null)
+                SwitchToNextStateAction(action);
         }
 
-        m_IsRotateSymmetry = s_RotateSymmetryCache[prefabKey];
+        m_HitCollider.enabled = true;
+        OnSpawnCompleted?.Invoke();
+    }
+
+
+    private void SpawnRegister()
+    {
+        if (_isSpawnRegistered) return;
+        _isSpawnRegistered = true;
+
+        // 월드에 "존재" 등록
+        Managers.Object.Add(gameObject);
+
+        // 그리드 점유 등록
+        m_GridPosition = _grid.GetGridPosition(transform.position);
+        _unitGrid.AddUnitAtGridPositions(GetGridPositionListAtCurrentDir(), this);
+
+        // 그리드 비쥬얼 업데이트
+        _gridVisualSource.DrawGridVisual();
+    }
+
+    private void SpawnUnregister()
+    {
+        if (!_isSpawnRegistered) return;
+        _isSpawnRegistered = false;
+
+        _unitGrid.RemoveUnitAtGridPositions(GetGridPositionListAtCurrentDir(), this);
+        Managers.Object.Remove(gameObject);
+
+        _gridVisualSource.DrawGridVisual();
+    }
+
+
+    // 보통은 디스폰을 사망 애니메이션이 끝나면 바로 호출.
+    public void DeSpawnStart()
+    {
+        if (m_DisableDespawnFlowForAnimTest)
+            return;
+
+        OnObjectDespawned?.Invoke();
+    }
+
+    // 디스폰 후 호출되는 함수.
+    public virtual void DeSpawnComplete()
+    {
+        SpawnUnregister();
+
+        Managers.Resource.Destroy(gameObject);
+        Managers.Selection.Deselect(this);
     }
 
 
@@ -400,24 +536,71 @@ public class GameEntity :
 
     #region Action
 
-    protected virtual void ExecuteAction(object sender, EventArgs args) { }
+    /// <summary>
+    /// 매 Tick마다 호출되는 유닛의 메인 Action 루프
+    /// 1. CommandQueue에 쌓인 명령을 우선 처리
+    /// 2. Command가 없으면 FSM(Action) Tick 수행
+    /// </summary>
+    protected void ExecuteAction() 
+    {
+        // 사망 상태면 모든 Action 중단
+        //if (m_AttributeSystem.m_IsDead)
+        //    return;
 
+        // Command는 FSM보다 우선 처리 (Tick당 1개)
+        // Command가 소비되면 FSM Tick은 실행하지 않음
+        if (TryConsumeCommand())
+            return;
 
-    public virtual void SwitchToNextStateAction(BaseAction nextAction)
+        // 일반 FSM Action Tick
+        TickCurrentAction();
+    }
+
+    /// <summary>
+    /// 현재 Action을 즉시 교체한다.
+    /// (Action 종료 여부와 무관하게 강제 전환)
+    /// </summary>
+    public void SwitchToNextStateAction(BaseAction nextAction)
     {
         m_CurrentAction = nextAction;
+        var type = nextAction.GetType();
+
+        // 디버그 / UI / 로그용 Action 변경 이벤트
+        OnActionChanged?.Invoke(type);
     }
 
-    public void ClearAction(object sender, EventArgs e)
+    /// <summary>
+    /// 현재 Action과 예약된 ActionQueue를 전부 초기화한다.
+    /// (유닛 리셋 / 강제 상태 변경 시 사용)
+    /// </summary>
+    private void ClearAction()
     {
         m_CurrentAction = null;
+
+        ActionQueueClear();
     }
 
+    /// <summary>
+    /// Command / Action 예약 큐를 완전히 비운다.
+    /// </summary>
+    private void ActionQueueClear()
+    {
+        m_ActionQueue.Clear();
+    }
+
+    /// <summary>
+    /// 유닛이 보유한 모든 Action 목록을 반환한다.
+    /// (디버그 / 초기화 / 이벤트 바인딩 용도)
+    /// </summary>
     public IEnumerable<BaseAction> GetActions()
     {
         return baseActionDict.Values;
     }
 
+    /// <summary>
+    /// 특정 타입의 Action을 가져온다.
+    /// (없으면 null 반환)
+    /// </summary>
     public T GetAction<T>() where T : BaseAction
     {
         if (baseActionDict.TryGetValue(typeof(T), out var action))
@@ -425,6 +608,10 @@ public class GameEntity :
         return null;
     }
 
+    /// <summary>
+    /// 이전 Action이 존재하면 되돌아가고,
+    /// 없으면 IdleAction으로 복귀한다.
+    /// </summary>
     public BaseAction GetBackStateAction()
     {
         if (m_BeforeAction == null)
@@ -437,103 +624,159 @@ public class GameEntity :
         }
     }
 
+    /// <summary>
+    /// 다음에 실행할 Action을 큐에 예약한다.
+    /// (현재 Command 또는 Action이 끝난 후 실행됨)
+    /// </summary>
+    public void EnqueueNextAction(BaseAction action, GridPosition grid)
+    {
+        if (action == null)
+            return;
+
+        m_ActionQueue.Enqueue((action, grid));
+    }
+
+    /// <summary>
+    /// 여러 개의 Action을 순차적으로 예약한다.
+    /// (Shift+명령, 연속 행동 등에 사용)
+    /// </summary>
+    public void EnqueueNextAction(List<(BaseAction action, GridPosition grid)> list)
+    {
+        if (list.Count == 0)
+            return;
+
+        foreach (var (action, grid) in list)
+            m_ActionQueue.Enqueue((action, grid));
+    }
+
+    /// <summary>
+    /// ActionQueue에 쌓인 Command를 하나 소비한다.
+    /// - Tick당 최대 1개만 처리
+    /// - Command 수행 중에는 중복 소비 방지
+    /// </summary>
+    /// <returns>
+    /// Command를 소비했으면 true,
+    /// 소비하지 않았으면 false
+    /// </returns>
+    private bool TryConsumeCommand()
+    {
+        // 예약된 Action이 없으면 처리하지 않음
+        if (m_ActionQueue.Count == 0)
+            return false;
+
+        // 현재 CommandAction이 아직 끝나지 않음
+        if (m_IsCommandAction)
+            return false;
+
+        var (action, grid) = m_ActionQueue.Dequeue();
+        m_IsCommandAction = true;
+
+        // CommandAction으로 즉시 전환
+        SwitchToNextStateAction(action);
+
+        // CommandAction은 항상 목표 Grid를 들고 최초 1회 실행
+        TrySwitchByResult(m_CurrentAction.TakeAction(grid));
+
+        return true;
+    }
+
+    /// <summary>
+    /// 현재 Action의 일반 FSM Tick 처리
+    /// (Command가 없을 때만 실행됨)
+    /// </summary>
+    private void TickCurrentAction()
+    {
+        if (m_CurrentAction == null)
+            return;
+
+        TrySwitchByResult(m_CurrentAction.TakeAction());
+    }
+
+    /// <summary>
+    /// Action의 실행 결과로 반환된 다음 Action이 유효할 경우
+    /// 상태를 전환한다.
+    /// </summary>
+    private void TrySwitchByResult(BaseAction next)
+    {
+        // null 이거나 같은 Action이면 전환하지 않음
+        if (next == null || next == m_CurrentAction)
+            return;
+
+        SwitchToNextStateAction(next);
+    }
+
     #endregion
 
+    #region Team Service
+
     public bool IsEnemy(GameEntity target)
+    => target != null && GameConfig.TeamRelation.IsEnemy(m_TeamId, target.m_TeamId);
+
+    public bool IsAlly(GameEntity target)
+        => target != null && GameConfig.TeamRelation.IsAlly(m_TeamId, target.m_TeamId);
+
+    public GameEntity m_Target { get; protected set; }
+
+    public void SetTarget(GameEntity target)
     {
-        return GetEnemyTeamIDs().Contains(target.m_TeamId);
+        m_Target = target;
     }
 
-    public List<E_TeamId> GetEnemyTeamIDs()
-    {
-        List<E_TeamId> enemyTeams = new();
-
-        switch (m_TeamId)
-        {
-            case E_TeamId.Player:
-            case E_TeamId.NPC:
-                enemyTeams.Add(E_TeamId.Monster);
-                break;
-
-            case E_TeamId.Monster:
-                enemyTeams.Add(E_TeamId.Player);
-                enemyTeams.Add(E_TeamId.NPC);
-                break;
-        }
-
-        return enemyTeams;
-    }
+    #endregion
 
     #region Save & Load Data
 
     public virtual BaseData CaptureSaveData()
     {
-        var state = GetAnimationsManager().FirstOrDefault();
+        return default;
+        //var state = GetAnimationsManager().FirstOrDefault();
 
-        GameEntityAnimationData adata = null;
+        //GameEntityAnimationData adata = null;
         
-        if(state != null)
-        {
-            new GameEntityAnimationData()
-            {
-                stateNameHash = state.m_Animator.GetCurrentAnimatorStateInfo(0).fullPathHash,
-                normalizedTime = state.m_Animator.GetCurrentAnimatorStateInfo(0).normalizedTime,
-                speed = GetAnimationsManager().FirstOrDefault().m_Animator.speed,
-            };
-        }
+        //if(state != null)
+        //{
+        //    new GameEntityAnimationData()
+        //    {
+        //        stateNameHash = state.m_Animator.GetCurrentAnimatorStateInfo(0).fullPathHash,
+        //        normalizedTime = state.m_Animator.GetCurrentAnimatorStateInfo(0).normalizedTime,
+        //        speed = GetAnimationsManager().FirstOrDefault().m_Animator.speed,
+        //    };
+        //}
 
-        AttackPatternData attackData = null;
+        //AttackPatternData attackData = null;
 
-        if(m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
-        {
-            if(combatAction.m_ThisTimeAttack != null)
-            {
-                attackData = combatAction.m_ThisTimeAttack.CaptureSaveData() as AttackPatternData;
-            }
-        }
+        //if(m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
+        //{
+        //    if(combatAction.m_ThisTimeAttack != null)
+        //    {
+        //        attackData = combatAction.m_ThisTimeAttack.CaptureSaveData() as AttackPatternData;
+        //    }
+        //}
 
-        return new GameEntityData
-        {
-            prefabName = name,
-            position = transform.position,
-            rotation = transform.rotation,
-            guid = _guid,
-            attributeSystemData = m_AttributeSystem.CaptureSaveData(),
+        //return new GameEntityData
+        //{
+        //    prefabName = name,
+        //    position = transform.position,
+        //    rotation = transform.rotation,
+        //    guid = _guid,
+        //    attributeSystemData = m_AttributeSystem.CaptureSaveData(),
 
-            // Action type
-            CurrentActionType = GetEActionTypeByAction(m_CurrentAction),
-            BeforeActionType = GetEActionTypeByAction(m_BeforeAction),
-            NextActionType = GetEActionTypeByAction(m_NextAction),
+        //    // Action type
+        //    CurrentActionType = GetEActionTypeByAction(m_CurrentAction),
+        //    BeforeActionType = GetEActionTypeByAction(m_BeforeAction),
+        //    NextActionType = GetEActionTypeByAction(m_NextAction),
 
-            gameEntityAnimationData = adata,
+        //    gameEntityAnimationData = adata,
 
-            thisAttackPattern = attackData
-        };
+        //    thisAttackPattern = attackData
+        //};
 
-        E_ActionType GetEActionTypeByAction(BaseAction action)
-        {
-            if (action == null)
-                return E_ActionType.None;
 
-            if (action is IdleAction)
-                return E_ActionType.Idle;
-            else if (action is ChaseAction)
-                return E_ActionType.Chase;
-            else if (action is CombatAction)
-                return E_ActionType.Combat;
-            else if (action is PatrolAction)
-                return E_ActionType.Patrol;
-            else if (action is CommandAttackAction)
-                return E_ActionType.CommandAttack;
-            else if (action is CommandMoveAction)
-                return E_ActionType.CommandMove;
-            else 
-                return E_ActionType.None;
-        }
     }
 
     public virtual void RestoreSaveData(BaseData data)
     {
+        return;
         GameEntityData gdata = data as GameEntityData;
         _guid = gdata.guid;
         transform.position = gdata.position;
@@ -546,29 +789,23 @@ public class GameEntity :
         GameEntityAnimationData animData = gdata.gameEntityAnimationData;
         if (animData != null)
         {
-            var animManager = GetAnimationsManager().FirstOrDefault();
-            if (animManager != null)
+            var animator = GetComponentInChildren<Animator>();
+
+            if (animator != null)
             {
-                var animator = animManager.GetComponent<Animator>();
 
-                if (animator != null)
-                {
+                // 2. 저장된 스테이트와 진행 정도(Normalized Time)부터 재생 시작
+                // Animator.Play(int stateNameHash, int layer, float normalizedTime) 사용
+                animator.Play(animData.stateNameHash, 0, animData.normalizedTime);
 
-                    // 2. 저장된 스테이트와 진행 정도(Normalized Time)부터 재생 시작
-                    // Animator.Play(int stateNameHash, int layer, float normalizedTime) 사용
-                    animator.Play(animData.stateNameHash, 0, animData.normalizedTime);
+                animator.speed = animData.speed;
 
-                    animator.speed = animData.speed;
-                    // 로드 후 애니메이터가 멈춰 있을 수 있으므로 speed를 복구합니다.
-                    animManager.AnimationPlay();
-
-                }
             }
         }
 
-        if(m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
+        if (m_CurrentAction != null && m_CurrentAction is CombatAction combatAction)
         {
-            combatAction.m_ThisTimeAttack = m_AttributeSystem.m_AttackPatterns.Find(attack => attack.ID == gdata.thisAttackPattern.id);
+            //combatAction.m_ThisTimeAttack = m_AttributeSystem.m_AttackPatterns.FirstOrDefault(attack => attack.ID == gdata.thisAttackPattern.id);
         }
 
         BaseAction GetActionByEActionType(E_ActionType action)
@@ -598,12 +835,81 @@ public class GameEntity :
         }
     }
 
-    public void Interact(Action onInteractionComplete)
+    #endregion
+
+    #region Handle Action
+
+    public void RaiseAttackReadyFailed(AttackData failAttack)
     {
-        throw new NotImplementedException();
+        OnAttackReadyFailed?.Invoke(failAttack);
     }
 
+    private void HandleDead(OnAttackInfoEventArgs e)
+    {
+        OnDead?.Invoke(e); // 기존 호환용
+        m_CurrentAction.ClearAction();
+        ClearAction();
+    }
+
+    private void HandleDamaged(OnAttackInfoEventArgs e)
+    {
+        OnDamaged?.Invoke(e);
+    }
+
+    private void HandleRevived()
+    {
+        OnRevived?.Invoke();
+    }
+
+    private void HandleStartAttack(AttackData e)
+    {
+        OnStartAttack?.Invoke(e);
+    }
+
+    private void HandlePhaseChange()
+    {
+        OnPhaseChange?.Invoke();
+    }
+
+    private void HandleStartMoving()
+    {
+        OnStartMoving?.Invoke();
+    }
+
+    private void HandleStopMoving()
+    {
+        OnStopMoving?.Invoke();
+    }
+
+    private void HandleChangedFloorsStarted(OnChangeFloorsStartedEventArgs e)
+    {
+        OnChangedFloorsStarted?.Invoke(e);
+    }
+
+    private void HandleStep()
+    {
+        OnStep?.Invoke();
+    }
+
+    private void HandleAttackPoint()
+    {
+        OnAttackPoint?.Invoke(_combatAction.m_ThisTimeAttack);
+    }
 
     #endregion
 
+    public void PlayPlacedSpawnAnimation()
+    {
+        if (m_SetupAnimation == null)
+        {
+            // ? SpawnComplete?
+            SpawnComplete();
+            return;
+        }
+
+        StartCoroutine(m_SetupAnimation.PlacedSpawnAnimation());
+    }
+
 }
+
+

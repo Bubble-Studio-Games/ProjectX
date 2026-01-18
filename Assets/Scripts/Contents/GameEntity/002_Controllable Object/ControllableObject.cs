@@ -2,66 +2,26 @@ using Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using static Define;
 using static Util;
 
 
-[RequireComponent(typeof(ControllableObjectCombatManager), typeof(SetupAnimation), typeof(Poolable))]
-public class ControllableObject : 
-    GameEntity, 
-    IAccessories<ControllableObjectAnimator, ControllableObjectSounder>
+[RequireComponent(typeof(SetupAnimation), typeof(Poolable))]
+public class ControllableObject : GameEntity, IUpgradeble
 {
-    public event EventHandler<OnChangeGradeEventArgs> OnChangeGrade;
-    public class OnChangeGradeEventArgs: EventArgs
-    {
-        public E_ObjectGrade objGrade;
-        public E_ObjectEnhanceType gradeEnhanceType;
-        public float enhanceValue;
-        public bool isSuccessGrade;
-    }
-
-    [Header("Ref")]
-    protected List<ControllableObjectAnimator> m_ControllableObjectAnimator;
-    protected ControllableObjectSounder m_ControllableObjectSounder;
-    public ControllableObjectCombatManager m_ControllableObjectCombatManager { get; private set; }
-
-    [Header("Action")]
-    [SerializeField] public BaseAction m_CommandAction;
-
-    public GameEntity m_Target { get; protected set; }
-    protected StatBarUI m_StatBarUI;
-
-    [Header("Flag")]
-    public bool IsAttackStand;
-    public bool m_isDetectionsurroundingsEnabled = true; // 주위 적 탐색이 가능한가?
-    public bool m_isChaseCore = true; // 몬스터는 항상 코어를 찾는가? 임시
-
-    public E_MoveType m_EMoveType { get; private set; }
+    public event Action<OnChangeGradeEventArgs> OnChangeGrade;
 
     [Header("Grade")]
-    public E_ObjectGrade m_originalEObjectGrade; //원래 등급
-    public E_ObjectGrade m_EObjectGrade; //조정된 등급
+    [SerializeField] private E_ObjectGrade m_originalEObjectGrade; //원래 등급
+    public E_ObjectGrade m_EObjectGrade { get; set; } //조정된 등급
     public OnChangeGradeEventArgs m_OnChangeGradeEventArgs; // 조정 수치
     [SerializeField] [Range(0, 100)] private float m_fEnhanceChance;
     [SerializeField] private List<E_ObjectEnhanceType> n_EnhanceTypeList;
 
-    private GridPosition commandGrid;
-
     protected override void Awake()
     {
         base.Awake();
-
-        m_ControllableObjectCombatManager = GetComponent<ControllableObjectCombatManager>();
-
-
-
-        m_ControllableObjectAnimator = GetComponentsInChildren<ControllableObjectAnimator>().ToList();
-        m_ControllableObjectSounder = GetComponent<ControllableObjectSounder>();
-
-        m_StatBarUI = GetComponentInChildren<StatBarUI>();
 
         // Event
         OnChangeGrade += ChangeMaterialOfGrade;
@@ -73,172 +33,22 @@ public class ControllableObject :
 
         if(m_originalEObjectGrade != m_EObjectGrade)
         {
-            OnChangeGrade?.Invoke(this, m_OnChangeGradeEventArgs);
+            OnChangeGrade?.Invoke(m_OnChangeGradeEventArgs);
         }
-    }
-
-    public override void SpawnComplete()
-    {
-        base.SpawnComplete();
-
-        // Base Action
-        if(m_CurrentAction == null)
-            SwitchToNextStateAction(GetAction<IdleAction>());
-
-        // UnitActionSystem
-        UnitActionSystem.Instance.OnUpdateActionTick += ExecuteAction;
-    }
-
-    public override void OnDestroy()
-    {
-        base.OnDestroy();
-
-        if (UnitActionSystem.Instance != null)
-            UnitActionSystem.Instance.OnUpdateActionTick -= ExecuteAction;
-    }
-
-    protected override void Update()
-    {
-        base.Update();
-
-        if (m_IsSetuping)
-            return;
-
-        UpdateGridPosition();
     }
 
     #region Action
 
-    // UnitActionSystem에서 관리
-    protected override void ExecuteAction(object sender, EventArgs args)
-    {
-        if (m_AttributeSystem.m_IsDead)
-            return;
-
-        // 커맨드 명령이 들어왔을 때 최초 1회 실행 이후로는 else 문에서 반복 실행.
-        if (m_CommandAction != null)
-        {
-            m_CurrentAction.ClearAction();
-            SwitchToNextStateAction(m_CommandAction);
-            m_CommandAction = null;
-
-            m_CurrentAction?.TakeAction(commandGrid);
-            commandGrid = default;
-        }
-        else
-        {
-            m_NextAction = m_CurrentAction?.TakeAction();
-
-            if (m_NextAction is not null && m_NextAction != m_CurrentAction)
-            {
-                m_CurrentAction.ClearAction();
-                SwitchToNextStateAction(m_NextAction);
-            }
-        }
-    }
-
-    public override void SwitchToNextStateAction(BaseAction nextAction)
-    {
-        base.SwitchToNextStateAction(nextAction);
-
-        UpdateMoveState();
-    }
-
-    private void UpdateMoveState()
-    {
-        m_EMoveType = E_MoveType.Idle;
-
-        if (m_CurrentAction is ChaseAction || m_CurrentAction is CommandMoveAction)
-        {
-            if (m_TeamId == E_TeamId.Monster)
-            {
-                if (m_Target == DungeonCore.instance)
-                    m_EMoveType = E_MoveType.Walk;
-                else
-                    m_EMoveType = E_MoveType.Run;
-            }
-            else
-                m_EMoveType = E_MoveType.Run;
-        }
-    }
-
-    public float GetMoveSpeed()
-    {
-        switch (m_EMoveType)
-        {
-            case E_MoveType.Idle:
-                return 0;
-            case E_MoveType.Walk:
-                return m_AttributeSystem.m_Stat.m_fWalkSpeed;
-            case E_MoveType.Run:
-                return m_AttributeSystem.m_Stat.m_fChaseSpeed;
-            default:
-                return 0;
-        }
-    }
-
     public void DirectCommand<TAction>
         (TAction toChangeAction,
-        GridPosition destGridPosition = default,
-        Action<ControllableObject, TAction> onActionComplete = null) 
+        GridPosition destGridPosition = default) 
         where TAction : BaseAction
     {
         m_BeforeAction = m_CurrentAction;
-        m_CommandAction = toChangeAction;
 
-        // ★ Action에게 gridPosition 전달
-        commandGrid = destGridPosition;
-
-        // ★ 액션 완료 이벤트 처리
-        toChangeAction.SetActionComlete(() =>
-        {
-            onActionComplete?.Invoke(this, toChangeAction);
-        });
+        // 순서 대기
+        m_ActionQueue.Enqueue((toChangeAction, destGridPosition));
     }
-
-    #endregion
-
-    #region Battle
-
-    public AttackPattern GetAttackBaseByID(int id)
-    {
-        return m_AttributeSystem.m_AttackPatterns.Where(x => x.ID == id).FirstOrDefault();
-    }
-
-    public List<AttackPattern> GetAttacksBaseByIDs(int[] ids)
-    {
-        // LINQ 쿼리 한 줄로 끝!
-        // m_StatSystem.m_Stat.attackPatterns 중에서
-        // attack의 ID가 ids 배열에 포함되어 있는 것들만 골라서 리스트로 만들어줘!
-        return m_AttributeSystem.m_AttackPatterns
-            .Where(attack => ids.Contains(attack.ID))
-            .ToList();
-    }
-
-    public List<AttackPattern> GetAttacksBaseByIDs(AttackPattern[] patterns)
-    {
-        // 비교용 ID 배열 추출
-        var ids = patterns.Select(p => p.ID).ToArray();
-
-        return GetAttacksBaseByIDs(ids);
-    }
-
-    public virtual void SetTarget(GameEntity target)
-    {
-        m_Target = target;
-    }
-
-
-    public new List<ControllableObjectAnimator> GetAnimationsManager()
-    {
-        return m_ControllableObjectAnimator;
-    }
-
-    public new ControllableObjectSounder GetSounderManager()
-    {
-        return m_ControllableObjectSounder;
-    }
-
     #endregion
 
     #region Grade
@@ -274,11 +84,11 @@ public class ControllableObject :
         };
 
         // 업그레이드 실행
-        OnChangeGrade?.Invoke(this, m_OnChangeGradeEventArgs);
+        OnChangeGrade?.Invoke(m_OnChangeGradeEventArgs);
     }
 
     // 등급 변화에 따른 변화
-    private void ChangeMaterialOfGrade(object sender, OnChangeGradeEventArgs args)
+    private void ChangeMaterialOfGrade(OnChangeGradeEventArgs args)
     {
         switch (args.objGrade)
         {
@@ -327,15 +137,8 @@ public class ControllableObject :
 
             // 하위 클래스 고유 데이터 추가
             attackReadyItemData =
-                m_ControllableObjectCombatManager?.m_AttackReadyItemObject.Select(item => item.obj.CaptureSaveData()).ToList(),
+                m_CombatManager?.m_AttackReadyItemObject.Select(item => item.obj.CaptureSaveData()).ToList(),
 
-            readyAttackPatternData =
-               m_ControllableObjectCombatManager?.m_ReadyAttackPattern != null
-                   ? m_ControllableObjectCombatManager.m_ReadyAttackPattern
-                       .Select(attack => attack?.CaptureSaveData())
-                       .Where(data => data != null)
-                       .ToHashSet()
-                   : new HashSet<AttackPatternData>(),
 
             targetGuid = m_Target?.guid
         };
@@ -350,10 +153,10 @@ public class ControllableObject :
         // readyAttackPatternData가 null이 아니고, 비어있지 않을 때만 복원
         if (cData.readyAttackPatternData != null && cData.readyAttackPatternData.Count > 0)
         {
-            m_ControllableObjectCombatManager.m_ReadyAttackPattern =
+            m_CombatManager.m_ReadyAttackPattern =
                 m_AttributeSystem.m_AttackPatterns
-                    .Where(a => cData.readyAttackPatternData.Any(b => a.ID == b.id))
-                    .OfType<AttackPattern_Ready>() // 타입 안전 변환
+                    .Where(a => cData.readyAttackPatternData.Any(b => a.Id == b.id))
+                    .OfType<AttackData_Ready>() // 타입 안전 변환
                     .ToHashSet();
         }
 

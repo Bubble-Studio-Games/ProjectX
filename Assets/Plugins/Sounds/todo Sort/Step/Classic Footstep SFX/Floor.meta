@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Plugins/Sounds/todo Sort/Step/Classic Footstep SFX/Floor.meta
 guid: 0c55cfe5381f4a14faeb4606fbb67fc2
+========
+guid: 9b56502d63a887c42ad3a7900be0fadc
+>>>>>>>> upstream/develop:Assets/Resources/Animation/GameEntity/Building/Grave Dungeon spawner/Archive.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

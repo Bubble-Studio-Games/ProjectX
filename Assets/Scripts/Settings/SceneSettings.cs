@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using static Define;
 
-[CreateAssetMenu(fileName = "SceneSettings", menuName = "Settings/Scenes Settings")]
+[CreateAssetMenu(fileName = "SceneSettings", menuName = "Game/Config/Scenes")]
 public class SceneSettings : ScriptableObject
 {
 	[field: SerializeField] public Scene StartScene {get; private set;} = Scene.Start;

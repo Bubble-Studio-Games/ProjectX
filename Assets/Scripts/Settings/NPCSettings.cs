@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NPCSettings", menuName = "Settings/NPC Settings")]
+[CreateAssetMenu(fileName = "NPCSettings", menuName = "Game/Config/NPC")]
 public class NPCSettings : ScriptableObject
 {
 	[field: SerializeField] public bool IsNPCEnabled { get; private set; } = true;

@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afcb5a3693b8c1f4fa373d9c8a9c8716, type: 3}
+  m_Name: 1 Class Casting
+  m_EditorClassIdentifier: 
+  Id: 17
+  AttackName: 1 Class Casting
+  AttackType: 2
+  EnableSelfAttack: 0
+  m_ERangeFillType: 1
+  m_ERangeShapeType: 6
+  m_RangeOffset:
+  - x: 0
+    z: 4
+    floor: 0
+  m_ArcAngle: 90
+  GridCheckTypes: 
+  ApplyTargetTendency: 2
+  NextAttacks:
+  - {fileID: 11400000, guid: 181cab53489cf9244a388f1efa1f61f1, type: 2}
+  ConditionPrevAttack: {fileID: 0}
+  m_fLastCooltime:
+    _value: 0
+  CoolTime:
+    _value: 5
+  ManaCost:
+    _value: 1
+  IsTwoHandAttack: 0
+  m_iPhysicalAttackDamage:
+    _value: 0
+  m_iMagicAttackDamage:
+    _value: 0
+  m_iPhysicalFixedDamage:
+    _value: 0
+  m_iMagicFixedDamage:
+    _value: 0
+  m_fPhysicalArmorPenetraion:
+    _value: 0
+  m_fMagicalArmorPenetraion:
+    _value: 0
+  m_iCriticalChance:
+    _value: 1
+  m_fCriticalDamageUp:
+    _value: 0
+  m_fAccuracy:
+    _value: 95
+  m_fAttackSpeed:
+    _value: 1
+  m_iKnockbackChance:
+    _value: 0
+  m_fLifeStealPercent:
+    _value: 0
+  m_AttackPatternInfoClips:
+  - AttackSuccessAudioClip: {fileID: 0}
+    AttackMissAudioClip: {fileID: 0}
+    AttackFailAudioClip: {fileID: 0}
+    AttackAnimationClip: {fileID: 3060610079319413300, guid: ec5e113490fdf3842abdc604d7fccbe9, type: 3}
+    ReadyFailAnimationClip: {fileID: 7400000, guid: c86ed5ec3363daa4e83e414c84521a34, type: 2}
+  selectInfoClip:
+    AttackSuccessAudioClip: {fileID: 0}
+    AttackMissAudioClip: {fileID: 0}
+    AttackFailAudioClip: {fileID: 0}
+    AttackAnimationClip: {fileID: 0}
+    ReadyFailAnimationClip: {fileID: 0}
+  m_ReadyGameObjectPrefab: {fileID: 232523246547959510, guid: 24af3d0d8349c4942a314537f9a823b9, type: 3}
+  m_FailPrefab: {fileID: 425180874580948975, guid: f32233d41f243a147acfaf3aef728e2a, type: 3}
+  m_iSpawnReadyCount: 1
+  m_SpawnFromWeapon: 1
+  m_AttackReadyTime: 2
+  lastAttackReadytime: 0

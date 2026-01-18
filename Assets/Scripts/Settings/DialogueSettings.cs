@@ -1,9 +1,7 @@
 using UnityEngine;
 
-/// <summary>
-/// 다이얼로그 관련 설정 - ScriptableObject
-/// </summary>
-[CreateAssetMenu(fileName = "DialogueSettings", menuName = "Settings/Dialogue Settings")]
+[EditorShowInfo("다이얼로그 관련 설정")]
+[CreateAssetMenu(fileName = "DialogueSettings", menuName = "Game/Config/Dialogue")]
 public class DialogueSettings : ScriptableObject
 {
 	[field: SerializeField, Range(0.01f, 3.0f)] public float TypingText { get; private set; } = 0.5f;

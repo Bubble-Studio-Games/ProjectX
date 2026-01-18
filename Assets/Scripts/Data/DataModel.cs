@@ -1,12 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static ControllableObject;
 using static Define;
 
 namespace Data
@@ -40,7 +34,7 @@ namespace Data
     {
         public List<BaseData> attackReadyItemData;
         public HashSet<AttackPatternData> readyAttackPatternData;
-        public OnChangeGradeEventArgs gradeArgs;
+        public Define.OnChangeGradeEventArgs gradeArgs;
         public string targetGuid;
     }
 
@@ -48,9 +42,18 @@ namespace Data
     [Serializable]
     public class AttributeSystemData : BaseData
     {
-        public BaseStat stat;
+        //public StatData stat;
         public List<AttackPatternData> attackPatterns;
         public RewardData rewardData;
+    }
+
+    [Serializable]
+    public class StatData
+    {
+        public int statId;     // 어떤 BaseStat인지
+        public float curHp;
+        public float curMp;
+        // 필요하면 grade, modifier 등
     }
 
     [Serializable]
@@ -71,8 +74,6 @@ namespace Data
     [Serializable]
     public class ProjectileData : ItemData
     {
-        public Vector3 velocity;   // Rigidbody.velocity
-        public Vector3 angularVelocity; // Rigidbody.angularVelocity
         public string targetGuid;  // GameEntity._guid
     }
 

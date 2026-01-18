@@ -4,14 +4,7 @@ using UnityEngine.SceneManagement;
 
 public class LoadingScene : BaseScene
 {
-    public override void Clear()
-    {
-    }
-
-    protected override void Start()
-    {
-        base.Start();
-    }
+    LoadingScene() => SceneType = Define.Scene.Loading;
 
     IEnumerator LoadSceneProcess()
     {

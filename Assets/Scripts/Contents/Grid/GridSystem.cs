@@ -49,7 +49,7 @@ public class GridSystem<TGridObject>
         );
     }
 
-    public Dictionary<GridPosition, GridDebugObject > CreateDebugObjects(Transform debugPrefab)
+    public Dictionary<GridPosition, GridDebugObject > CreateDebugObjects(Transform debugPrefab, Transform parent)
     {
         Dictionary<GridPosition, GridDebugObject> gridDebugObjects = new();
 
@@ -63,7 +63,7 @@ public class GridSystem<TGridObject>
                 GridDebugObject gridDebugObject = debugTransform.GetComponent<GridDebugObject>();
                 gridDebugObject.SetGridObject(gridPosition);
 
-                debugTransform.SetParent(LevelGrid.Instance.transform);
+                debugTransform.SetParent(parent);
 
                 gridDebugObjects[gridPosition] = gridDebugObject;
             }
@@ -96,9 +96,9 @@ public class GridSystem<TGridObject>
         return height;
     }
 
-    public int GetCellSize()
+    public float GetCellSize()
     {
-        return (int)cellSize;
+        return cellSize;
     }
 
 

@@ -29,7 +29,6 @@ public class SettingsPanel : UI_Base
 
     private void InitButtons()
     {
-        // TODO: 각 설정 버튼 기능 구현
         // Video - 화면 설정
         // Game - FPS 조절 등
         // Custom - 커스텀 설정

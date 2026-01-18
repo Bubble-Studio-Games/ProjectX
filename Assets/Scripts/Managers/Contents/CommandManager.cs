@@ -1,14 +1,13 @@
 using UnityEngine;
 using System;
 using static Define;
-using static UnitActionSystem;
 using System.Linq;
 using System.Collections.Generic;
 
 public class CommandManager
 {
-    public event EventHandler<OnCommandActionEventArgs> OnSelectedActionChanged;
-    public event EventHandler<OnCommandActionEventArgs> OnCommandAction;
+    public event Action<OnCommandActionEventArgs> OnSelectedActionChanged;
+    public event Action<OnCommandActionEventArgs> OnCommandAction;
     public class OnCommandActionEventArgs : EventArgs
     {
         public GridPosition GridPosition;
@@ -35,12 +34,12 @@ public class CommandManager
             }
 
             //Debug.Log($"대상 선택 {target.name}");
-            switch (target.m_ObjectType)
+            switch (target.m_EObjectType)
             {
                 case E_ObjectType.Unit:
                 case E_ObjectType.Building:
                     if (target.m_TeamId == E_TeamId.Monster)
-                        CommandAttack(target);
+                        CommandAttack(target, gridPos);
                     break;
 
                 case E_ObjectType.Interact:
@@ -58,42 +57,43 @@ public class CommandManager
             obj = null;
 
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),
-                                out RaycastHit hit, Managers.Layer.PlayerInteractableLayerMask))
+                                out RaycastHit hit, GameConfig.Layer.HitColLayerMask))
             {
                 obj = hit.collider.GetComponentInParent<GameEntity>();
             }
 
-            gp = MouseWorld.Instance.GetGridPosition();
+            gp = Managers.SceneServices.Cursor.GetMouseWorldGridPosition(); 
             return true;
         }
     }
 
-    private void CommandMove(GridPosition gridPos)
+    public void CommandMove(GridPosition gridPos)
     {
         ExecuteCommand<CommandMoveAction>(gridPos);
     }
 
-    private void CommandAttack(GameEntity target)
+    public void CommandAttack(GameEntity target, GridPosition gridPos)
     {
-        var pos = target.m_GridPosition;
-        ExecuteCommand<CommandAttackAction>(pos);
+        ExecuteCommand<CommandAttackAction>(gridPos);
     }
 
-    private void CommandInteract(GameEntity target)
+    public void CommandInteract(GameEntity target)
     {
-        var pos = target.m_GridPosition;
-        //ExecuteCommand<CommandAttackAction>(pos);
+        var pos = target.GetGridPosition();
+        ExecuteCommand<CommandInteractAction>(pos);
     }
 
     private void ExecuteCommand<TAction>
-        (GridPosition gridPosition, // 목표 그리드
-        Action<ControllableObject, TAction> onActionComplete = null)  // 액션이 끝나면 할 Action
+        (GridPosition gridPosition)
         where TAction : BaseAction
     {
+        // 조작 가능 유닛만 가져오기
+        var selectedEntities = Managers.Selection.SelectedUnits.OfType<ControllableObject>();  // ISelectable -> GameEntity 로 필터링/캐스팅
+        
         // ✔ 액션 가능 유닛만 가져오기
-        var filtered = FilterUnitsWithAction<TAction>();
+        var filtered = Util.FilterGameEntityHasAction<TAction, ControllableObject>(selectedEntities);
 
-        if (filtered.Count == 0)
+        if (filtered.Count() == 0)
             return;
 
         bool executedAny = false;
@@ -107,40 +107,55 @@ public class CommandManager
             executedAny = true;
 
             // ✔ 개별 유닛에 명령 실행
-            unit.DirectCommand(action, gridPosition, onActionComplete);
+            unit.DirectCommand(action, gridPosition);
         }
 
         // ✔ 하나라도 실행된 경우에만 이벤트 보내기
         if (executedAny)
         {
-            OnCommandAction?.Invoke(this, new OnCommandActionEventArgs
+            OnCommandAction?.Invoke(new OnCommandActionEventArgs
             {
                 action = typeof(TAction),
                 GridPosition = gridPosition,
             });
+
+            DiectActionSoundPlay<TAction>();
         }
     }
 
-    public List<(ControllableObject unit, TAction action)>
-        FilterUnitsWithAction<TAction>()
-        where TAction : BaseAction
+    private void DiectActionSoundPlay<TAction>() where TAction : BaseAction
     {
-        var selectedUnits = Managers.Selection.GetSelectedByClass<ControllableObject>();
+        if (typeof(TAction) == typeof(CommandMoveAction))
+        {
+            Managers.Sound.Play(GameConfig.Sound.m_CommandAction_CommandMoveAudioClip);
+        }
 
-        return selectedUnits
-            .Select(unit => (unit, action: unit.GetAction<TAction>()))
-            .Where(pair => pair.action != null)
-            .ToList();
+        if (typeof(TAction) == typeof(CommandAttackAction))
+        {
+            Managers.Sound.Play(GameConfig.Sound.m_CommandAction_CommandAttackAudioClip);
+        }
     }
 
+    // 커맨드 액션 선택
     public void SetSelectedAction(BaseAction baseAction)
     {
         m_SelectAction = baseAction;
 
-        OnSelectedActionChanged?.Invoke(this, new OnCommandActionEventArgs
+        OnSelectedActionChanged?.Invoke(new OnCommandActionEventArgs
         {
             action = baseAction.GetType()
         });
+
+        // CommandMove, CommandAttack은 별도 선택이 없다.
+        if (baseAction.GetType() == typeof(CommandMoveAction))
+        {
+            Managers.Sound.Play(GameConfig.Sound.m_SelectAction_CommandMoveAudioClip);
+        }
+
+        if (baseAction.GetType() == typeof(CommandAttackAction))
+        {
+            Managers.Sound.Play(GameConfig.Sound.m_SelectAction_CommandAttackAudioClip);
+        }
 
         //Debug.Log($"({m_SelectedAction.GetActionName()}) Action 이 선택됨");
     }

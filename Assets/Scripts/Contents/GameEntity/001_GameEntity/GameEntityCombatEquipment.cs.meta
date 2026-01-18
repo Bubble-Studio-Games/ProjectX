@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scripts/Contents/GameEntity/001_GameEntity/GameEntityCombatEquipment.cs.meta
+guid: 7dbc0a75ba7d3cb4f911501509edf9df
+========
+guid: 7b0c31c55ae696b41aab90c4a51d3cd4
+>>>>>>>> Client_B:Assets/Scripts/Contents/GameEntity/Player.cs.meta
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

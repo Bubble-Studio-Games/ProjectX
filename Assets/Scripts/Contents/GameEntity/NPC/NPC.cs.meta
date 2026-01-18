@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scripts/Contents/GameEntity/NPC/NPC.cs.meta
 guid: 175875b2fcf28f240b673ce9affadf30
+========
+guid: bab23ab847ff59443a1aad0b861208b0
+>>>>>>>> upstream/develop:Assets/Scripts/Contents/GameEntity/NPC/NPCOutlineView.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

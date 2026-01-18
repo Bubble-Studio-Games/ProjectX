@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,24 +17,19 @@ public class StatBarUI : MonoBehaviour
     private void Awake()
     {
         m_GameEntity = GetComponentInParent<GameEntity>();
-        m_GameEntity.OnObjectSpawned += (s, e) => Init();
-        m_GameEntity.OnSpawnObjectSelected += (s, e) => SetActiveFalseBars();
-
         StatSystem = GetComponentInParent<AttributeSystem>();
+    }
 
-        // Event
-        StatSystem.OnUpdateStat += (s, e) => UpdateHealthBar();
-        StatSystem.OnUpdateStat += (s, e) => UpdateManaBar();
+    private void Start()
+    {
+        // 장애물은 이름을 나타내지 않는다.
+        if (m_GameEntity.m_EObjectType == E_ObjectType.Obstacle)
+            ObjectNameText.enabled = false;
 
-        StatSystem.OnDead += (s, e) => SetActiveFalseBars();
-        StatSystem.OnRevived += (s, e) => Init();
-
-
-        if (m_GameEntity is ControllableObject cobj)
+        if (m_GameEntity is IUpgradeble cobj)
         {
-
             ObjectNameText.text = StatSystem.m_Stat.Name;
-            switch (cobj.m_originalEObjectGrade)
+            switch (cobj.m_EObjectGrade)
             {
                 case E_ObjectGrade.Normal:
                     ObjectNameText.gameObject.SetActive(true);
@@ -54,97 +46,128 @@ public class StatBarUI : MonoBehaviour
                 default:
                     break;
             }
-
-            cobj.OnChangeGrade += UpdateGrade;
         }
 
-
-    }
-
-    private void Start()
-    {
-        if (!m_GameEntity.m_IsSetuping)
+        if (!m_GameEntity.m_IsSpawning)
             Init();
     }
 
-    public void Init()
+    private void OnEnable()
     {
-        healthBar.SetActive(true);
+        // 이름/등급 표시
+        if (m_GameEntity is IUpgradeble upgradable)
+            upgradable.OnChangeGrade += UpdateGrade;
 
+        m_GameEntity.OnObjectSpawnStart += Init;
+        m_GameEntity.OnSpawnObjectSelected += HideBars;
+
+        // Event
+        StatSystem.OnUpdateStat += UpdateHealthBar;
+        StatSystem.OnUpdateStat += UpdateManaBar;
+
+        StatSystem.OnDead += HideBars;
+        StatSystem.OnRevived += Init;
+    }
+
+    private void OnDisable()
+    {
+        if (m_GameEntity is IUpgradeble cobj)
+            cobj.OnChangeGrade -= UpdateGrade;
+
+        m_GameEntity.OnObjectSpawnStart -= Init;
+        m_GameEntity.OnSpawnObjectSelected -= HideBars;
+
+        // Event
+        StatSystem.OnUpdateStat -= UpdateHealthBar;
+        StatSystem.OnUpdateStat -= UpdateManaBar;
+
+        StatSystem.OnDead -= HideBars;
+        StatSystem.OnRevived -= Init;
+    }
+
+    /// <summary>
+    /// 스폰/부활 시점 초기화. 이때의 체력/마나를 기준값으로 저장.
+    /// 기준값과 다를 때만 바를 보여준다.
+    /// </summary>
+    private void Init()
+    {
+        if (StatSystem == null) return;
+
+        // 현재 상태 반영
         UpdateHealthBar();
-
-        if (StatSystem.IsManaCharacter())
-        {
-            UpdateManaBar();
-            ManaBar.SetActive(true);
-        }
-        else
-            ManaBar.SetActive(false);
+        UpdateManaBar();
     }
 
     private void UpdateHealthBar()
     {
+        // UI Fill
         healthBarImage.fillAmount = StatSystem.GetHealthNormalized();
+
+        // 표시 조건: 현재 != 최대
+        bool visible = !StatSystem.GetFillHeath();
+
+        if (healthBar != null && healthBar.activeSelf != visible)
+            healthBar.SetActive(visible);
     }
 
     private void UpdateManaBar()
     {
+        // 마나 없는 유닛이면 그냥 꺼둔다
+        if (!StatSystem.IsManaCharacter())
+        {
+            if (ManaBar != null && ManaBar.activeSelf)
+                ManaBar.SetActive(false);
+            return;
+        }
+
+        // UI Fill
         ManaBarImage.fillAmount = StatSystem.GetManaNormalized();
+
+        // 표시 조건: 현재 != 최대
+        bool visible = !StatSystem.GetFillMana();
+
+        if (ManaBar != null && ManaBar.activeSelf != visible)
+            ManaBar.SetActive(visible);
     }
 
-    private void SetActiveFalseBars()
+
+    private void HideBars()
     {
-        ManaBar.SetActive(false); 
-        healthBar.SetActive(false);
-        ObjectNameText.gameObject.SetActive(false);
+        if (ManaBar != null) ManaBar.SetActive(false);
+        if (healthBar != null) healthBar.SetActive(false);
+
+        if (ObjectNameText != null)
+            ObjectNameText.gameObject.SetActive(false);
     }
 
-    private void UpdateGrade(object sender, ControllableObject.OnChangeGradeEventArgs args)
+    private void HideBars(OnAttackInfoEventArgs _) => HideBars();
+
+
+    private void UpdateGrade(OnChangeGradeEventArgs args)
     {
         if (ObjectNameText == null)
             return;
 
         if (!args.isSuccessGrade)
-        {
             ObjectNameText.text = StatSystem.m_Stat.Name;
-        }
         else
         {
-            string prefix = "";
-
-            switch (args.gradeEnhanceType)
+            string prefix = args.gradeEnhanceType switch
             {
-                case E_ObjectEnhanceType.Health:
-                    prefix = "Iron";          // 강철 같은 체력
-                    break;
-                case E_ObjectEnhanceType.Magic:
-                    prefix = "Arcane";        // 비전의, 마법적인
-                    break;
-                case E_ObjectEnhanceType.Physical:
-                    prefix = "Brutal";        // 잔혹하고 강력한 물리형
-                    break;
-                case E_ObjectEnhanceType.Defense:
-                    prefix = "Bulwark";       // 방패 같은 수호자
-                    break;
-                case E_ObjectEnhanceType.Speed:
-                    prefix = "Swift";         // 빠르고 민첩한
-                    break;
-                case E_ObjectEnhanceType.Critical:
-                    prefix = "Deadeye";       // 명중률과 치명타에 강한
-                    break;
-                case E_ObjectEnhanceType.Range:
-                    prefix = "Longshot";      // 장거리 공격형
-                    break;
-                case E_ObjectEnhanceType.Skill:
-                    prefix = "Ascendant";     // 고급 스킬을 가진 존재
-                    break;
-                default:
-                    prefix = "";
-                    break;
-            }
+                E_ObjectEnhanceType.Health => "Iron",
+                E_ObjectEnhanceType.Magic => "Arcane",
+                E_ObjectEnhanceType.Physical => "Brutal",
+                E_ObjectEnhanceType.Defense => "Bulwark",
+                E_ObjectEnhanceType.Speed => "Swift",
+                E_ObjectEnhanceType.Critical => "Deadeye",
+                E_ObjectEnhanceType.Range => "Longshot",
+                E_ObjectEnhanceType.Skill => "Ascendant",
+                _ => ""
+            };
 
-            // 예시 출력
-            ObjectNameText.text = $"{prefix} {StatSystem.m_Stat.Name}";
+            ObjectNameText.text = string.IsNullOrEmpty(prefix)
+                ? StatSystem.m_Stat.Name
+                : $"{prefix} {StatSystem.m_Stat.Name}";
         }
 
 

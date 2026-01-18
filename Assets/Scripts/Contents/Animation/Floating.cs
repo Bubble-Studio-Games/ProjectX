@@ -1,13 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Define;
 
 public class Floating : MonoBehaviour
 {
     public bool m_IsHitStop = true;
     public bool m_IsRotate = false;
     private bool m_IsHit;
-
 
     [Header("Settings")]
     public float m_RotateSpeed = 50f;
@@ -20,8 +20,9 @@ public class Floating : MonoBehaviour
     private float phase;
 
     Coroutine m_Coroutine;
+    GameEntity m_GameEntity;
 
-    private void Hit()
+    private void Hit(OnAttackInfoEventArgs e)
     {
         if (m_Coroutine != null)
             StopCoroutine(m_Coroutine);
@@ -39,12 +40,27 @@ public class Floating : MonoBehaviour
 
     private void Awake()
     {
-        m_OriginalPos = transform.localPosition;
+        m_GameEntity = GetComponentInParent<GameEntity>();
+    }
 
-        var statsys = GetComponentInParent<AttributeSystem>();
-        statsys.OnDamaged += (s, e) => Hit();
-        statsys.OnDead += (s, e) => m_IsHit = true;
-        statsys.OnRevived += (s, e) => m_IsHit = false;
+    private void Start()
+    {
+        m_OriginalPos = transform.localPosition;
+    }
+
+    private void OnEnable()
+    {
+        m_GameEntity.OnDamaged += Hit;
+        m_GameEntity.OnDead += HitTrue;
+        m_GameEntity.OnRevived += HitFalse;
+    }
+
+    private void OnDisable()
+    {
+
+        m_GameEntity.OnDamaged -= Hit;
+        m_GameEntity.OnDead -= HitTrue;
+        m_GameEntity.OnRevived -= HitFalse;
     }
 
     private void LateUpdate()
@@ -64,5 +80,13 @@ public class Floating : MonoBehaviour
         }
     }
 
-    
+    private void HitTrue(OnAttackInfoEventArgs e)
+    {
+        m_IsHit = true;
+    }
+
+    private void HitFalse()
+    {
+        m_IsHit = false;
+    }
 }

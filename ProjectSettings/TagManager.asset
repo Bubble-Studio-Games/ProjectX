@@ -12,15 +12,15 @@ TagManager:
   - Water
   - UI
   - MousePlane
-  - Controllable
-  - Interactable
-  - Obstacles
-  - Trap
+  - 
+  - 
+  - 
+  - 
   - Projectile
   - Lagdoll
   - HitCol
   - Ghost
-  - PassiveObject
+  - 
   - 
   - 
   - 

@@ -25,7 +25,6 @@ public class BackupMetaData
     public List<BackupInfo> backups = new List<BackupInfo>();
 }
 
-// TODO 나중에 easy save 에셋을 이용할 것
 public partial class DataManager
 {
 

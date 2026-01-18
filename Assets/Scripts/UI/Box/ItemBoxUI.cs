@@ -76,7 +76,7 @@ public class ItemBoxUI : UI_Base, IItemBoxUI
         }
 
         GetImage((int)Images.ItemImage).gameObject.SetActive(true);
-        GetImage((int)Images.ItemImage).sprite = Managers.Resource.Load<Sprite>(ResourceKeys.ITEM_ICON_PATH + itemData.Item_ID);
+        GetImage((int)Images.ItemImage).sprite = Managers.Resource.Load<Sprite>(Define.ITEM_ICON_PATH + itemData.Item_ID);
     }
 
 

@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Scene
+  m_EditorClassIdentifier: 
+  m_GroupName: Scene
+  m_Data:
+    m_SerializedData: []
+  m_GUID: a6e337c4f19b8fd40a577ab41ad29c64
+  m_SerializeEntries:
+  - m_GUID: 338c31623dc1cb942b4eb41d94aaf638
+    m_Address: Assets/Scenes/Start.unity
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Scene
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 57598db708d72294ca42ead31d2199f4
+    m_Address: Assets/Scenes/Loader.unity
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Scene
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b97294d76002f464a8a66d77d4157600
+    m_Address: Assets/Scenes/Camp.unity
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Scene
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ddf1eaab4bbe74742ad9bfd300e6ea56
+    m_Address: Assets/Scenes/Dungeon.unity
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Scene
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fa24f99e7a737504a9f1265490e728ed
+    m_Address: Assets/Scenes/Loading.unity
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - Scene
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: b72bc85e60ad344478b615dcc1e03927, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 50ee399b9f6ead940a268f84b879288b, type: 2}
+    - {fileID: 11400000, guid: 5cc1b3a6f3053bc4cb6305b7b58fbfb3, type: 2}

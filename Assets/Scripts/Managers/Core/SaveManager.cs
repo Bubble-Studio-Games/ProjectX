@@ -17,7 +17,6 @@ public class SaveManager
         await SavePlayStatistics();
     }
 
-
     #region Slot
     /// <summary>
     /// 🔹 현재 슬롯의 인게임 데이터를 DataManager 캐시에 반영
@@ -49,10 +48,10 @@ public class SaveManager
                             .Select(isave => isave.CaptureSaveData())
                             .ToList(),
 
-                    buildingCardDatas = BuildingTypeSelectUI.Instance.CaptureSaveData(),
-                    downJam = Inventory.Instance.m_iDownJamAmount,
-                    cameraPos = CameraController.Instance.m_Follow.transform.position,
-                    cameraRot = CameraController.Instance.m_Follow.transform.rotation,
+                    buildingCardDatas = Managers.SceneServices.BuildingCardUI.CaptureSaveData(),
+                    downJam = Managers.SceneServices.InventoryRead.DownJamAmount,
+                    cameraPos = Managers.SceneServices.CameraInfo.Position,
+                    cameraRot = Managers.SceneServices.CameraInfo.Rotation,
                 };
                 break;
 

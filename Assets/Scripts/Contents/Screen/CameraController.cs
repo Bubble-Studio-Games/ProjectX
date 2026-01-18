@@ -1,29 +1,28 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Unity.Cinemachine;
-using static Table_Camera_Shake;
 using System;
+using static Define;
 
-public class CameraController : MonoBehaviour
+public class CameraController : MonoBehaviour, ICameraRig, ICameraInfoProvider, ICameraShakeSettings
 {
-    public EventHandler<bool> OnChangeLookFloor;
+    private ICameraInput _cameraInput;
+    private IInputQuery _input;
+    private IInputActionMapController _inputActionMaps;
 
-    public static CameraController Instance { get; private set; }
+    public Action<int> OnChangeLookFloor;
 
     private CinemachineCamera m_CM;
     public Transform m_Follow;
     private Vector3 targetFollowOffset;
 
-    public int m_CurrentLookFloor { get; private set; } = 0;
-
     public Camera m_UICamera;
 
     [Header("Main Cinemachine")]
-    private CinemachineOrbitalFollow m_CMOrbitalFollow;
     private CinemachineRotationComposer m_CMRotationComposer;
     private CinemachineInputAxisController m_CMInputAxisController;
-    public CinemachineImpulseListener m_CMImpulseListener;
+    private CinemachineImpulseListener m_CMImpulseListener;
+    private event Action<int> _onChangeLookFloor;
+
 
 #if UNITY_EDITOR
     [Header("Vertical Movement / 에디터 테스트 전용")]
@@ -33,38 +32,51 @@ public class CameraController : MonoBehaviour
     [SerializeField] private float _maxHeight = 50f;
 #endif
 
+    event Action<int> ICameraRig.OnChangeLookFloor
+    {
+        add { _onChangeLookFloor += value; }
+        remove { _onChangeLookFloor -= value; }
+    }
+
+    private void ChangeFloor(int floor)
+    {
+        _onChangeLookFloor?.Invoke(floor);
+    }
+
     private void Awake()
     {
-        Instance = this;
+        Managers.SceneServices.Register<ICameraRig>(this);
+        Managers.SceneServices.Register<ICameraInfoProvider>(this);
+        Managers.SceneServices.Register<ICameraShakeSettings>(this);
+
         m_CM =  GetComponentInChildren<CinemachineCamera>();
-        m_CMOrbitalFollow =  GetComponentInChildren<CinemachineOrbitalFollow>();
         m_CMRotationComposer =  GetComponentInChildren<CinemachineRotationComposer>();
         m_CMInputAxisController =  GetComponentInChildren<CinemachineInputAxisController>();
         m_CMImpulseListener =  GetComponentInChildren<CinemachineImpulseListener>();
+        _inputActionMaps = Managers.SceneServices.InputActionMapController;
+
     }
 
-    private void OnEnable()
-    {
-        if (InputManager.Instance != null)
-        {
-            InputManager.Instance.OnActionMapChanged += OnActionMapChanged;
-            // 현재 ActionMap 상태에 맞춰 초기화
-            OnActionMapChanged(InputManager.Instance.CurrentActionMap);
-        }
-    }
-
-    private void OnDisable()
-    {
-        if (InputManager.Instance != null)
-        {
-            InputManager.Instance.OnActionMapChanged -= OnActionMapChanged;
-        }
-    }
 
     private void Start()
     {
         targetFollowOffset = m_CM.Target.TrackingTarget.transform.position;
+
+        _cameraInput = Managers.SceneServices.CameraInput;
+        _input = Managers.SceneServices.InputQuery;
+        OnActionMapChanged(_inputActionMaps.CurrentActionMapGroup);
     }
+
+    private void OnEnable()
+    {
+        _inputActionMaps.OnActionMapChanged += OnActionMapChanged;
+    }
+
+    private void OnDisable()
+    {
+        _inputActionMaps.OnActionMapChanged -= OnActionMapChanged;
+    }
+
 
     private void Update()
     {
@@ -78,9 +90,7 @@ public class CameraController : MonoBehaviour
 
     private void HandleMovement()
     {
-        if (InputManager.Instance == null) return;
-
-        Vector2 inputMoveDir = InputManager.Instance.GetCameraMoveVector();
+        Vector2 inputMoveDir = _cameraInput.GetCameraMoveVector();
 
         float moveSpeed = 10f;
 
@@ -102,34 +112,34 @@ public class CameraController : MonoBehaviour
     /// <summary>
     /// ActionMap 변경 시 호출되는 콜백
     /// </summary>
-    private void OnActionMapChanged(Define.E_InputActionMap? newActionMap)
+    private void OnActionMapChanged(string newActionMap)
     {
-        bool isGamePlay = newActionMap == Define.E_InputActionMap.Game;
+        var type = _inputActionMaps.CurrentActionMapType;
+        bool isGame = type.HasValue && type.Value == E_InputActionMap.Game;
 
-        // Game이 아니면 모든 Cinemachine 입력 비활성화
-        if (isGamePlay == false)
+        if (!isGame)
         {
+            // Game이 아니면 모든 Cinemachine 입력 비활성화
             DisableAllCMControllers();
         }
     }
 
     /// <summary>
-    /// 마우스 우클릭 시에만 작동하게 - GamePlay ActionMap일 때만
+    /// 마우스 우클릭 시에만 작동하게 - Game ActionMap일 때만
     /// </summary>
     private void HandleEnableCMController()
     {
-        if (InputManager.Instance == null)
-            return;
+        var type = _inputActionMaps.CurrentActionMapType;
+        bool isGame = type.HasValue && type.Value == E_InputActionMap.Game;
 
-        // Game ActionMap이 아니면 비활성화
-        if (InputManager.Instance.CurrentActionMap != Define.E_InputActionMap.Game)
+        if (!isGame)
         {
             DisableAllCMControllers();
             return;
         }
 
-        // GamePlay ActionMap + 우클릭 홀드 시에만 활성화
-        bool enableControllers = InputManager.Instance.mouse_R_Hold;
+        // Game + RightHold 상태일 때만 카메라 회전 허용
+        bool enableControllers = _input.IsActive(E_InputEvent.RightHold);
 
         if (enableControllers)
         {
@@ -138,14 +148,8 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            m_CMInputAxisController.Controllers[0].Enabled = false; // X축 회전
-            m_CMInputAxisController.Controllers[1].Enabled = false; // Y축 회전
-        }
-
-        // Zoom은 항상 비활성화 (ActionMap과 독립적으로 동작하지 않도록)
-        if (m_CMInputAxisController.Controllers.Count > 2)
-        {
-            m_CMInputAxisController.Controllers[2].Enabled = false;
+            m_CMInputAxisController.Controllers[0].Enabled = false;
+            m_CMInputAxisController.Controllers[1].Enabled = false;
         }
     }
 
@@ -179,7 +183,7 @@ public class CameraController : MonoBehaviour
             newPos.y -= _verticalMoveSpeed * Time.deltaTime;
             moved = true;
         }
-        
+
         if (Input.GetKey(KeyCode.RightBracket))
         {
             newPos.y += _verticalMoveSpeed * Time.deltaTime;
@@ -194,9 +198,22 @@ public class CameraController : MonoBehaviour
     }
 #endif
 
+
     public float GetCameraHeight()
     {
         return targetFollowOffset.y;
     }
 
+    public void SetPositionAndRotation(Vector3 position, Quaternion rotation) => m_Follow.transform.SetPositionAndRotation(position, rotation);
+
+    public Vector3 Position => m_Follow.transform.position;
+    public Quaternion Rotation => m_Follow.transform.rotation;
+
+    public int CurrentLookFloor => 0;
+
+    public void SetImpulseReactionDuration(float duration)
+    {
+        if (m_CMImpulseListener != null)
+            m_CMImpulseListener.ReactionSettings.Duration = duration;
+    }
 }

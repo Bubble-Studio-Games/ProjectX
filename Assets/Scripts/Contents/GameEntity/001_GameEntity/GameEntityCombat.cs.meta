@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scripts/Contents/GameEntity/001_GameEntity/GameEntityCombat.cs.meta
+guid: b6f03a3737ae08d4d8297df6c2ee67ee
+========
+guid: 84d914b1ce88b5340a33fe20427021a6
+>>>>>>>> Client_B:Assets/Scripts/Contents/Actions/NPCIdleAction.cs.meta
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

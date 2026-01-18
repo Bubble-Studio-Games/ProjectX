@@ -30,14 +30,8 @@ public class SceneManagerEx
 
     public string GetSceneName(Define.Scene type)
     {
-        if (GlobalSettings.Instance == null)
-        {
-            Debug.LogWarning("[SceneManagerEx] GlobalSettings가 없어 Enum 이름을 직접 사용합니다.");
-            var ret = Enum.GetName(typeof(Define.Scene), type);
-            return ret;
-        }
 
-        var sceneSettings = GlobalSettings.Instance.Scene;
+        var sceneSettings = GameConfig.Scene;
         if (sceneSettings == null)
         {
             Debug.LogWarning("[SceneManagerEx] SceneSettings가 없어 Enum 이름을 직접 사용합니다.");
@@ -57,16 +51,16 @@ public class SceneManagerEx
         return sceneName;
     }
 
-    public string GetNextSceneName()
-    {
-        var ret = GetSceneName(NextScene);
-        return ret;
-    }
-
     public string GetCurrentSceneName()
     {
         string curScene = SceneManager.GetActiveScene().name;
         return curScene;
+    }
+
+    public string GetNextSceneName()
+    {
+        var ret = GetSceneName(NextScene);
+        return ret;
     }
 
     public void Clear()
