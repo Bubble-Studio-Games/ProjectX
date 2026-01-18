@@ -77,26 +77,13 @@
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
-                "w": 0.0,
+                "w": 1.0,
                 "eulerAngles": {
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
                   "magnitude": 0.0,
                   "sqrMagnitude": 0.0
-                },
-                "normalized": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "w": 1.0,
-                  "eulerAngles": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "magnitude": 0.0,
-                    "sqrMagnitude": 0.0
-                  }
                 }
               },
               "scale": {
@@ -276,26 +263,13 @@
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
-                    "w": 0.0,
+                    "w": 1.0,
                     "eulerAngles": {
                       "x": 0.0,
                       "y": 0.0,
                       "z": 0.0,
                       "magnitude": 0.0,
                       "sqrMagnitude": 0.0
-                    },
-                    "normalized": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "w": 1.0,
-                      "eulerAngles": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0,
-                        "magnitude": 0.0,
-                        "sqrMagnitude": 0.0
-                      }
                     }
                   },
                   "scale": {
@@ -367,26 +341,13 @@
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
-                    "w": 0.0,
+                    "w": 1.0,
                     "eulerAngles": {
                       "x": 0.0,
                       "y": 0.0,
                       "z": 0.0,
                       "magnitude": 0.0,
                       "sqrMagnitude": 0.0
-                    },
-                    "normalized": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "w": 1.0,
-                      "eulerAngles": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0,
-                        "magnitude": 0.0,
-                        "sqrMagnitude": 0.0
-                      }
                     }
                   },
                   "scale": {
@@ -412,26 +373,13 @@
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
-                "w": 0.0,
+                "w": 1.0,
                 "eulerAngles": {
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
                   "magnitude": 0.0,
                   "sqrMagnitude": 0.0
-                },
-                "normalized": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "w": 1.0,
-                  "eulerAngles": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "magnitude": 0.0,
-                    "sqrMagnitude": 0.0
-                  }
                 }
               },
               "scale": {
@@ -611,26 +559,13 @@
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
-                    "w": 0.0,
+                    "w": 1.0,
                     "eulerAngles": {
                       "x": 0.0,
                       "y": 0.0,
                       "z": 0.0,
                       "magnitude": 0.0,
                       "sqrMagnitude": 0.0
-                    },
-                    "normalized": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "w": 1.0,
-                      "eulerAngles": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0,
-                        "magnitude": 0.0,
-                        "sqrMagnitude": 0.0
-                      }
                     }
                   },
                   "scale": {
@@ -702,26 +637,13 @@
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
-                    "w": 0.0,
+                    "w": 1.0,
                     "eulerAngles": {
                       "x": 0.0,
                       "y": 0.0,
                       "z": 0.0,
                       "magnitude": 0.0,
                       "sqrMagnitude": 0.0
-                    },
-                    "normalized": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "w": 1.0,
-                      "eulerAngles": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0,
-                        "magnitude": 0.0,
-                        "sqrMagnitude": 0.0
-                      }
                     }
                   },
                   "scale": {
@@ -793,26 +715,13 @@
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
-                    "w": 0.0,
+                    "w": 1.0,
                     "eulerAngles": {
                       "x": 0.0,
                       "y": 0.0,
                       "z": 0.0,
                       "magnitude": 0.0,
                       "sqrMagnitude": 0.0
-                    },
-                    "normalized": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "w": 1.0,
-                      "eulerAngles": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0,
-                        "magnitude": 0.0,
-                        "sqrMagnitude": 0.0
-                      }
                     }
                   },
                   "scale": {
@@ -838,26 +747,13 @@
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
-                "w": 0.0,
+                "w": 1.0,
                 "eulerAngles": {
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
                   "magnitude": 0.0,
                   "sqrMagnitude": 0.0
-                },
-                "normalized": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "w": 1.0,
-                  "eulerAngles": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "magnitude": 0.0,
-                    "sqrMagnitude": 0.0
-                  }
                 }
               },
               "scale": {
@@ -1037,26 +933,13 @@
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
-                    "w": 0.0,
+                    "w": 1.0,
                     "eulerAngles": {
                       "x": 0.0,
                       "y": 0.0,
                       "z": 0.0,
                       "magnitude": 0.0,
                       "sqrMagnitude": 0.0
-                    },
-                    "normalized": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "w": 1.0,
-                      "eulerAngles": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0,
-                        "magnitude": 0.0,
-                        "sqrMagnitude": 0.0
-                      }
                     }
                   },
                   "scale": {
@@ -1128,26 +1011,13 @@
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
-                    "w": 0.0,
+                    "w": 1.0,
                     "eulerAngles": {
                       "x": 0.0,
                       "y": 0.0,
                       "z": 0.0,
                       "magnitude": 0.0,
                       "sqrMagnitude": 0.0
-                    },
-                    "normalized": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "w": 1.0,
-                      "eulerAngles": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0,
-                        "magnitude": 0.0,
-                        "sqrMagnitude": 0.0
-                      }
                     }
                   },
                   "scale": {
@@ -1219,26 +1089,13 @@
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
-                    "w": 0.0,
+                    "w": 1.0,
                     "eulerAngles": {
                       "x": 0.0,
                       "y": 0.0,
                       "z": 0.0,
                       "magnitude": 0.0,
                       "sqrMagnitude": 0.0
-                    },
-                    "normalized": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "w": 1.0,
-                      "eulerAngles": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0,
-                        "magnitude": 0.0,
-                        "sqrMagnitude": 0.0
-                      }
                     }
                   },
                   "scale": {
@@ -1264,26 +1121,13 @@
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
-                "w": 0.0,
+                "w": 1.0,
                 "eulerAngles": {
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
                   "magnitude": 0.0,
                   "sqrMagnitude": 0.0
-                },
-                "normalized": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "w": 1.0,
-                  "eulerAngles": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "magnitude": 0.0,
-                    "sqrMagnitude": 0.0
-                  }
                 }
               },
               "scale": {
@@ -1463,26 +1307,13 @@
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
-                    "w": 0.0,
+                    "w": 1.0,
                     "eulerAngles": {
                       "x": 0.0,
                       "y": 0.0,
                       "z": 0.0,
                       "magnitude": 0.0,
                       "sqrMagnitude": 0.0
-                    },
-                    "normalized": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "w": 1.0,
-                      "eulerAngles": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0,
-                        "magnitude": 0.0,
-                        "sqrMagnitude": 0.0
-                      }
                     }
                   },
                   "scale": {
@@ -1554,26 +1385,13 @@
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
-                    "w": 0.0,
+                    "w": 1.0,
                     "eulerAngles": {
                       "x": 0.0,
                       "y": 0.0,
                       "z": 0.0,
                       "magnitude": 0.0,
                       "sqrMagnitude": 0.0
-                    },
-                    "normalized": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "w": 1.0,
-                      "eulerAngles": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0,
-                        "magnitude": 0.0,
-                        "sqrMagnitude": 0.0
-                      }
                     }
                   },
                   "scale": {
@@ -1645,26 +1463,13 @@
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
-                    "w": 0.0,
+                    "w": 1.0,
                     "eulerAngles": {
                       "x": 0.0,
                       "y": 0.0,
                       "z": 0.0,
                       "magnitude": 0.0,
                       "sqrMagnitude": 0.0
-                    },
-                    "normalized": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "w": 1.0,
-                      "eulerAngles": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0,
-                        "magnitude": 0.0,
-                        "sqrMagnitude": 0.0
-                      }
                     }
                   },
                   "scale": {
@@ -1736,26 +1541,13 @@
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
-                    "w": 0.0,
+                    "w": 1.0,
                     "eulerAngles": {
                       "x": 0.0,
                       "y": 0.0,
                       "z": 0.0,
                       "magnitude": 0.0,
                       "sqrMagnitude": 0.0
-                    },
-                    "normalized": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "w": 1.0,
-                      "eulerAngles": {
-                        "x": 0.0,
-                        "y": 0.0,
-                        "z": 0.0,
-                        "magnitude": 0.0,
-                        "sqrMagnitude": 0.0
-                      }
                     }
                   },
                   "scale": {
@@ -1781,26 +1573,13 @@
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
-                "w": 0.0,
+                "w": 1.0,
                 "eulerAngles": {
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
                   "magnitude": 0.0,
                   "sqrMagnitude": 0.0
-                },
-                "normalized": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "w": 1.0,
-                  "eulerAngles": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "magnitude": 0.0,
-                    "sqrMagnitude": 0.0
-                  }
                 }
               },
               "scale": {
@@ -1871,22 +1650,22 @@
               "sqrMagnitude": 828.084839
             },
             "spawnRotation": {
-              "x": 0.326270878,
-              "y": 0.805059254,
-              "z": -0.17694433,
-              "w": 0.4627292,
+              "x": 0.326270759,
+              "y": 0.8050591,
+              "z": -0.176944345,
+              "w": 0.462728977,
               "eulerAngles": {
-                "x": 35.9338646,
+                "x": 35.9338722,
                 "y": 128.962463,
-                "z": 26.5233936,
+                "z": 26.52339,
                 "normalized": {
-                  "x": 0.263295561,
+                  "x": 0.263295621,
                   "y": 0.9449371,
-                  "z": 0.1943429,
+                  "z": 0.194342881,
                   "normalized": {
-                    "x": 0.2632956,
+                    "x": 0.26329565,
                     "y": 0.94493717,
-                    "z": 0.194342911,
+                    "z": 0.1943429,
                     "magnitude": 1.0,
                     "sqrMagnitude": 1.0
                   },
@@ -1895,60 +1674,6 @@
                 },
                 "magnitude": 136.4773,
                 "sqrMagnitude": 18626.05
-              },
-              "normalized": {
-                "x": 0.326270759,
-                "y": 0.805058956,
-                "z": -0.176944271,
-                "w": 0.462729,
-                "eulerAngles": {
-                  "x": 35.9338722,
-                  "y": 128.962463,
-                  "z": 26.5233936,
-                  "normalized": {
-                    "x": 0.263295621,
-                    "y": 0.9449371,
-                    "z": 0.1943429,
-                    "normalized": {
-                      "x": 0.26329565,
-                      "y": 0.94493717,
-                      "z": 0.194342911,
-                      "magnitude": 1.0,
-                      "sqrMagnitude": 1.0
-                    },
-                    "magnitude": 0.99999994,
-                    "sqrMagnitude": 0.9999999
-                  },
-                  "magnitude": 136.4773,
-                  "sqrMagnitude": 18626.05
-                },
-                "normalized": {
-                  "x": 0.3262708,
-                  "y": 0.805059,
-                  "z": -0.176944286,
-                  "w": 0.462729037,
-                  "eulerAngles": {
-                    "x": 35.9338722,
-                    "y": 128.962463,
-                    "z": 26.5233936,
-                    "normalized": {
-                      "x": 0.263295621,
-                      "y": 0.9449371,
-                      "z": 0.1943429,
-                      "normalized": {
-                        "x": 0.26329565,
-                        "y": 0.94493717,
-                        "z": 0.194342911,
-                        "magnitude": 1.0,
-                        "sqrMagnitude": 1.0
-                      },
-                      "magnitude": 0.99999994,
-                      "sqrMagnitude": 0.9999999
-                    },
-                    "magnitude": 136.4773,
-                    "sqrMagnitude": 18626.05
-                  }
-                }
               }
             },
             "onwerGuid": null,
@@ -1968,22 +1693,22 @@
               "sqrMagnitude": 828.084839
             },
             "rotation": {
-              "x": 0.326270878,
-              "y": 0.805059254,
-              "z": -0.17694433,
-              "w": 0.4627292,
+              "x": 0.326270759,
+              "y": 0.8050591,
+              "z": -0.176944345,
+              "w": 0.462728977,
               "eulerAngles": {
-                "x": 35.9338646,
+                "x": 35.9338722,
                 "y": 128.962463,
-                "z": 26.5233936,
+                "z": 26.52339,
                 "normalized": {
-                  "x": 0.263295561,
+                  "x": 0.263295621,
                   "y": 0.9449371,
-                  "z": 0.1943429,
+                  "z": 0.194342881,
                   "normalized": {
-                    "x": 0.2632956,
+                    "x": 0.26329565,
                     "y": 0.94493717,
-                    "z": 0.194342911,
+                    "z": 0.1943429,
                     "magnitude": 1.0,
                     "sqrMagnitude": 1.0
                   },
@@ -1992,60 +1717,6 @@
                 },
                 "magnitude": 136.4773,
                 "sqrMagnitude": 18626.05
-              },
-              "normalized": {
-                "x": 0.326270759,
-                "y": 0.805058956,
-                "z": -0.176944271,
-                "w": 0.462729,
-                "eulerAngles": {
-                  "x": 35.9338722,
-                  "y": 128.962463,
-                  "z": 26.5233936,
-                  "normalized": {
-                    "x": 0.263295621,
-                    "y": 0.9449371,
-                    "z": 0.1943429,
-                    "normalized": {
-                      "x": 0.26329565,
-                      "y": 0.94493717,
-                      "z": 0.194342911,
-                      "magnitude": 1.0,
-                      "sqrMagnitude": 1.0
-                    },
-                    "magnitude": 0.99999994,
-                    "sqrMagnitude": 0.9999999
-                  },
-                  "magnitude": 136.4773,
-                  "sqrMagnitude": 18626.05
-                },
-                "normalized": {
-                  "x": 0.3262708,
-                  "y": 0.805059,
-                  "z": -0.176944286,
-                  "w": 0.462729037,
-                  "eulerAngles": {
-                    "x": 35.9338722,
-                    "y": 128.962463,
-                    "z": 26.5233936,
-                    "normalized": {
-                      "x": 0.263295621,
-                      "y": 0.9449371,
-                      "z": 0.1943429,
-                      "normalized": {
-                        "x": 0.26329565,
-                        "y": 0.94493717,
-                        "z": 0.194342911,
-                        "magnitude": 1.0,
-                        "sqrMagnitude": 1.0
-                      },
-                      "magnitude": 0.99999994,
-                      "sqrMagnitude": 0.9999999
-                    },
-                    "magnitude": 136.4773,
-                    "sqrMagnitude": 18626.05
-                  }
-                }
               }
             },
             "scale": {
@@ -2140,26 +1811,13 @@
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
-                  "w": 0.0,
+                  "w": 1.0,
                   "eulerAngles": {
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
                     "magnitude": 0.0,
                     "sqrMagnitude": 0.0
-                  },
-                  "normalized": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "w": 1.0,
-                    "eulerAngles": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "magnitude": 0.0,
-                      "sqrMagnitude": 0.0
-                    }
                   }
                 },
                 "scale": {
@@ -2225,26 +1883,13 @@
               "x": 0.0,
               "y": 0.0,
               "z": 0.0,
-              "w": 0.0,
+              "w": 1.0,
               "eulerAngles": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
                 "magnitude": 0.0,
                 "sqrMagnitude": 0.0
-              },
-              "normalized": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0,
-                "eulerAngles": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "magnitude": 0.0,
-                  "sqrMagnitude": 0.0
-                }
               }
             },
             "scale": {
@@ -2339,26 +1984,13 @@
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
-                  "w": 0.0,
+                  "w": 1.0,
                   "eulerAngles": {
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
                     "magnitude": 0.0,
                     "sqrMagnitude": 0.0
-                  },
-                  "normalized": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "w": 1.0,
-                    "eulerAngles": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "magnitude": 0.0,
-                      "sqrMagnitude": 0.0
-                    }
                   }
                 },
                 "scale": {
@@ -2417,26 +2049,13 @@
               "x": 0.0,
               "y": 0.0,
               "z": 0.0,
-              "w": 0.0,
+              "w": 1.0,
               "eulerAngles": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
                 "magnitude": 0.0,
                 "sqrMagnitude": 0.0
-              },
-              "normalized": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0,
-                "eulerAngles": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "magnitude": 0.0,
-                  "sqrMagnitude": 0.0
-                }
               }
             },
             "scale": {
@@ -2529,26 +2148,13 @@
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
-                  "w": 0.0,
+                  "w": 1.0,
                   "eulerAngles": {
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
                     "magnitude": 0.0,
                     "sqrMagnitude": 0.0
-                  },
-                  "normalized": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "w": 1.0,
-                    "eulerAngles": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "magnitude": 0.0,
-                      "sqrMagnitude": 0.0
-                    }
                   }
                 },
                 "scale": {
@@ -2614,26 +2220,13 @@
               "x": 0.0,
               "y": 0.0,
               "z": 0.0,
-              "w": 0.0,
+              "w": 1.0,
               "eulerAngles": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
                 "magnitude": 0.0,
                 "sqrMagnitude": 0.0
-              },
-              "normalized": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0,
-                "eulerAngles": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "magnitude": 0.0,
-                  "sqrMagnitude": 0.0
-                }
               }
             },
             "scale": {
@@ -2726,26 +2319,13 @@
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
-                  "w": 0.0,
+                  "w": 1.0,
                   "eulerAngles": {
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
                     "magnitude": 0.0,
                     "sqrMagnitude": 0.0
-                  },
-                  "normalized": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "w": 1.0,
-                    "eulerAngles": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "magnitude": 0.0,
-                      "sqrMagnitude": 0.0
-                    }
                   }
                 },
                 "scale": {
@@ -2804,26 +2384,13 @@
               "x": 0.0,
               "y": 0.0,
               "z": 0.0,
-              "w": 0.0,
+              "w": 1.0,
               "eulerAngles": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
                 "magnitude": 0.0,
                 "sqrMagnitude": 0.0
-              },
-              "normalized": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0,
-                "eulerAngles": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "magnitude": 0.0,
-                  "sqrMagnitude": 0.0
-                }
               }
             },
             "scale": {
@@ -2916,26 +2483,13 @@
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
-                  "w": 0.0,
+                  "w": 1.0,
                   "eulerAngles": {
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
                     "magnitude": 0.0,
                     "sqrMagnitude": 0.0
-                  },
-                  "normalized": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "w": 1.0,
-                    "eulerAngles": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "magnitude": 0.0,
-                      "sqrMagnitude": 0.0
-                    }
                   }
                 },
                 "scale": {
@@ -2994,26 +2548,13 @@
               "x": 0.0,
               "y": 0.0,
               "z": 0.0,
-              "w": 0.0,
+              "w": 1.0,
               "eulerAngles": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
                 "magnitude": 0.0,
                 "sqrMagnitude": 0.0
-              },
-              "normalized": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0,
-                "eulerAngles": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "magnitude": 0.0,
-                  "sqrMagnitude": 0.0
-                }
               }
             },
             "scale": {
@@ -3108,26 +2649,13 @@
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
-                  "w": 0.0,
+                  "w": 1.0,
                   "eulerAngles": {
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
                     "magnitude": 0.0,
                     "sqrMagnitude": 0.0
-                  },
-                  "normalized": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "w": 1.0,
-                    "eulerAngles": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "magnitude": 0.0,
-                      "sqrMagnitude": 0.0
-                    }
                   }
                 },
                 "scale": {
@@ -3186,26 +2714,13 @@
               "x": 0.0,
               "y": 0.0,
               "z": 0.0,
-              "w": 0.0,
+              "w": 1.0,
               "eulerAngles": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
                 "magnitude": 0.0,
                 "sqrMagnitude": 0.0
-              },
-              "normalized": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0,
-                "eulerAngles": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "magnitude": 0.0,
-                  "sqrMagnitude": 0.0
-                }
               }
             },
             "scale": {
@@ -3298,26 +2813,13 @@
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
-                  "w": 0.0,
+                  "w": 1.0,
                   "eulerAngles": {
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
                     "magnitude": 0.0,
                     "sqrMagnitude": 0.0
-                  },
-                  "normalized": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "w": 1.0,
-                    "eulerAngles": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "magnitude": 0.0,
-                      "sqrMagnitude": 0.0
-                    }
                   }
                 },
                 "scale": {
@@ -3376,26 +2878,13 @@
               "x": 0.0,
               "y": 0.0,
               "z": 0.0,
-              "w": 0.0,
+              "w": 1.0,
               "eulerAngles": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
                 "magnitude": 0.0,
                 "sqrMagnitude": 0.0
-              },
-              "normalized": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0,
-                "eulerAngles": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "magnitude": 0.0,
-                  "sqrMagnitude": 0.0
-                }
               }
             },
             "scale": {
@@ -3490,26 +2979,13 @@
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
-                  "w": 0.0,
+                  "w": 1.0,
                   "eulerAngles": {
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
                     "magnitude": 0.0,
                     "sqrMagnitude": 0.0
-                  },
-                  "normalized": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "w": 1.0,
-                    "eulerAngles": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "magnitude": 0.0,
-                      "sqrMagnitude": 0.0
-                    }
                   }
                 },
                 "scale": {
@@ -3568,26 +3044,13 @@
               "x": 0.0,
               "y": 0.0,
               "z": 0.0,
-              "w": 0.0,
+              "w": 1.0,
               "eulerAngles": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
                 "magnitude": 0.0,
                 "sqrMagnitude": 0.0
-              },
-              "normalized": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0,
-                "eulerAngles": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "magnitude": 0.0,
-                  "sqrMagnitude": 0.0
-                }
               }
             },
             "scale": {
@@ -3680,26 +3143,13 @@
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
-                  "w": 0.0,
+                  "w": 1.0,
                   "eulerAngles": {
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
                     "magnitude": 0.0,
                     "sqrMagnitude": 0.0
-                  },
-                  "normalized": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "w": 1.0,
-                    "eulerAngles": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "magnitude": 0.0,
-                      "sqrMagnitude": 0.0
-                    }
                   }
                 },
                 "scale": {
@@ -3758,26 +3208,13 @@
               "x": 0.0,
               "y": 0.0,
               "z": 0.0,
-              "w": 0.0,
+              "w": 1.0,
               "eulerAngles": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
                 "magnitude": 0.0,
                 "sqrMagnitude": 0.0
-              },
-              "normalized": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0,
-                "eulerAngles": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "magnitude": 0.0,
-                  "sqrMagnitude": 0.0
-                }
               }
             },
             "scale": {
@@ -3872,26 +3309,13 @@
                   "x": 0.0,
                   "y": 0.0,
                   "z": 0.0,
-                  "w": 0.0,
+                  "w": 1.0,
                   "eulerAngles": {
                     "x": 0.0,
                     "y": 0.0,
                     "z": 0.0,
                     "magnitude": 0.0,
                     "sqrMagnitude": 0.0
-                  },
-                  "normalized": {
-                    "x": 0.0,
-                    "y": 0.0,
-                    "z": 0.0,
-                    "w": 1.0,
-                    "eulerAngles": {
-                      "x": 0.0,
-                      "y": 0.0,
-                      "z": 0.0,
-                      "magnitude": 0.0,
-                      "sqrMagnitude": 0.0
-                    }
                   }
                 },
                 "scale": {
@@ -3950,26 +3374,13 @@
               "x": 0.0,
               "y": 0.0,
               "z": 0.0,
-              "w": 0.0,
+              "w": 1.0,
               "eulerAngles": {
                 "x": 0.0,
                 "y": 0.0,
                 "z": 0.0,
                 "magnitude": 0.0,
                 "sqrMagnitude": 0.0
-              },
-              "normalized": {
-                "x": 0.0,
-                "y": 0.0,
-                "z": 0.0,
-                "w": 1.0,
-                "eulerAngles": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0,
-                  "magnitude": 0.0,
-                  "sqrMagnitude": 0.0
-                }
               }
             },
             "scale": {
@@ -4012,10 +3423,10 @@
         }
       },
       "campdata": {},
-      "LastScene": 0,
+      "LastScene": 5,
       "createTime": "2025-12-22 16:55:14",
-      "lastSaveTime": "2026-01-05 18:59:53",
-      "totalPlaySeconds": 3646.4438271522522
+      "lastSaveTime": "2026-01-06 14:14:29",
+      "totalPlaySeconds": 3684.2671504020691
     }
   ]
 }
