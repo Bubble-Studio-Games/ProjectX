@@ -95,11 +95,13 @@ public abstract class BaseScene : MonoBehaviour
 
     protected virtual void LoadSavedGame(SaveSlotData data)
     {
-        m_InitObject.SetActive(false);
+        if(m_InitObject != null)
+            m_InitObject.SetActive(false);
     }
     protected virtual void LoadNewGame()
     {
-        m_InitObject.SetActive(true);
+        if(m_InitObject != null)
+            m_InitObject.SetActive(true);
     }
 
     protected virtual E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Lobby;

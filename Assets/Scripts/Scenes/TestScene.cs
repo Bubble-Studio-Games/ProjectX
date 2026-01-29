@@ -9,5 +9,5 @@ public class TestScene : BaseScene
     TestScene() => 
         SceneType = Define.Scene.Test;
 
-    protected override E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Lobby;
+    protected override E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Game;
 }
