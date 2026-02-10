@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89b8a23b4764056439fd8202cbcde37f, type: 3}
+  m_Name: SteppedClipCache
+  m_EditorClassIdentifier: 
+  entries:
+  - key: Death
+    steppedClip: {fileID: 7400000, guid: ee985024779f0b549bf53717c3411f29, type: 2}
+  - key: sword and shield death (2)
+    steppedClip: {fileID: 7400000, guid: 03b750de737bafd4d8fc9431241954d3, type: 2}
+  - key: sword and shield impact Critical Damaged
+    steppedClip: {fileID: 7400000, guid: 25621fbb13a47ac46b40a6ca2b265eff, type: 2}
+  - key: Damaged
+    steppedClip: {fileID: 7400000, guid: 9aa5ccc4d4f0cc842a7a6a12ca65d525, type: 2}
+  - key: Idle
+    steppedClip: {fileID: 7400000, guid: c245460e48bfd244ba3013facd1a5de6, type: 2}
+  - key: Idle2
+    steppedClip: {fileID: 7400000, guid: fc92f1fbfd1fcbc4cb77c0207bbbfa84, type: 2}
+  - key: Idle3
+    steppedClip: {fileID: 7400000, guid: 9c1b24f28fc1dc64189878a595af26b6, type: 2}
+  - key: Idle4
+    steppedClip: {fileID: 7400000, guid: feac3ea6eb9fadb4c9e74bc3694a5625, type: 2}
+  - key: Run
+    steppedClip: {fileID: 7400000, guid: 9e947354cb8f9fc4c941ce34de7a1d9c, type: 2}
+  - key: Walk
+    steppedClip: {fileID: 7400000, guid: 2eb64b74399ba5e4ab5945eefb9a780e, type: 2}

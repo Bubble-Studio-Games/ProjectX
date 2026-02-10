@@ -6,6 +6,87 @@ public sealed class UnitAnimView : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField] private ActionController actionController;
 
+    [Header("State Names (Animator State)")]
+    [SerializeField] private string idleState = "Idle";
+    [SerializeField] private string runState = "Run";
+    [SerializeField] private string attackState = "Attack";
+    [SerializeField] private string damagedState = "Damaged";
+
+    [Header("Blend")]
+    [SerializeField] private float crossFade = 0.08f;
+
+    private int idleHash, runHash, attackHash, damagedHash;
+
+    private void Awake()
+    {
+        if (animator == null) animator = GetComponentInChildren<Animator>(true);
+        if (actionController == null) actionController = GetComponentInParent<ActionController>();
+
+        idleHash = Animator.StringToHash(idleState);
+        runHash = Animator.StringToHash(runState);
+        attackHash = Animator.StringToHash(attackState);
+        damagedHash = Animator.StringToHash(damagedState);
+    }
+
+    private void OnEnable()
+    {
+        if (actionController != null)
+        {
+            actionController.OnActionChanged += HandleActionChanged;
+            actionController.OnBeTriggered += HandleTriggered;
+        }
+
+        // 초기 상태 반영
+        ApplyLocomotion(actionController != null ? actionController.Current : null);
+    }
+
+    private void OnDisable()
+    {
+        if (actionController != null)
+        {
+            actionController.OnActionChanged -= HandleActionChanged;
+            actionController.OnBeTriggered -= HandleTriggered;
+        }
+    }
+
+    private void HandleActionChanged(IAction prev, IAction next)
+    {
+        ApplyLocomotion(next);
+    }
+
+    private void ApplyLocomotion(IAction action)
+    {
+        if (animator == null) return;
+
+        // Move면 Run, 아니면 Idle
+        bool isMove = action != null && action.Name == "Move"; // (나중에 enum/marker로 바꾸자)
+
+        animator.CrossFadeInFixedTime(isMove ? runHash : idleHash, crossFade);
+    }
+
+    private void HandleTriggered(TriggerActionType trigger)
+    {
+        if (animator == null) return;
+
+        switch (trigger)
+        {
+            case TriggerActionType.Attack:
+                animator.CrossFadeInFixedTime(attackHash, crossFade);
+                break;
+            case TriggerActionType.Hit:
+                animator.CrossFadeInFixedTime(damagedHash, crossFade);
+                break;
+        }
+    }
+}
+
+/*
+public sealed class UnitAnimView : MonoBehaviour
+{
+    [Header("Refs")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private ActionController actionController;
+
     [Header("Layer Names")]
     [SerializeField] private string baseLayerName = "Base Layer";
     [SerializeField] private string overlayLayerName = "Overlay"; // 없으면 비워두기
@@ -195,4 +276,4 @@ public sealed class UnitAnimView : MonoBehaviour
         if (clips == null || clips.Length == 0) return 0f;
         return clips[0].clip != null ? clips[0].clip.length : 0f;
     }
-}
+}*/
