@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Profiling;
 using UnityEngine;
 using static Define;
+
 
 public sealed class AttackPattern_Ready : AttackPattern<AttackData_Ready>
 {

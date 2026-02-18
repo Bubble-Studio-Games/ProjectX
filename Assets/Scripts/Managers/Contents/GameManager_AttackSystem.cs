@@ -543,6 +543,7 @@ public partial class GameManager
         { typeof(AttackData_Heal),   new AttackPattern_Heal()   },
         { typeof(AttackData_Ready),  new AttackPattern_Ready()  },
         { typeof(AttackData_Summon), new AttackPattern_Summon() },
+        { typeof(AttackData_Dot),    new AttackPattern_Dot()    },
     };
 
 

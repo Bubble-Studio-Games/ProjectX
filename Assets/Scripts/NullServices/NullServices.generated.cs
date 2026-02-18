@@ -458,6 +458,11 @@ public static class NullServices
         public void SetCellType(IEnumerable<GridPosition> positions, E_GridCheckType type, GameEntity entity)
         {
         }
+
+        public void Active(bool isActive, GridPosition gridPos)
+        {
+        }
+
         public void TransferTo(IGridMutation real) { }
 
     }
