@@ -20,6 +20,38 @@ public static partial class Util
         return component;
 	}
 
+    public static Transform EnsureChild(Transform parent, string childName)
+    {
+        if (parent == null)
+        {
+            Debug.LogError($"[Util] EnsureChild: parent가 null");
+            return null;
+        }
+
+        Transform child = parent.Find(childName);
+
+        if (child != null)
+            return child;
+
+        GameObject childObject = new GameObject(childName);
+        childObject.transform.SetParent(parent);
+        childObject.transform.localPosition = Vector3.zero;
+        childObject.transform.localRotation = Quaternion.identity;
+        childObject.transform.localScale = Vector3.one;
+
+        return childObject.transform;
+    }
+
+    public static T EnsureChild<T>(Transform parent, string childName) where T : Component
+    {
+        Transform child = EnsureChild(parent, childName);
+
+        if (child == null)
+            return null;
+
+        return GetOrAddComponent<T>(child.gameObject);
+    }
+
     public static GameObject FindChild(GameObject go, string name = null, bool recursive = false)
     {
         Transform transform = FindChild<Transform>(go, name, recursive);

@@ -47,7 +47,7 @@ public class MouseWorld : MonoBehaviour, ICursor, ICursorEvents, IMouseClickHand
     [Header("Selection")]
     [SerializeField] private RectTransform SelectionBox;
     private Vector2 startPosition;
-    [SerializeField]  private float DragDelay = 0.1f;
+    [SerializeField] private float DragDelay = 0.1f;
     private bool m_isDragwing;
     private float MouseDownTime;
 
@@ -121,7 +121,7 @@ public class MouseWorld : MonoBehaviour, ICursor, ICursorEvents, IMouseClickHand
     }
 
     public GridPosition GetMouseWorldGridPosition() => Managers.SceneServices.Grid.GetGridPosition(GetMouseWorldPosition());
-    public Vector3 GetMouseWorldPosition()=>UtilsClass.GetMouseWorldPositionByRaycast(GameConfig.Layer.mousePlaneLayerMask);
+    public Vector3 GetMouseWorldPosition() => UtilsClass.GetMouseWorldPositionByRaycast(GameConfig.Layer.mousePlaneLayerMask);
     public Vector3 GetSnappedWorld(IGridQuery grid)
     {
         var pos = GetMouseWorldPosition();
@@ -166,7 +166,7 @@ public class MouseWorld : MonoBehaviour, ICursor, ICursorEvents, IMouseClickHand
         // 다른 UI에 손을 못대게 (캐싱된 값 사용 - InputAction 콜백 호환)
         if (_isPointerOverUI)
             return;
-        
+
         // Drag Box
         m_isDragwing = true;
         startPosition = Input.mousePosition;
@@ -259,7 +259,11 @@ public class MouseWorld : MonoBehaviour, ICursor, ICursorEvents, IMouseClickHand
                 if (result.m_TeamId == E_TeamId.Monster)
                 {
                     if (Managers.Selection.SelectedUnits.Count == 0)
+                    {
+                        if (IsCursorEnabled() == false)
+                            Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
                         return;
+                    }
 
                     if (IsCursorEnabled())
                         Cursor.SetCursor(AttackCursor, hotspot, CursorMode.Auto);

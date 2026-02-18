@@ -16,7 +16,7 @@ public class GameEntity : MonoBehaviour,
 {
     #region Field
 
-    private IGridQuery _grid;
+    protected IGridQuery _grid;
     private IUnitGridManager _unitGrid;
     private IUnitActionTickService _tick;
     private IGridVisualUpdateSource _gridVisualSource;
@@ -66,7 +66,7 @@ public class GameEntity : MonoBehaviour,
 
     [Header("Info")]
     public GridPosition[] m_GridPositionOffsets;
-    private GridPosition m_GridPosition;
+    protected GridPosition m_GridPosition;
     public E_ObjectType m_EObjectType;
     public E_Dir m_CurrentEDir = E_Dir.South;
     public E_TeamId m_TeamId;
@@ -266,7 +266,7 @@ public class GameEntity : MonoBehaviour,
 
     #region Grid
 
-    public List<Collider> GetChildColliders()
+    public virtual List<Collider>  GetChildColliders()
     {
         List<Collider> colliders = new List<Collider>();
 

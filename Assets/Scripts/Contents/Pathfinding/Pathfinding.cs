@@ -3,7 +3,6 @@ using System.Linq;
 using UnityEngine;
 using static Define;
 
-[DefaultExecutionOrder(-20)]
 public class Pathfinding : MonoBehaviour, IPathfinder
 {
     private IGridQuery _grid;
@@ -24,10 +23,6 @@ public class Pathfinding : MonoBehaviour, IPathfinder
     private void Awake()
     {
         Managers.SceneServices.Register((IPathfinder)this);
-    }
-
-    private void Start()
-    {
         Setup(Managers.SceneServices.Grid, Managers.SceneServices.GridMut);
     }
 
@@ -45,8 +40,13 @@ public class Pathfinding : MonoBehaviour, IPathfinder
 
         for (int floor = 0; floor < floorAmount; floor++)
         {
-            GridSystem<PathNode> gridSystem = new GridSystem<PathNode>(width, height, cellSize, floor, 
+            GridSystem<PathNode> gridSystem = new GridSystem<PathNode>(
+                width,
+                height,
+                cellSize,
+                floor,
                 FLOOR_HEIGHT,
+                Vector3.zero,
                 (GridSystem<PathNode> g, GridPosition gridPosition) => new PathNode(gridPosition));
 
             //gridSystem.CreateDebugObjects(gridDebugObjectPrefab);

@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1484705169480768675}
   - component: {fileID: 1603762514465898120}
   - component: {fileID: -6816983323429188243}
+  - component: {fileID: 7180415602940733751}
   m_Layer: 6
   m_Name: Tile1_01
   m_TagString: Untagged
@@ -62,13 +63,29 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5706104691439947880}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5537cf5a4a360614086bddf8f18c2dd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   dynamicFloorPosition: 0
   ignoreRendererList: []
+--- !u!114 &7180415602940733751
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5706104691439947880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1853cde965d81c4e82d4bd30f5f0a5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gridPosition:
+    x: 0
+    z: 0
+    floor: 0
 --- !u!1 &8167158605197212072
 GameObject:
   m_ObjectHideFlags: 0

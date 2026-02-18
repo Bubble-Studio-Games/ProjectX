@@ -121,6 +121,8 @@ MonoBehaviour:
   duration3: 0.2
   height1: 1
   height2: 0.5
+  m_fHealUpHeight: 0.5
+  m_fHealDuration: 1
 --- !u!1 &7288089040766824147
 GameObject:
   m_ObjectHideFlags: 0
@@ -207,7 +209,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &6142329946589736245
 MonoBehaviour:
   m_ObjectHideFlags: 0

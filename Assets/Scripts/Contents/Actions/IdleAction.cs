@@ -18,7 +18,10 @@ public class IdleAction : BaseAction
 
     public override BaseAction TakeAction(GridPosition gridPosition)
     {
-        if(m_GameEntity.m_AttributeSystem.m_CanMoveableGameEntity)
+        if (m_GameEntity.m_EObjectType == E_ObjectType.Trap)
+            return this;
+
+        if (m_GameEntity.m_AttributeSystem.m_CanMoveableGameEntity)
         {
             // 감지 범위 내 모든 적들의 위치 탐색
             var serchTargetPosList = GetValidActionGridPositionList();
@@ -58,7 +61,7 @@ public class IdleAction : BaseAction
 
                 // 현재 특정 조건을 만족하는 공격 후보들을 가져오기
                 // 쿨타임, 거리, 바로 사용 가능.
-                var filterResult =  Managers.Game.EvaluateAttackPatternsByCondition
+                var filterResult = Managers.Game.EvaluateAttackPatternsByCondition
                     (m_GameEntity, serachTareget,
                     E_AttackCondition.Fail_CoolTime,
                     E_AttackCondition.Fail_ManaCost,

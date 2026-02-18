@@ -157,9 +157,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b91c0a015b54174fb51d5c40ec6dc30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  unityGrid: {fileID: 0}
   gridDebugObjectPrefab: {fileID: 9178942185925439383, guid: f25d0876b972f0f42b6b42f0fbe09e53, type: 3}
-  width: 35
-  height: 30
-  cellSize: 2
   floorAmount: 1
-  m_isShowCreateDebugObjects: 1
+  gridEnableArea:
+    m_Center: {x: 20, y: 0, z: 10}
+    m_Extent: {x: 40, y: 1, z: 40}
+  m_isShowCreateDebugObjects: 0

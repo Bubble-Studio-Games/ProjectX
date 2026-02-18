@@ -25,11 +25,6 @@ Shader "Custom/URP/PoisonSwamp"
         _BubbleLifecycleSpeed ("라이프사이클 속도", Range(0.1, 2)) = 0.3
         _BubbleFadeInEnd ("생성 완료 시점", Range(0.1, 0.8)) = 0.5
         _BubbleFadeOutStart ("터지기 시작 시점", Range(0.5, 0.95)) = 0.8
-
-        [Header(Grid)]
-        _MaskTex ("청크 마스크 텍스처", 2D) = "white" {}
-        _MaskEdgeSoftness ("마스크 경계 부드러움", Range(0, 0.5)) = 0.1
-        _ChunkSize ("청크 크기 (미터)", Float) = 10.0
     }
 
     SubShader
@@ -68,7 +63,6 @@ Shader "Custom/URP/PoisonSwamp"
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
-                float2 maskUV : TEXCOORD1;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -76,13 +70,9 @@ Shader "Custom/URP/PoisonSwamp"
             TEXTURE2D(_MainTex);
             SAMPLER(sampler_MainTex);
 
-            TEXTURE2D(_MaskTex);
-            SAMPLER(sampler_MaskTex);
-
             // Property declarations
             CBUFFER_START(UnityPerMaterial)
                 float4 _MainTex_ST;
-                float4 _MaskTex_ST;
                 float4 _DarkColor;
                 float4 _BrightColor;
                 float4 _BubbleCoreColor;
@@ -100,8 +90,6 @@ Shader "Custom/URP/PoisonSwamp"
                 float _BubbleLifecycleSpeed;
                 float _BubbleFadeInEnd;
                 float _BubbleFadeOutStart;
-                float _ChunkSize;
-                float _MaskEdgeSoftness;
             CBUFFER_END
 
             // 해시 함수 - 셀별 고유 랜덤 값 생성
@@ -196,9 +184,6 @@ Shader "Custom/URP/PoisonSwamp"
                 // 메인 텍스처 UV (타일링/오프셋 적용)
                 output.uv = TRANSFORM_TEX(input.uv, _MainTex);
 
-                // 마스크 UV (그리드 정렬 보장 - 타일링/오프셋 적용)
-                output.maskUV = TRANSFORM_TEX(input.uv, _MaskTex);
-
                 return output;
             }
 
@@ -208,16 +193,7 @@ Shader "Custom/URP/PoisonSwamp"
 
                 float time = _Time.y;
 
-                // === 1. 마스크 샘플링 및 가시성 체크 ===
-                float maskValue = SAMPLE_TEXTURE2D(_MaskTex, sampler_MaskTex, input.maskUV).r;
-
-                // 완전히 비활성화된 영역은 픽셀 폐기
-                clip(maskValue - 0.001);
-
-                // 부드러운 경계 처리
-                float maskAlpha = smoothstep(0.0, _MaskEdgeSoftness, maskValue);
-
-                // === 2. UV 왜곡 및 이중 레이어 스크롤링 ===
+                // === 1. UV 왜곡 및 이중 레이어 스크롤링 ===
                 float2 scaledUV = input.uv * _MainTexScale;
                 float2 distortedUV1 = DistortUV(scaledUV + float2(time * _WaveSpeed * 0.05, time * _WaveSpeed * 0.03), time);
                 float2 distortedUV2 = DistortUV(scaledUV - float2(time * _WaveSpeed * 0.03, time * _WaveSpeed * 0.07), time * 1.3);
@@ -234,7 +210,7 @@ Shader "Custom/URP/PoisonSwamp"
                 baseColorRGB *= _ColorIntensity;
                 half4 baseColor = half4(baseColorRGB, 1.0);
 
-                // === 3. 개선된 유기적 버블 생성 ===
+                // === 2. 개선된 유기적 버블 생성 ===
                 float bubbleSize, bubbleSpeed;
                 float bubbleNoise = OrganicBubbleNoise(input.uv, time, bubbleSize, bubbleSpeed);
 
@@ -257,14 +233,11 @@ Shader "Custom/URP/PoisonSwamp"
                 float bubbleMask = smoothstep(sizeAdjustedThreshold, sizeAdjustedThreshold - 0.1, bubbleNoise);
                 bubbleMask *= bubbleAlpha;
 
-                // === 4. 최종 색상 합성 ===
+                // === 3. 최종 색상 합성 ===
                 half4 finalColor = baseColor;
 
                 // 버블 중심부만 매우 약하게 적용
                 finalColor.rgb = lerp(finalColor.rgb, _BubbleCoreColor.rgb, bubbleMask * _BubbleIntensity * 0.15);
-
-                // 마스크 알파 적용
-                finalColor.a *= maskAlpha;
 
                 return finalColor;
             }

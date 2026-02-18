@@ -4,20 +4,27 @@ using System.Linq;
 using UnityEngine;
 using static Define;
 
-public class GridObject
+public class GridObject : MonoBehaviour
 {
     private readonly HashSet<GameEntity> _units = new(); // 중복 방지
 
     private GridSystem<GridObject> gridSystem;
-    private GridPosition gridPosition;
+    [SerializeField] private GridPosition gridPosition;
 
     public bool HasAnyUnit() => _units.Count > 0;
     public IReadOnlyCollection<GameEntity> GetUnits() => _units;
+    public GridPosition GridPosition => gridPosition;
 
-    public GridObject(GridSystem<GridObject> gridSystem, GridPosition gridPosition)
+    public void Init(GridSystem<GridObject> gridSystem, GridPosition gridPosition)
     {
         this.gridSystem = gridSystem;
         this.gridPosition = gridPosition;
+    }
+
+    public void Active(bool value)
+    {
+        var obj = GetComponentInChildren<MeshFilter>().gameObject;
+        obj.SetActive(value);
     }
 
     public override string ToString()

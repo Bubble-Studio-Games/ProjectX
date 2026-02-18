@@ -2,6 +2,7 @@ using UnityEngine;
 using Unity.Cinemachine;
 using System;
 using static Define;
+using System.Collections;
 
 public class CameraController : MonoBehaviour, ICameraRig, ICameraInfoProvider, ICameraShakeSettings
 {
@@ -21,7 +22,15 @@ public class CameraController : MonoBehaviour, ICameraRig, ICameraInfoProvider, 
     private CinemachineRotationComposer m_CMRotationComposer;
     private CinemachineInputAxisController m_CMInputAxisController;
     private CinemachineImpulseListener m_CMImpulseListener;
+    private CinemachineOrbitalFollow m_CMOrbitalFollow;
     private event Action<int> _onChangeLookFloor;
+
+    [Header("Cutscene")]
+    [SerializeField] private CinemachineCamera m_AnchorCamera;
+    private bool _isCutsceneMode = false;
+    private bool[] _savedControllerStates;
+    private int _savedMainCameraPriority;
+    private bool _savedOrbitalFollowState;
 
 
 #if UNITY_EDITOR
@@ -53,6 +62,7 @@ public class CameraController : MonoBehaviour, ICameraRig, ICameraInfoProvider, 
         m_CMRotationComposer =  GetComponentInChildren<CinemachineRotationComposer>();
         m_CMInputAxisController =  GetComponentInChildren<CinemachineInputAxisController>();
         m_CMImpulseListener =  GetComponentInChildren<CinemachineImpulseListener>();
+        m_CMOrbitalFollow = GetComponentInChildren<CinemachineOrbitalFollow>();
         _inputActionMaps = Managers.SceneServices.InputActionMapController;
 
     }
@@ -215,5 +225,91 @@ public class CameraController : MonoBehaviour, ICameraRig, ICameraInfoProvider, 
     {
         if (m_CMImpulseListener != null)
             m_CMImpulseListener.ReactionSettings.Duration = duration;
+    }
+
+    /// <summary>
+    /// 컷씬 모드 진입 - Anchor Camera로 전환 후 카메라 입력 차단
+    /// </summary>
+    public void EnterCutsceneMode()
+    {
+        if (_isCutsceneMode == true)
+            return;
+
+        if (m_CM == null || m_AnchorCamera == null)
+            return;
+
+        _savedMainCameraPriority = m_CM.Priority;
+
+        if (m_AnchorCamera != null)
+        {
+            var ret = m_CM.transform.position;
+            var retRot = m_CM.transform.rotation;
+            m_AnchorCamera.transform.SetPositionAndRotation(ret, retRot);
+            m_AnchorCamera.Priority = 15;
+        }
+
+        if (m_CMOrbitalFollow != null)
+        {
+            _savedOrbitalFollowState = m_CMOrbitalFollow.enabled;
+            m_CMOrbitalFollow.enabled = false;
+        }
+
+        if (m_CMInputAxisController != null)
+        {
+            var ret = m_CMInputAxisController.Controllers.Count;
+            _savedControllerStates = new bool[ret];
+
+            for (int i = 0; i < ret; i++)
+            {
+                _savedControllerStates[i] = m_CMInputAxisController.Controllers[i].Enabled;
+                m_CMInputAxisController.Controllers[i].Enabled = false;
+            }
+        }
+
+        m_CM.Priority = 0;
+
+        _isCutsceneMode = true;
+    }
+
+    /// <summary>
+    /// 컷씬 모드 종료 - 메인 카메라로 복귀 및 입력 복원
+    /// </summary>
+    public void ExitCutsceneMode()
+    {
+        if (_isCutsceneMode == false)
+            return;
+
+        if (m_CM == null)
+            return;
+
+        if (m_AnchorCamera != null)
+            m_AnchorCamera.Priority = 15;
+
+        StartCoroutine(DelayedMainCameraActivation());
+    }
+
+    private IEnumerator DelayedMainCameraActivation()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        if (m_CM != null)
+            m_CM.Priority = _savedMainCameraPriority;
+
+        if (m_AnchorCamera != null)
+            m_AnchorCamera.Priority = -1;
+
+        if (m_CMOrbitalFollow != null)
+            m_CMOrbitalFollow.enabled = _savedOrbitalFollowState;
+
+        if (m_CMInputAxisController != null && _savedControllerStates != null)
+        {
+            var ret = Mathf.Min(_savedControllerStates.Length, m_CMInputAxisController.Controllers.Count);
+            for (int i = 0; i < ret; i++)
+            {
+                m_CMInputAxisController.Controllers[i].Enabled = _savedControllerStates[i];
+            }
+        }
+
+        _isCutsceneMode = false;
     }
 }

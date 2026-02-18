@@ -9,12 +9,18 @@ public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridMana
 {
     #region Field
 
+    [SerializeField] private Grid unityGrid;
     [SerializeField] private Transform gridDebugObjectPrefab;
     Dictionary<GridPosition, GridDebugObject> m_griddebug = new();
-    [SerializeField] private int width;
-    [SerializeField] private int height;
-    [SerializeField] private float cellSize;
     [SerializeField] private int floorAmount;
+    [SerializeField] private Bounds gridEnableArea;
+
+    private float cellSize;
+    private int width;
+    private int height;
+    private Vector3Int _gridMinCell;
+    private Vector3Int _gridMaxCell;
+    
 
     public List<GridSystem<GridObject>> GridSystemList { get; private set; }
 
@@ -63,35 +69,94 @@ public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridMana
 
     #endregion
 
+
+
+
     #region Unity Life Cycle
 
     private void Awake()
     {
-        Managers.SceneServices.Register<IGridQuery>(this);
-        Managers.SceneServices.Register<IGridMutation>(this);
-        Managers.SceneServices.Register<IUnitGridManager>(this);
+        // Unity Grid로부터 파라미터 추출
+        if (unityGrid == null)
+        {
+            Debug.LogError("Unity Grid 참조가 없습니다!");
+            return;
+        }
+
+        cellSize = unityGrid.cellSize.x;
+
+        // gridEnableArea를 Unity Grid 셀 좌표로 변환
+        _gridMinCell = unityGrid.WorldToCell(gridEnableArea.min);
+        _gridMaxCell = unityGrid.WorldToCell(gridEnableArea.max);
+
+        // 활성화할 셀 범위 계산
+        width = _gridMaxCell.x - _gridMinCell.x;
+        height = _gridMaxCell.y - _gridMinCell.y;
 
         // 초기화
         GridSystemList = new List<GridSystem<GridObject>>();
         m_DicFloorGridCache.Clear();
 
+        // 씬에 배치된 GridObject들을 수집
+        var sceneGridObjects = unityGrid.GetComponentsInChildren<GridObject>();
+
         for (int floor = 0; floor < floorAmount; floor++)
         {
-            GridSystem<GridObject> gridSystem = new GridSystem<GridObject>(width, height, cellSize, floor, FLOOR_HEIGHT,
-                    (GridSystem<GridObject> g, GridPosition gridPosition) => new GridObject(g, gridPosition));
-            if (m_isShowCreateDebugObjects)
-                m_griddebug.AddRange(gridSystem.CreateDebugObjects(gridDebugObjectPrefab, this.transform));
+            // gridEnableArea 시작점의 월드 좌표 계산
+            var floorOffset = unityGrid.CellToWorld(new Vector3Int(_gridMinCell.x, _gridMinCell.y, 0));
+
+            Debug.Log($"Floor {floor}: offset={floorOffset}");
+
+            GridSystem<GridObject> gridSystem = new GridSystem<GridObject>(
+                width,
+                height,
+                cellSize,
+                floor,
+                FLOOR_HEIGHT,
+                floorOffset);
 
             GridSystemList.Add(gridSystem);
+
+            // 해당 floor에 속하는 GridObject들을 등록
+            foreach (var gridObj in sceneGridObjects)
+            {
+                var gridPos = gridSystem.GetGridPosition(gridObj.transform.position);
+                if (gridPos.floor != floor)
+                    continue;
+
+                if (gridSystem.IsValidGridPosition(gridPos) == false)
+                    continue;
+
+                gridObj.Init(gridSystem, gridPos);
+                gridSystem.RegisterGridObject(gridPos, gridObj);
+            }
+
+            if (m_isShowCreateDebugObjects)
+            {
+                Debug.Log($"Creating debug objects for floor {floor} (total: {width * height})");
+                m_griddebug.AddRange(gridSystem.CreateDebugObjects(gridDebugObjectPrefab, this.transform));
+            }
+            else
+            {
+                Debug.Log($"Debug objects disabled (m_isShowCreateDebugObjects={m_isShowCreateDebugObjects})");
+            }
 
             // ✅ 층 캐시 초기화
             var dict = new Dictionary<GridPosition, GridCellInfo>();
             for (int x = 0; x < width; x++)
+            {
                 for (int z = 0; z < height; z++)
+                {
                     dict[new GridPosition(x, z, floor)] = new GridCellInfo(null, E_GridCheckType.Void);
+                }
+            }
 
             m_DicFloorGridCache[floor] = dict;
         }
+
+        Managers.SceneServices.Register<IGridQuery>(this);
+        Managers.SceneServices.Register<IGridMutation>(this);
+        Managers.SceneServices.Register<IUnitGridManager>(this);
 
         OnChangeGrid += GridDebugObjectUpdate;
     }
@@ -138,6 +203,29 @@ public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridMana
     {
         foreach (var position in positions)
             SetCellType(position, type, entity);
+    }
+
+    /// <summary>
+    /// 그리드 위치의 타일 활성화/비활성화 - 타일 상태 제어
+    /// </summary>
+    public void Active(bool isActive, GridPosition gridPos)
+    {
+        if (!IsValidGridPosition(gridPos))
+        {
+            return;
+        }
+
+        var gridSystem = GetGridSystem(gridPos.floor);
+        var gridObject = gridSystem.GetGridObject(gridPos);
+
+        if (gridObject != null)
+        {
+            gridObject.Active(isActive);
+            if (isActive == false)
+            {
+                gridSystem.RegisterGridObject(gridPos, null);
+            }
+        }
     }
 
     #endregion
@@ -221,6 +309,14 @@ public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridMana
     {
         if (!IsValidGridPosition(gridPosition)) return E_GridCheckType.Void;
         return m_DicFloorGridCache[gridPosition.floor][gridPosition].gridType;
+    }
+
+    public GridObject GetGridObject(GridPosition gridPosition)
+    {
+        if (!IsValidGridPosition(gridPosition))
+            return null;
+
+        return GetGridSystem(gridPosition.floor).GetGridObject(gridPosition);
     }
 
     #endregion
@@ -367,6 +463,18 @@ public class LevelGrid : MonoBehaviour, IGridMutation, IGridQuery, IUnitGridMana
     #endregion
 
 #if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        if (unityGrid != null)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere(unityGrid.transform.position, 0.5f);
+        }
+
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(gridEnableArea.center, gridEnableArea.size);
+    }
+
     #region Debug 용도
     public GridCellInfo GetGridPositionCellInfo(GridPosition gridPosition)
     {

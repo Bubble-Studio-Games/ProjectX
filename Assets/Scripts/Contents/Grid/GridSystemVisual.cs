@@ -39,6 +39,7 @@ public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
     public Dictionary<E_GridVisualType_Color, Dictionary<E_GridVisualType_Intensity, Material>> _materialCache;
     private readonly Dictionary<int, GridSystemVisualSingle[,]> _floorVisuals = new();
 
+
     private void Awake()
     {
         Managers.SceneServices.Register<IGridPlacementVisualizer>(this);

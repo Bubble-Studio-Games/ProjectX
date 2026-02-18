@@ -12,4 +12,12 @@ public partial class Define
     public const string CHOICE_BOX_UI = "Prefabs/UI/Box/ChoiceBoxUI";
 
     public const string QUEST_BOX_UI = "Prefabs/UI/Box/QuestBoxUI";
+
+    // Physical Trap
+    public const string WOODEN_SPEAR_FLOOR_TRAP = "Prefabs/GameEntity/Trap/Wooden_Spear_Floor_Trap";
+    public const string WOODEN_SPIKE_TRAP = "Prefabs/GameEntity/Trap/Wooden_Spike_Trap";
+
+    // EnviromentTrap
+    public const string POISON_TRAP = "Prefabs/GameEntity/Trap/PoisonTrap";
+
 }

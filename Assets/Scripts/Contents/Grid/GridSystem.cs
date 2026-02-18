@@ -10,18 +10,24 @@ public class GridSystem<TGridObject>
     private float cellSize;
     private int floor;
     private float floorHeight;
+    private Vector3 _originOffset;
     private TGridObject[,] gridObjectArray;
 
-    public GridSystem(int width, int height, float cellSize, int floor, float floorHeight, Func<GridSystem<TGridObject>, GridPosition, TGridObject> createGridObject)
+    public GridSystem(int width, int height, float cellSize, int floor, float floorHeight, Vector3 originOffset)
     {
         this.width = width;
         this.height = height;
         this.cellSize = cellSize;
         this.floor = floor;
         this.floorHeight = floorHeight;
+        this._originOffset = originOffset;
 
         gridObjectArray = new TGridObject[width, height];
+    }
 
+    public GridSystem(int width, int height, float cellSize, int floor, float floorHeight, Vector3 originOffset, Func<GridSystem<TGridObject>, GridPosition, TGridObject> createGridObject)
+        : this(width, height, cellSize, floor, floorHeight, originOffset)
+    {
         for (int x = 0; x < width; x++)
         {
             for (int z = 0; z < height; z++)
@@ -32,21 +38,35 @@ public class GridSystem<TGridObject>
         }
     }
 
+    public void RegisterGridObject(GridPosition gridPosition, TGridObject gridObject)
+    {
+        if (IsValidGridPosition(gridPosition) == false)
+        {
+            Debug.LogWarning($"유효하지 않은 GridPosition에 등록 시도: {gridPosition}");
+            return;
+        }
+
+        gridObjectArray[gridPosition.x, gridPosition.z] = gridObject;
+    }
+
     public Vector3 GetWorldPosition(GridPosition gridPosition)
     {
-        return 
-            new Vector3(gridPosition.x, 0, gridPosition.z) * cellSize +
-            new Vector3(0, gridPosition.floor, 0) * floorHeight;
+        var ret = new Vector3(gridPosition.x + 0.5f, 0, gridPosition.z + 0.5f) * cellSize +
+                  new Vector3(0, gridPosition.floor, 0) * floorHeight +
+                  _originOffset;
+        return ret;
     }
 
 
     public GridPosition GetGridPosition(Vector3 worldPosition)
     {
-        return new GridPosition(
-            Mathf.RoundToInt(worldPosition.x / cellSize),
-            Mathf.RoundToInt(worldPosition.z / cellSize),
+        var localPos = worldPosition - _originOffset;
+        var ret = new GridPosition(
+            Mathf.RoundToInt(localPos.x / cellSize),
+            Mathf.RoundToInt(localPos.z / cellSize),
             floor
         );
+        return ret;
     }
 
     public Dictionary<GridPosition, GridDebugObject > CreateDebugObjects(Transform debugPrefab, Transform parent)
