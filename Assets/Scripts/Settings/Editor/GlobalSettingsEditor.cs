@@ -6,6 +6,7 @@ using System.Reflection;
 /// <summary>
 /// GlobalSettings Custom Inspector - 탭 기반 설정 편집
 /// </summary>
+[CustomEditor(typeof(GlobalSettings))]
 public class GlobalSettingsEditor : Editor
 {
 	private const string TAB_INDEX_KEY = "GlobalSettingsEditor_SelectedTab";
@@ -42,7 +43,7 @@ public class GlobalSettingsEditor : Editor
 
 	private void InitTabsFromReflection()
 	{
-		var fields = typeof(GameConfig)
+		var fields = typeof(GlobalSettingsData)
 			.GetFields(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
 			.Where(f => f.FieldType.IsSubclassOf(typeof(ScriptableObject)))
 			.OrderBy(f => f.MetadataToken)

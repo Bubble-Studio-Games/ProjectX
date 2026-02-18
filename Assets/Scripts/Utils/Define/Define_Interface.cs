@@ -301,6 +301,11 @@ public partial class Define
     {
         void SetCellType(GridPosition pos, E_GridCheckType type, GameEntity entity = null);
         void SetCellType(IEnumerable<GridPosition> positions, E_GridCheckType type, GameEntity entity = null);
+
+        /// <summary>
+        /// 타일 활성화/비활성화 - 게임 월드 타일 상태 제어
+        /// </summary>
+        void Active(bool isActive, GridPosition gridPos);
     }
 
     // (읽기 전용)
@@ -353,6 +358,15 @@ public partial class Define
         IReadOnlyCollection<GameEntity> GetUnitsAt(GridPosition pos);
     }
 
+    // 맵 컨테이너 - Map과 그 안의 환경 요소들을 담는 Facade
+    [GenerateNullService]
+    public interface IMapContainer
+    {
+        public IGridQuery Grid { get; }
+        public IGridMutation GridMut { get; }
+        public void Active(bool isActive, GridPosition gridPos);
+    }
+
     #endregion
 
     public interface ICommandAction
@@ -397,5 +411,21 @@ public partial class Define
 
         // 여러 개 복원
         void RestoreSaveDatas(IEnumerable<BaseData> datas) { }
+    }
+
+    #region StatusEffect
+
+    [GenerateNullService]
+    public interface IStatusEffectSystem
+    {
+        public void ApplyStatusEffect<T>(GameEntity target, GameEntity source, AttackData data)
+            where T : IStatusEffect, new();
+    }
+
+    #endregion
+
+    public interface ITriggerTarget
+    {
+        public void OnTriggerEnterAction(Collider other);
     }
 }

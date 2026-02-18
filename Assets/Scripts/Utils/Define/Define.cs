@@ -45,6 +45,12 @@ public partial class Define
         Legendary
     }
 
+    public enum E_BossType
+    {
+        None,
+        Ork,
+    }
+
     public enum E_AttackAnimationType
     {
         None,
@@ -298,10 +304,23 @@ public partial class Define
         Obstacle,
         Skill,
         PassiveObject,
-        NPC
+        NPC,
+        Trap,
     }
 
 
+
+    #endregion
+
+    #region Trap
+
+    [System.Flags]
+    public enum E_TrapType
+    {
+        Physical = 1,
+        Environment = 2,
+        All = Physical | Environment
+    }
 
     #endregion
 

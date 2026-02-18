@@ -65,6 +65,18 @@ public sealed class SceneServices
 
     #endregion
 
+    #region MapContainer
+
+    public IMapContainer MapContainer => Get<IMapContainer>();
+
+    #endregion
+
+    #region StatusEffect
+
+    public IStatusEffectSystem StatusEffectSystem => Get<IStatusEffectSystem>();
+
+    #endregion
+
     #region Other
 
     public ICoroutineRunner CoroutineRunner => Get<ICoroutineRunner>();

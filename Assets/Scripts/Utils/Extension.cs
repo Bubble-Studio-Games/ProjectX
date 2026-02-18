@@ -31,5 +31,14 @@ public static class Extension
 		return Util.TryGetComponentInChildren<T>(go, out result);
     }
 
+	public static Transform EnsureChild(this Transform parent, string childName)
+	{
+		return Util.EnsureChild(parent, childName);
+	}
+
+	public static T EnsureChild<T>(this Transform parent, string childName) where T : Component
+	{
+		return Util.EnsureChild<T>(parent, childName);
+	}
 
 }

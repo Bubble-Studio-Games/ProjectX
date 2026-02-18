@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5da2ac0e1590f104090a23a82211cf33, type: 3}
   m_Name: MouseSettings
   m_EditorClassIdentifier: 
-  <IsMouseCursorEnabled>k__BackingField: 1
+  <IsMouseCursorEnabled>k__BackingField: 0

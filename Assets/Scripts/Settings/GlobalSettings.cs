@@ -42,7 +42,7 @@ public class GlobalSettings : MonoBehaviour
 			return;
 		}
 		Instance = this;
-		DontDestroyOnLoad(this.gameObject);
+		// DontDestroyOnLoad(this.gameObject);
 		_eventSystem = this.GetComponentInChildren<EventSystem>();
 	}
 
