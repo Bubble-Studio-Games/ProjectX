@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d76e95804751f0d43b93c78addf6f610, type: 3}
+  m_Name: GlobalSettingsData
+  m_EditorClassIdentifier: 
+  _mouseSettings: {fileID: 11400000, guid: 865e6c52ae99bbe40b6c3c5a007111d9, type: 2}
+  _npcSettings: {fileID: 11400000, guid: bb10782049be1fd40aace47ccb0b225a, type: 2}
+  _dialogueSettings: {fileID: 11400000, guid: 3069094793d238d408f2bd32d97303d4, type: 2}
+  _sceneSettings: {fileID: 11400000, guid: 809dc5ae8d728d348b5bfbbd010e205b, type: 2}
+  _inventorySettings: {fileID: 11400000, guid: 5ec163ada12989a46bebd315ac91ee01, type: 2}

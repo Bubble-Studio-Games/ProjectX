@@ -289,7 +289,7 @@ public class MenuUI : UI_Popup
     /// </summary>
     private void OnAnyButtonClicked()
     {
-        Managers.Sound.Play(SettingManager.Instance.m_UIButtonClickAudioClip);
+        Managers.Sound.Play(GameConfig.RuntimeSettings.m_UIButtonClickAudioClip);
     }
 
     private void InitPopups()

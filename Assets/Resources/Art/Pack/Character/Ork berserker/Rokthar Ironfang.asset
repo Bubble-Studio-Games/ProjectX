@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2885e8fa5af38d5498a0c7f15e29c30a, type: 3}
+  m_Name: Rokthar Ironfang
+  m_EditorClassIdentifier: 
+  ID: 101
+  Name: Rokthar Ironfang
+  sprite: {fileID: 0}
+  m_sDescription: "1\uC2A4\uD14C\uC774\uC9C0 \uBCF4\uC2A4"
+  m_iMaxHP:
+    _value: 2500
+  m_iCurrentHp:
+    _value: 2500
+  m_iIsStepReduceHP: 0
+  m_fHPRegenrate:
+    _value: 3
+  m_fMPRegenrate:
+    _value: 0
+  m_iMaxMP:
+    _value: 0
+  m_iCurrentMP:
+    _value: 0
+  m_fChaseSpeed:
+    _value: 2
+  m_fWalkSpeed:
+    _value: 1
+  m_iCommandMoveRange: 0
+  m_iDetectRange: 5
+  m_iChaseRange: 5
+  m_iPhysicalBaseDamamge:
+    _value: 20
+  m_iMagicalBaseDamamge:
+    _value: 0
+  m_iPhysicalDefence:
+    _value: 20
+  m_iMagicalDefence:
+    _value: 20
+  m_fCounterAttackChance:
+    _value: 10
+  m_fEvasionChance:
+    _value: 10
+  m_fKnockbackRegist:
+    _value: 70
+  m_iSpawnCost: 0

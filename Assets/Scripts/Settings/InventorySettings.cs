@@ -5,7 +5,7 @@ using UnityEngine;
 /// <summary>
 /// 게임 시작 시 기본 인벤토리 구성 설정
 /// </summary>
-[CreateAssetMenu(fileName = "InventorySettings", menuName = "Settings/Inventory Settings")]
+[CreateAssetMenu(fileName = "InventorySettings", menuName = "Game/Config/Inventory")]
 public class InventorySettings : ScriptableObject
 {
     [System.Serializable]

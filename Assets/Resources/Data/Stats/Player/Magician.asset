@@ -24,7 +24,7 @@ MonoBehaviour:
   m_fHPRegenrate:
     _value: 0
   m_fMPRegenrate:
-    _value: 0
+    _value: 1
   m_iMaxMP:
     _value: 50
   m_iCurrentMP:
@@ -33,7 +33,7 @@ MonoBehaviour:
     _value: 4
   m_fWalkSpeed:
     _value: 0
-  m_iCommandMoveDistance: 4
+  m_iCommandMoveRange: 4
   m_iDetectRange: 3
   m_iChaseRange: 5
   m_iPhysicalBaseDamamge:

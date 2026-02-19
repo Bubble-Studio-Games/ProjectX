@@ -88,7 +88,7 @@ public class ShopBoxUI : UI_Base
         }
 
         iconImage.gameObject.SetActive(true);
-        iconImage.sprite = Managers.Resource.Load<Sprite>(ResourceKeys.ITEM_ICON_PATH + ItemData.Item_ID);
+        iconImage.sprite = Managers.Resource.Load<Sprite>(Define.ITEM_ICON_PATH + ItemData.Item_ID);
     }
 
     private void UpdateItemName()

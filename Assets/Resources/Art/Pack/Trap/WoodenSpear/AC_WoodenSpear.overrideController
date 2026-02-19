@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: AC_WoodenSpear
+  m_Controller: {fileID: 9100000, guid: 4f795994f47874245b7eba7e3d2d0c35, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: d5407e3c7b2aa13479d1e7d728196d61, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: d5407e3c7b2aa13479d1e7d728196d61, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 4a88e6a7d40728f4990a9021a2c8a188, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 4a88e6a7d40728f4990a9021a2c8a188, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 41e2ccc915a608d49a880ea2a038e3e2, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 41e2ccc915a608d49a880ea2a038e3e2, type: 2}

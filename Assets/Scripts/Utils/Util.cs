@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
@@ -20,6 +19,38 @@ public static partial class Util
             component = go.AddComponent<T>();
         return component;
 	}
+
+    public static Transform EnsureChild(Transform parent, string childName)
+    {
+        if (parent == null)
+        {
+            Debug.LogError($"[Util] EnsureChild: parent가 null");
+            return null;
+        }
+
+        Transform child = parent.Find(childName);
+
+        if (child != null)
+            return child;
+
+        GameObject childObject = new GameObject(childName);
+        childObject.transform.SetParent(parent);
+        childObject.transform.localPosition = Vector3.zero;
+        childObject.transform.localRotation = Quaternion.identity;
+        childObject.transform.localScale = Vector3.one;
+
+        return childObject.transform;
+    }
+
+    public static T EnsureChild<T>(Transform parent, string childName) where T : Component
+    {
+        Transform child = EnsureChild(parent, childName);
+
+        if (child == null)
+            return null;
+
+        return GetOrAddComponent<T>(child.gameObject);
+    }
 
     public static GameObject FindChild(GameObject go, string name = null, bool recursive = false)
     {
@@ -60,94 +91,6 @@ public static partial class Util
         return null;
     }
 
-    public static Color HexToColor(string hex, byte alpha = 255)
-    {
-        byte r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
-        byte g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
-        byte b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
-
-        return new Color32(r, g, b, alpha);
-    }
-
-    public static bool TryFirstOrDefault<T>(IEnumerable<T> source, out T value)
-    {
-        value = default(T);
-        using (var iterator = source.GetEnumerator())
-        {
-            if (iterator.MoveNext())
-            {
-                value = iterator.Current;
-                return true;
-            }
-            return false;
-        }
-
-    }
-
-    public static GameObject FindOrCreateGameObject(string name) 
-    {
-        GameObject component = GameObject.Find(name);
-        if (component == null)
-            component = new GameObject { name = name };
-        return component;
-
-    }
-
-
-    // IEnumerable 중 랜덤으로 하나 뽑기
-    public static T RandomPick<T>(this IEnumerable<T> source)
-    {
-        if (source == null)
-            throw new System.ArgumentNullException(nameof(source));
-
-        var list = source as IList<T> ?? source.ToList(); // 캐싱
-        return list[UnityEngine.Random.Range(0, list.Count)];
-    }
-
-    // IEnumerable 중 랜덤으로 하나 뽑고 제외하기
-    public static T RandomPickWithExcept<T>(this IEnumerable<T> source, out IEnumerable<T> rest)
-    {
-        if (source == null) throw new System.ArgumentNullException(nameof(source));
-
-        var list = source as IList<T> ?? source.ToList();
-        int index = UnityEngine.Random.Range(0, list.Count);
-        T pick = list[index];
-
-        rest = list.Where((_, i) => i != index); // index만 제외한 새로운 시퀀스
-        return pick;
-    }
-
-
-
-    /// <summary>
-    /// min ~ max 범위에서 지정한 단위(step)만큼 간격을 두고 랜덤 값을 반환합니다.
-    /// 예: (1.2, 1.5, 0.1) → 1.2, 1.3, 1.4, 1.5 중 하나
-    /// 예: (20, 50, 10) → 20, 30, 40, 50 중 하나
-    /// </summary>
-    public static float GetRandomValue(float min, float max, float step)
-    {
-        if (step <= 0f)
-        {
-            Debug.LogWarning("Step must be greater than 0.");
-            return min;
-        }
-
-        int stepCount = Mathf.FloorToInt((max - min) / step);
-        if (stepCount < 0)
-        {
-            Debug.LogWarning("Invalid range: max must be greater than min.");
-            return min;
-        }
-
-        int randomIndex = UnityEngine.Random.Range(0, stepCount + 1);
-        float result = min + (randomIndex * step);
-
-        // 부동소수점 오차 방지용 (예: 1.299999 → 1.3)
-        result = (float)System.Math.Round(result, GetDecimalPlaces(step));
-
-        return result;
-    }
-
     /// <summary>
     /// step 값의 소수점 자릿수를 계산 (0.1 → 1, 0.01 → 2)
     /// </summary>
@@ -160,22 +103,6 @@ public static partial class Util
             if (places > 5) break; // 안전장치
         }
         return places;
-    }
-
-
-    #region File Serach
-
-
-    /// <summary>
-    /// target 객체 내에서 특정 타입 T (혹은 하위 타입)를 가진 모든 필드를 재귀적으로 검색.
-    /// 부모 클래스까지 탐색하며, 순환 참조나 동일 인스턴스 중복 탐색을 방지합니다.
-    /// </summary>
-    public static List<(FieldInfo field, object owner, T value)> FindAllFieldsOfType<T>(object target)
-    {
-        List<(FieldInfo field, object owner, T value)> results = new();
-        HashSet<object> visited = new();
-        ExploreObject(target, typeof(T), results, visited);
-        return results;
     }
 
     private static void ExploreObject<T>(
@@ -245,75 +172,33 @@ public static partial class Util
             type = type.BaseType;
         }
     }
+    
 
-
-
-    public static void ReplaceFieldValue(object owner, FieldInfo field, object newValue)
+    // 1. 스크린 샷 찍기 (UI를 다 띄운 것도 보여줌)
+    public static Texture2D CaptureScreenshot()
     {
-        if (owner == null || field == null)
-            return;
+        int width = Screen.width;
+        int height = Screen.height;
+        var cam = Camera.main;
 
-        try
-        {
-            field.SetValue(owner, newValue);
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogWarning($"⚠️ {owner.GetType().Name}.{field.Name} 교체 실패: {e.Message}");
-        }
+        // 1. RenderTexture 생성
+        RenderTexture rt = new RenderTexture(width, height, 24);
+        cam.targetTexture = rt;
+
+        // 2. 카메라 렌더링
+        Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
+        cam.Render();
+
+        // 3. 픽셀 읽기
+        RenderTexture.active = rt;
+        tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        tex.Apply();
+
+        // 4. 리소스 정리
+        cam.targetTexture = null;
+        RenderTexture.active = null;
+        UnityEngine.Object.Destroy(rt);
+
+        return tex;
     }
-
-    #endregion
-
-    #region Color
-
-
-    /// <summary>
-    /// 머티리얼의 메인 컬러를 HSV 기준으로 조정합니다.
-    /// </summary>
-    /// <param name="mat">대상 머티리얼</param>
-    /// <param name="type">0=Hue, 1=Saturation, 2=Value</param>
-    /// <param name="addValue">변화량 (정수, +면 증가, -면 감소)</param>
-    /// <returns>조정된 머티리얼</returns>
-    public static Material AdjustMaterialHSV(Material mat, int type, int addValue)
-    {
-        if (mat == null)
-        {
-            Debug.LogWarning("[Util.AdjustMaterialHSV] Material이 null입니다.");
-            return null;
-        }
-
-        // RGB → HSV
-        Color currentColor = mat.color;
-        Color.RGBToHSV(currentColor, out float h, out float s, out float v);
-
-        float delta = addValue / 100f;
-
-        switch (type)
-        {
-            case 0: // Hue (색상)
-                h = Mathf.Repeat(h + delta, 1f);
-                break;
-
-            case 1: // Saturation (채도)
-                s = Mathf.Clamp01(s + delta);
-                break;
-
-            case 2: // Value (밝기)
-                v = Mathf.Clamp01(v + delta);
-                break;
-
-            default:
-                Debug.LogWarning($"[Util.AdjustMaterialHSV] 잘못된 type 값: {type} (0=H, 1=S, 2=V)");
-                break;
-        }
-
-        // HSV → RGB 후 머티리얼에 적용
-        mat.color = Color.HSVToRGB(h, s, v);
-
-        return mat;
-    }
-
-
-    #endregion
 }

@@ -117,8 +117,9 @@ public class MainQuestUI : UI_Base
             });
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
         _sequence?.Kill();
+        base.OnDestroy();
     }
 }

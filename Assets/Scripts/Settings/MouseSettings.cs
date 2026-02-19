@@ -1,7 +1,7 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "MouseSettings", menuName = "Settings/Mouse Settings")]
+[CreateAssetMenu(fileName = "MouseSettings", menuName = "Game/Config/Mouse")]
 public class MouseSettings : ScriptableObject
 {
-	[field: SerializeField] public bool IsMouseCursorEnabled { get; private set; } = true;
+	[field: SerializeField] public bool IsMouseCursorEnabled { get; set; } = true;
 }

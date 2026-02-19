@@ -263,7 +263,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0abb933fd22441d4fbe06d35fe97cdfb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridDebugObjectPrefab: {fileID: 9178942185925439383, guid: 0cead39ca24e82244a2e8ed11ea2aa77, type: 3}
   pathfindingLinkContainer: {fileID: 6856996996338917320}
 --- !u!1 &7840407954654333225
 GameObject:

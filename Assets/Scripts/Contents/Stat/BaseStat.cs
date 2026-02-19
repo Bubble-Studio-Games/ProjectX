@@ -110,7 +110,7 @@ public class BaseStat : ScriptableObject
     public StatValue m_fChaseSpeed = new StatValue(1, false); //  추격 이동 속도
     public StatValue m_fWalkSpeed = new StatValue(1, false); //   기본 걷기 속도 & 정찰 이동 속도
 
-    public int m_iCommandMoveDistance; // 커맨드 이동 거리
+    public int m_iCommandMoveRange; // 커맨드 이동 거리
     public int m_iDetectRange; // 감지 거리
     public int m_iChaseRange; // 추격 거리
 
@@ -122,6 +122,9 @@ public class BaseStat : ScriptableObject
     public StatValue m_fCounterAttackChance = new StatValue(0, true); // 반격 확률
     public StatValue m_fEvasionChance = new StatValue(0, true); //  회피 확률
     public StatValue m_fKnockbackRegist = new StatValue(0, true);    // 넉백 저확률
+
+    [Header("Spawn")]
+    public int m_iSpawnCost; // 소환 비용 (아군 유닛일 때만)
 }
 
 

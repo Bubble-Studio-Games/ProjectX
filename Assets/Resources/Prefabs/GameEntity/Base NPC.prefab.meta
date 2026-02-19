@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Resources/Prefabs/GameEntity/Base NPC.prefab.meta
 guid: c0a2690303fad354c97c4d12d8169898
+========
+guid: 02519cb1cdf068141919a90836ab3af5
+>>>>>>>> upstream/develop:Assets/Resources/Prefabs/GameEntity/Base Game Entity (Building).prefab.meta
 PrefabImporter:
   externalObjects: {}
   userData: 

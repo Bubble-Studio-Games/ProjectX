@@ -1,31 +1,31 @@
-using GLTF.Schema;
+using RootMotion.FinalIK;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.Properties;
-using UnityEditor.Animations;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.TextCore.Text;
 using static Define;
-using static Table_Camera_Shake;
 
-/*
+
+[Serializable]
+[EditorShowInfo(@"
 1. 애니메이션을 오버라이드.
 2. 애니니메이션을 스텝 애니메이션으로 변경
 3. 나중에 실시간으로 fps를 조정할 수 있게.
- */
-
+")]
 [RequireComponent(typeof(Animator))]
-[Serializable]
 public class GameEntityAnimator : MonoBehaviour
 {
+    #region Field
+    public event Action OnStep; // 발자국 이벤트
+    public event Action OnAttackPoint;      // AttackPoint 애니 이벤트
+    public event Action OnReadyFailPoint;   // ReadyFail 애니 이벤트
+    public event Action OnSpawnAnimFinished;
+    public event Action OnDespawnAnimFinished;
+
     [SerializeField] protected float m_fCrossTime = 0f;
 
     [Header("Ref")]
-    AttributeSystem m_StatSystem;
     private GameEntity m_GameEntity;
-    protected GameEntitySounder m_GameEntitySounder;
+    private IInteractable m_Interactable;
 
     public Animator m_Animator { get; protected set; }
     protected AnimatorOverrideController overrideController;
@@ -38,74 +38,274 @@ public class GameEntityAnimator : MonoBehaviour
     public AnimationClip[] m_ReviveAnimationClip;
     public AnimationClip[] m_DeathAnimationClip;
 
-    [Header("Oder")]
-    public AnimationClip[] m_OrderAnimationClip;
-    public string[] m_orderAnimationStateName;
+    [Header("Damaged")]
+    public AnimationClip[] m_CriticalDamagedAnimationClip;
+    public AnimationClip[] m_DamagedAnimationClip;
+
+
+    [Header("Move")]
+    public AnimationClip[] m_IdleAnimationClip;
+    public AnimationClip[] m_WalkAnimationClip;
+    public AnimationClip[] m_RunAnimationClip;
+
+    [Header("Interact")]
+    public AnimationClip[] m_InteractAnimationClip;
 
     [Header("Value")]
     public  float m_AnimatorOriginalVale = 1f;
 
+    #endregion
+
+    #region Unity Life Cycle
 
     protected virtual void Awake()
     {
-        // 애니메이션을 fps 설정에 따라 스텝 애니메이션으로 전부 변경
-        SettingManager.Instance.ReplaceAllAnimationClipArraysInObject(this);
-
         m_GameEntity = GetComponentInParent<GameEntity>();
-        m_GameEntitySounder = GetComponentInParent<GameEntitySounder>();
-
         m_Animator = GetComponent<Animator>();
-        if(m_Animator.runtimeAnimatorController != null)
+
+        if (m_Animator?.runtimeAnimatorController != null)
             overrideController = new AnimatorOverrideController(m_Animator.runtimeAnimatorController);
 
-        m_GameEntity.OnObjectSpawned += Spawned;
-        m_GameEntity.OnObjectDespawned += DeSpawned;
-
-        m_StatSystem = GetComponentInParent<AttributeSystem>();
-        m_StatSystem.OnDead += (s, e) => Dead();
-        m_StatSystem.OnRevived += (s, e) => ChangeAnimationAtStart(E_GameEntityClipType.Revive.ToString(), m_ReviveAnimationClip);
-        m_StatSystem.OnDamaged += Animation_Damaged;
-
-
-        // Event 등록
-        if (m_GameEntity.m_ActionsTransform.TryGetComponent<CombatAction>(out CombatAction combatAction))
-        {
-            combatAction.OnStartAttack += CombatAction_OnAttack;
-        }
-
-        m_Animator.SetBool("IsControllableObject", m_GameEntity is ControllableObject);
+        m_Interactable = GetComponentInParent<IInteractable>();
     }
 
     protected virtual void Start()
     {
-        // 2. 변경된 애니메이션이 있는 컨트롤러 교체
-         m_Animator.runtimeAnimatorController = overrideController;
+        // 애니메이션을 fps 설정에 따라 스텝 애니메이션으로 전부 변경
+        Managers.Setting.ReplaceAllAnimationClipArraysInObject(m_GameEntity.AnimKeyName, this);
+
+        // 변경된 애니메이션이 있는 컨트롤러 교체
+        m_Animator.runtimeAnimatorController = overrideController;
+
+        // Idle
+        ChangeAnimationAtStart(E_GameEntityClipType.Idle.ToString(), m_IdleAnimationClip, false);
+
+        // Walk
+        ChangeAnimationAtStart(E_GameEntityClipType.Walk.ToString(), m_WalkAnimationClip, false);
+
+        // Run
+        ChangeAnimationAtStart(E_GameEntityClipType.Run.ToString(), m_RunAnimationClip, false);
     }
 
     protected void OnEnable()
     {
         AnimationPlay();
+
+        // 이벤트 등록
+        m_GameEntity.OnObjectSpawnStart += Spawned;
+        m_GameEntity.OnObjectDespawned += DeSpawned;
+
+        if (m_Interactable != null)
+            m_Interactable.OnInteracted += Interact;
+
+        // ✅ Attribute forward 구독
+        m_GameEntity.OnDead += Dead;
+        m_GameEntity.OnRevived += Revived;
+        m_GameEntity.OnDamaged += Animation_Damaged;
+
+
+        // ✅ Action forward 구독
+        m_GameEntity.OnStartAttack += AttackStart;
+        m_GameEntity.OnStartMoving += MoveAction_OnStartMoving;
+        m_GameEntity.OnStopMoving += MoveAction_OnStopMoving;
+        m_GameEntity.OnChangedFloorsStarted += MoveAction_OnChangedFloorsStarted;
+
+        m_GameEntity.OnAttackReadyFailed += AttackReadyFailPoint;
     }
 
-    protected virtual void Animation_Damaged(object sender, AttributeSystem.OnAttackInfoEventArgs e) { }
-    
-    public  void StepSoundPlay()
+    protected void OnDisable()
     {
-        m_GameEntitySounder.StepSoundPlay();
+        m_GameEntity.OnObjectSpawnStart -= Spawned;
+        m_GameEntity.OnObjectDespawned -= DeSpawned;
+
+        if (m_Interactable != null)
+            m_Interactable.OnInteracted -= Interact;
+
+        m_GameEntity.OnDead -= Dead;
+        m_GameEntity.OnRevived -= Revived;
+        m_GameEntity.OnDamaged -= Animation_Damaged;
+
+        m_GameEntity.OnStartAttack -= AttackStart;
+        m_GameEntity.OnStartMoving -= MoveAction_OnStartMoving;
+        m_GameEntity.OnStopMoving -= MoveAction_OnStopMoving;
+        m_GameEntity.OnChangedFloorsStarted -= MoveAction_OnChangedFloorsStarted;
+
+        m_GameEntity.OnAttackReadyFailed -= AttackReadyFailPoint;
     }
+
+    #endregion
+
+    protected virtual void Animation_Damaged(OnAttackInfoEventArgs e)
+    {
+        // 스폰 중이면 패스
+        if (m_GameEntity.m_IsSpawning)
+            return;
+
+        // 공격 미스라면 넘기기
+        if (e.EHitDeCisionType == E_HitDecisionType.AttackMiss)
+            return;
+
+        // 공격 준비중이 아닐 경우에 넘기기
+        if (m_GameEntity.m_CurrentAction is CombatAction combat)
+        {
+            if (combat.m_ThisTimeAttack is not AttackData_Ready)
+                return;
+        }
+
+        if (e.EHitDeCisionType == E_HitDecisionType.CriticalHit && m_CriticalDamagedAnimationClip.Length > 0)
+        {
+            ChangeAnimationAtStart(E_GameEntityClipType.Damaged.ToString(), m_CriticalDamagedAnimationClip);
+        }
+        else
+            ChangeAnimationAtStart(E_GameEntityClipType.Damaged.ToString(), m_DamagedAnimationClip);
+    }
+
+    public void StepSoundPlay()=> OnStep?.Invoke();
+    private void Revived() => ChangeAnimationAtStart(E_GameEntityClipType.Revive.ToString(), m_ReviveAnimationClip);
+
+    private void Spawned()
+    {
+        if(m_SpawnAnimationClip.Length > 0)
+        {
+            ChangeAnimationAtStart(E_GameEntityClipType.Spawn.ToString(), m_SpawnAnimationClip);
+        }
+        else
+        {
+            // ❌ m_GameEntity.SpawnComplete();
+            OnSpawnAnimFinished?.Invoke();
+        }
+    }
+
+    private void DeSpawned()
+    {
+        if(m_DeSpawnAnimationClip.Length > 0)
+        {
+            ChangeAnimationAtStart(E_GameEntityClipType.DeSpawn.ToString(), m_DeSpawnAnimationClip);
+        }
+        else
+        {
+            // ❌ m_GameEntity.DeSpawnComplete();
+            OnDespawnAnimFinished?.Invoke();
+        }
+    }
+
+    private void Interact() => ChangeAnimationAtStart(E_GameEntityClipType.Interact.ToString(), m_InteractAnimationClip);
+
+    protected virtual void Dead(OnAttackInfoEventArgs e)
+    {
+        if(m_DeathAnimationClip.Length > 0)
+        {
+            ChangeAnimationAtStart(E_GameEntityClipType.Death.ToString(), m_DeathAnimationClip);
+        }
+        else
+        {
+            if (m_GameEntity.m_IsDirectDesawnAtDeath)
+            {
+                m_GameEntity.DeSpawnStart();
+            }
+        }
+    }
+
+    public void AnimationStop() => m_Animator.speed = 0f; // 모든 레이어 애니메이션 정지
+    public void AnimationPlay() => m_Animator.speed = 1f; // 모든 레이어 애니메이션 정지
+    public void AnimatonSpeedRestoreOriginalSpeed() => m_Animator.speed = m_AnimatorOriginalVale;
+
+    #region Attack
+
+    protected virtual void AttackStart(AttackData e)
+    {
+        ChangeAnimationAtStart(E_GameEntityClipType.Attack.ToString(), e.selectInfoClip.AttackAnimationClip);
+
+        // 선택한 공격 패턴의 공격 스피드를 애니메이터 스테이트의 스피드를 조정함.
+        // 공격 스피드 조정
+        // 런타임 중에 state의 speed 값 변경은 불가함.
+        m_Animator.speed = e.m_fAttackSpeed;
+    }
+
+    // 공격 애니메이션에 있는 Event에서 실행됨
+    public virtual void AttackPoint() => OnAttackPoint?.Invoke();
+    
+    public void AttackReadyFailPoint(AttackData ready) => OnReadyFailPoint?.Invoke();
+
+    #endregion
+
+    FullBodyBipedIK m_FullBodyBipedIK;
+    public virtual void SetHandIKForWeapon(RightHandIKTarget rightHandTarget, LeftHandIKTarget leftHandTarget, bool isTwoHandingWeapon)
+    {
+        // 두 손의 경우 왼 손 무기는 집어 넣고, 오른 손 무기를 두 손으로 잡기
+        if (isTwoHandingWeapon)
+        {
+            if (rightHandTarget != null)
+            {
+                m_FullBodyBipedIK.solver.rightHandEffector.target = rightHandTarget.transform;
+                m_FullBodyBipedIK.solver.rightHandEffector.positionWeight = 1;
+                m_FullBodyBipedIK.solver.rightHandEffector.rotationWeight = 1;
+            }
+
+            if (leftHandTarget != null)
+            {
+                m_FullBodyBipedIK.solver.leftHandEffector.target = leftHandTarget.transform;
+                m_FullBodyBipedIK.solver.leftHandEffector.positionWeight = 1;
+                m_FullBodyBipedIK.solver.leftHandEffector.rotationWeight = 1;
+            }
+
+            if (rightHandTarget != null && leftHandTarget != null)
+            {
+                m_FullBodyBipedIK.solver.spineMapping.twistWeight = 1;
+            }
+        }
+        else
+        {
+            m_FullBodyBipedIK.solver.rightHandEffector.target = null;
+            m_FullBodyBipedIK.solver.leftHandEffector.target = null;
+        }
+    }
+
+    #region Move
+
+    private void MoveAction_OnStartMoving()
+    {
+        // 무브 스테이트에 따라 바꾸기
+        if (m_GameEntity.m_AttributeSystem.m_EMoveType == E_MoveType.Walk)
+            m_Animator.CrossFade("Walk", m_fCrossTime);
+        else if (m_GameEntity.m_AttributeSystem.m_EMoveType == E_MoveType.Run)
+            m_Animator.CrossFade("Run", m_fCrossTime);
+    }
+
+
+    private void MoveAction_OnStopMoving()
+    {
+        // 움직이지 않으니까 제자리
+        m_Animator.CrossFade("Idle", m_fCrossTime);
+    }
+
+
+    private void MoveAction_OnChangedFloorsStarted(OnChangeFloorsStartedEventArgs e)
+    {
+        if (e.targetGridPosition.floor > e.unitGridPosition.floor)
+        {
+            // Jump
+            m_Animator.CrossFade("JumpUp", m_fCrossTime);
+        }
+        else
+        {
+            // Drop
+            m_Animator.CrossFade("JumpDown", m_fCrossTime);
+        }
+    }
+    
+    #endregion
+
 
     public void ChangeAnimationAtStart(string AnimationStateName, AnimationClip[] newClips, bool isImmediatelyStart = true)
     {
         if (newClips.Length == 0)
         {
-            //Debug.Log($"{m_GameEntity.name}의 {AnimationStateName} animation 이 없습니다.");
+            Debug.Log($"{m_GameEntity.name}의 {AnimationStateName} animation 이 없습니다.");
             return;
         }
 
-        int rand = UnityEngine.Random.Range(0, newClips.Length);
-        AnimationClip newClip = newClips[rand];
-
-        ChangeAnimationAtStart(AnimationStateName, newClip, isImmediatelyStart);
+        ChangeAnimationAtStart(AnimationStateName, newClips.RandomPick(), isImmediatelyStart);
     }
 
     // 현재 가지고 있는 애니메이션 클립을 애니메이션 컨트롤러의 원하는 스테이트의 클립과 교체하기
@@ -128,7 +328,7 @@ public class GameEntityAnimator : MonoBehaviour
 
         overrideController.ApplyOverrides(overrides);
 
-        if(isImmediatelyStart)
+        if (isImmediatelyStart)
         {
             m_Animator.CrossFade(AnimationStateName.ToString(), m_fCrossTime);
         }
@@ -143,120 +343,4 @@ public class GameEntityAnimator : MonoBehaviour
         m_Animator.CrossFade(targetAnim, m_fCrossTime);
     }
 
-    private void Spawned(object s, EventArgs e)
-    {
-        if(m_SpawnAnimationClip.Length > 0)
-        {
-            ChangeAnimationAtStart(E_GameEntityClipType.Spawn.ToString(), m_SpawnAnimationClip);
-        }
-        else
-        {
-            m_GameEntity.SpawnComplete();
-        }
-    }
-
-    private void DeSpawned(object s, EventArgs e)
-    {
-        if(m_DeSpawnAnimationClip.Length > 0)
-        {
-            ChangeAnimationAtStart(E_GameEntityClipType.DeSpawn.ToString(), m_DeSpawnAnimationClip);
-        }
-        else
-        {
-            m_GameEntity.DeSpawnComplete();
-        }
-    }
-
-    protected virtual void Dead()
-    {
-        if(m_DeathAnimationClip.Length > 0)
-        {
-            ChangeAnimationAtStart(E_GameEntityClipType.Death.ToString(), m_DeathAnimationClip);
-        }
-        else
-        {
-            if (m_GameEntity.m_IsDirectDesawnAtDeath)
-            {
-                m_GameEntity.DeSpawnStart();
-            }
-        }
-    }
-
-    public void AnimationStop()
-    {
-        m_Animator.speed = 0f; // 모든 레이어 애니메이션 정지
-    }
-
-    public void AnimationPlay()
-    {
-        m_Animator.speed = 1f; // 모든 레이어 애니메이션 정지
-    }
-
-    public void AnimatonSpeedRestoreOriginalSpeed()
-    {
-        m_Animator.speed = m_AnimatorOriginalVale;
-
-    }
-
-    protected virtual void CombatAction_OnAttack(object sender, CombatAction.OnAttackBaseEventArgs e)
-    {
-        if (e.attackPattern.Validate(true) == false)
-        {
-            Debug.LogError($"{m_GameEntity.name} 공격 애니메이션 검증 오류");
-            return;
-        }
-
-        AttackPatternInfoClip m_TempInfo = null;
-
-        if (e.attackPattern is AttackPattern_Range range)
-        {
-            if (range.context.ObstacleHeight >= 1)
-                m_TempInfo = e.attackPattern.GetBaseClip().FirstOrDefault(clip => clip.AttackAnimationClip.name.Contains("Parabola"));
-            
-            // 위로 던지는 애니메이션이 없다면 그냥 일반 공격으로 대체
-            if (m_TempInfo == null)
-                m_TempInfo = e.attackPattern.GetBaseClip().Where(clip => !clip.AttackAnimationClip.name.Contains("Parabola")).RandomPick(); ;
-        }
-        else 
-        {
-            m_TempInfo = e.attackPattern.GetBaseClip().RandomPick();
-        }
-
-        if (m_TempInfo == null)
-        {
-            Debug.LogError($"{m_GameEntity.name} 공격 애니메이션 클립이 존재하지 않습니다.");
-            return;
-        }
-
-        ChangeAnimationAtStart(E_GameEntityClipType.Attack.ToString(), m_TempInfo.AttackAnimationClip);
-
-        // 선택한 공격 패턴의 공격 스피드를 애니메이터 스테이트의 스피드를 조정함.
-        // 공격 스피드 조정
-        // 런타임 중에 state의 speed 값 변경은 불가함.
-        m_Animator.speed = e.attackPattern.m_fAttackSpeed;
-    }
-
-    protected bool _attackValid = true;
-    public virtual void AttackPoint()
-    {
-        // 어택
-        var combatAction = m_GameEntity.GetAction<CombatAction>();
-
-        // Fail
-        if (combatAction.m_ThisTimeAttack == null)
-        {
-            Debug.Log("attack null " + m_GameEntity.name);
-            //combatAction.OnEndAttackEventInvoke();
-            _attackValid = false;
-            return;
-        }
-        else
-        {
-            // 사운드
-            m_GameEntity.GetSounderManager().AttackSoundPlay(combatAction.m_ThisTimeAttack);
-
-            _attackValid = true;
-        }
-
-    }
 }

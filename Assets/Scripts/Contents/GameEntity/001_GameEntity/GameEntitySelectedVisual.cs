@@ -13,24 +13,40 @@ public class GameEntitySelectedVisual : MonoBehaviour
     string m_NoneMaterial = "NoneSelectedVisual";
 
     // 이벤트를 담아줘야 온전히 오브젝트가 파괴되었을 때 삭제가 가능함.
-    private EventHandler onSelectedHandler;
-    private EventHandler onDeselectedHandler;
+    private Action onSelectedHandler;
+    private Action onDeselectedHandler;
+
+    private void Awake()
+    {
+        unit = GetComponentInParent<GameEntity>();
+        meshRenderer = GetComponent<MeshRenderer>();
+    }
 
     private void Start()
     {
-        unit = GetComponentInParent<GameEntity>();
-
-        onSelectedHandler = (s, e) => HandleSelected();
-        onDeselectedHandler = (s, e) => HandleDeselected();
-
-        unit.OnSelectedEvent += onSelectedHandler;
-        unit.OnDeselectedEvent += onDeselectedHandler;
-
-        meshRenderer = GetComponent<MeshRenderer>();
-
         SetMaterialColor();
 
         meshRenderer.enabled = false;
+    }
+
+    private void OnEnable()
+    {
+
+        onSelectedHandler += HandleSelected;
+        onDeselectedHandler += HandleDeselected;
+
+        unit.OnSelectedEvent += onSelectedHandler;
+        unit.OnDeselectedEvent += onDeselectedHandler;
+    }
+
+    private void OnDisable()
+    {
+
+        onSelectedHandler -= HandleSelected;
+        onDeselectedHandler -= HandleDeselected;
+
+        unit.OnSelectedEvent -= onSelectedHandler;
+        unit.OnDeselectedEvent -= onDeselectedHandler;
     }
 
     private void SetMaterialColor()

@@ -1,32 +1,31 @@
-using Data;
 using System.Collections.Generic;
 using UnityEngine;
-using static Define;
 
-
-public class NPCObject : MonoBehaviour, ISaveable
+public class NPCObject : GameEntity
 {
-    private void OnValidate()
-    {
-        if (Icon == null)
-            Icon = this.gameObject.GetComponentInChildren<NPCInteractionUI>(true);
-    }
-
-    [field: SerializeField] public Dialogue.Data Data {get; private set;}
-    [field: SerializeField] public NPCInteractionUI Icon {get; private set;}
+    [Header("NPC Property")]
+    private NPCInteractionUI Icon;
+    [field: SerializeField] public Dialogue.Data Data {get; private set; }
     [field: SerializeField] public NPCData NPCData {get; private set;} 
     [SerializeField] private string _dataID;
 
-    private void Awake()
+    #region Unity Life Cycle
+
+    protected override void Awake()
     {
+        base.Awake();
         NPCData = NPCData.Create(_dataID);
+        Icon = GetComponentInChildren<NPCInteractionUI>(true);
         Icon.Setup(this, onClick: () => StartDialogue());
     }
 
-    public void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
         Icon?.Clear();
     }
+
+    #endregion
 
     public void StartDialogue()
     {
@@ -123,13 +122,4 @@ public class NPCObject : MonoBehaviour, ISaveable
 
     public string GetDialogueID() => Data?.Dialogue_ID;
 
-    public BaseData CaptureSaveData()
-    {
-        throw new System.NotImplementedException();
-    }
-
-    public void RestoreSaveData(BaseData data)
-    {
-        throw new System.NotImplementedException();
-    }
 }

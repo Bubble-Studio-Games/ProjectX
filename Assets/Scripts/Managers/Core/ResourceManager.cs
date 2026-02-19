@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst.Intrinsics;
 using UnityEngine;
 
 public class ResourceManager
@@ -25,7 +26,7 @@ public class ResourceManager
 
         // 🔹 성공/실패 여부 로그
         if (resource == null)
-           Debug.LogError($"[Resource Load ❌] Failed to load: {path}");
+            Debug.LogError($"[Resource Load ❌] Failed to load: {path}");
         // else
         //    Debug.Log($"[Resource Load ✅] Successfully loaded: {path}");
 
@@ -34,7 +35,7 @@ public class ResourceManager
 
     public GameObject Instantiate(GameObject go, Transform parent = null)
     {
-        if(go == null)
+        if (go == null)
         {
             Debug.Log($"{go.name} Is Null");
         }
@@ -68,6 +69,10 @@ public class ResourceManager
         obj.transform.position = position;
         return obj;
     }
+    public T Instantiate<T>(string path) where T : Component
+    {
+        return Instantiate(path, null).GetComponent<T>();
+    }
 
     public T Instantiate<T>(GameObject go, Vector3 position, Quaternion rotation, Transform parent = null) where T : Component
     {
@@ -87,7 +92,7 @@ public class ResourceManager
 
     public T Instantiate<T>(GameObject go, Quaternion rotation, Transform parent = null) where T : Component
     {
-        go.transform .rotation = rotation;
+        go.transform.rotation = rotation;
 
         return Instantiate<T>(go, parent);
     }
@@ -129,6 +134,14 @@ public class ResourceManager
 
         GameObject go = Object.Instantiate(original, parent);
         go.name = original.name;
+        return go;
+    }
+
+    public GameObject Instantiate(string path, Vector3 position, Quaternion rotation, Transform parent = null)
+    {
+        GameObject go = Instantiate(path, parent);
+        go.transform.position = position;
+        go.transform.rotation = rotation;
         return go;
     }
 

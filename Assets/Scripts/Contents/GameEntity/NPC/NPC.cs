@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static Define;
 
@@ -12,7 +13,7 @@ public static class NPCEx
     }
 }
 
-public class NPC : Unit
+public class NPC : GameEntity
 {
     [Header("NPC Behavior / 디버그용")]
     [SerializeField] private Vector3 _targetPos;
@@ -42,7 +43,11 @@ public class NPC : Unit
         return true;
     }
 
-    public new E_ObjectType m_ObjectType => E_ObjectType.NPC;
+    NPC()
+    {
+        m_EObjectType = E_ObjectType.NPC;
+    }
+
     [SerializeField] private E_NPCState _state = E_NPCState.Neutral;
     public E_NPCState State
     {
@@ -56,19 +61,11 @@ public class NPC : Unit
             _state = value;
             EnterState(_state);
             UpdateTeamID();
+            UpdateState(_state);
             OnStateChanged?.Invoke(this, _state);
         }
     }
 
-    private Transform _dungeonCoreTransform
-    {
-        get
-        {
-            if (DungeonCore.instance == null)
-                return null;
-            return DungeonCore.instance.transform;
-        }
-    }
     private Coroutine _shopTimerCoroutine;
 
     public Vector3 TargetPos => _targetPos;
@@ -116,7 +113,7 @@ public class NPC : Unit
         // _outline.Init(this);    
     }
 
-    public override void OnDestroy()
+    protected override void OnDestroy()
     {
         base.OnDestroy();
         _exclamationIcon = null;
@@ -142,15 +139,6 @@ public class NPC : Unit
             SwitchToNextStateAction(initAction);
         else
             Debug.LogError($"{name}: NPCIdleAction을 찾을 수 없습니다.");
-    }
-
-    protected override void Update()
-    {
-        if (_isInit == false)
-            return;
-
-        base.Update();
-        UpdateState(_state);
     }
 
     private void EnterState(E_NPCState state)
@@ -261,7 +249,8 @@ public class NPC : Unit
             SetTarget(transform.position);
 
             // NPCMoveAction 다시 시작
-            m_CommandAction = GetAction<NPCMoveAction>();
+            // TODO
+            //m_CommandAction = GetAction<NPCMoveAction>();
         }
 
         _shopTimerCoroutine = null;
@@ -329,12 +318,13 @@ public class NPC : Unit
         if (_npcStat.MoveTowardsDungeonCore == false)
             return;
 
-        if (_dungeonCoreTransform.position == Vector3.zero)
-            return;
+        var core = Managers.SceneServices.DungeonCores.Cores.First();
+        if(core == null) return;
 
-        SetTarget(_dungeonCoreTransform.position);
+        SetTarget(core.Position);
 
-        m_CommandAction = GetAction<NPCMoveAction>();
+        // TODO
+        //m_CommandAction = GetAction<NPCMoveAction>();
     }
 
     private void UpdateNeutralState()

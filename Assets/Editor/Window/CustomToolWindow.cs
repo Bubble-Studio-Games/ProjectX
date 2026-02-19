@@ -66,8 +66,6 @@ public partial class CustomToolWindow : EditorWindow
         }
 
         minSize = new Vector2(700, 500);
-
-        OnEnable_GameEntityAnimationTester();
     }
 
     private void OnGUI()
@@ -142,10 +140,11 @@ public partial class CustomToolWindow : EditorWindow
         }
     }
 
-
-
     private void DrawContentArea()
     {
+        // 🔹 현재 선택된 탭 기준으로 GameEntityAnimationTester 활성/비활성 관리
+        UpdateGameEntityAnimationTesterActivation();
+
         var key = (selectedMain, selectedSub);
         if (toolDrawMap.TryGetValue(key, out var drawFunc))
         {

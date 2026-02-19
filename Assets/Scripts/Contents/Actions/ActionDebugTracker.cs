@@ -63,7 +63,7 @@ public class ActionDebugTracker : MonoBehaviour
         _currentActionName = GetActionName(currentAction);
         _nextActionName = GetActionName(GetPrivateField<BaseAction>("m_NextAction"));
         _beforeActionName = GetActionName(GetPrivateField<BaseAction>("m_BeforeAction"));
-        _commandActionName = GetActionName(_controllableObject.m_CommandAction);
+        _commandActionName = "현재 Queue로 변경함.";// GetActionName(_controllableObject.m_command);
         _targetName = _controllableObject.m_Target?.name ?? "None";
     }
 
@@ -97,7 +97,7 @@ public class ActionDebugTracker : MonoBehaviour
         if (action == null)
             return "None";
 
-        return action.GetActionName();
+        return action.m_actionName;
     }
 
     private T GetPrivateField<T>(string fieldName) where T : class

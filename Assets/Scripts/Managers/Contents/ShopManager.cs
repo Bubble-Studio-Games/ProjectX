@@ -80,17 +80,7 @@ public class ShopManager
     /// <summary>
     /// 상점 아이템의 실제 가격 반환 - Price_Override가 -1이면 기본가 사용
     /// </summary>
-    public int GetItemPrice(Shop.Data shopData)
-    {
-        if (shopData.Price_Override >= 0)
-            return shopData.Price_Override;
-
-        var itemData = Managers.Data.ItemData;
-        if (itemData.TryGetValue(shopData.Item_ID, out var item))
-            return item.Price_Buy;
-
-        return 0;
-    }
+    public int GetItemPrice(Shop.Data shopData) => Managers.Data.GetShopItemPrice(shopData);
 
     /// <summary>
     /// 아이템 판매 가격 반환

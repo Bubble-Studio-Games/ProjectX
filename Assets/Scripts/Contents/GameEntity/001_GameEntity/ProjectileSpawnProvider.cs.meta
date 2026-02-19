@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scripts/Contents/Actions/NPCIdleAction.cs.meta
+guid: 635545a99bf64b74a8db2a5aa2cd71d3
+========
+guid: 7c78131397e1c9b4fa6eb8acc510b8aa
+>>>>>>>> upstream/develop:Assets/Scripts/Contents/GameEntity/001_GameEntity/ProjectileSpawnProvider.cs.meta
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,103 +1,57 @@
-using System.Collections;
-using System.Collections.Generic;
+using Data;
 using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using static Define;
 
-
 public class DungeonScene : BaseScene
 {
-    [SerializeField] private GameObject m_InitObject; // 초기 데이터
-
-    private NPCSpawner _npcSpawner;
-    private MenuUI _menuUI;
-
-
-    protected override void Init()
-    {
-        base.Init();
-        SceneType = Scene.Dungeon;
-
-        var data = Managers.Load.GetContinueSaveData();
-
-        _npcSpawner = FindAnyObjectByType<NPCSpawner>();
-        _npcSpawner?.SetUp();
-
-        _menuUI = FindAnyObjectByType<MenuUI>();
-        _menuUI?.SetUp(MenuUI.MenuContext.InGamePaused);
-
-        if (m_InitObject == null)
-            return;
-
-        // 기존 플레이 했던 데이터가 있는 경우
-        if (data != null && data.dungeondata.gameEntityDatas.Count > 0 && useLoadSaveFile )
-        {
-            m_InitObject.SetActive(false);
-
-            Managers.Object.Clear();
-        }
-        else
-        {
-            m_InitObject.SetActive(true);
-        }
-    }
+    IBuildingCardUI _buildingCardUI;
+    DungeonScene() => SceneType = Scene.Dungeon;
 
     protected override void Start()
     {
+        _buildingCardUI = Managers.SceneServices.BuildingCardUI;
+
         base.Start();
 
         // Sound
         Managers.Sound.Play(m_SceneMainTemaAudioclip, 1, Sound.Bgm);
-
-        // Data
-        var data = Managers.Load.GetContinueSaveData();
-
-        // 기존 플레이 했던 데이터가 있는 경우
-        if (data != null && data.dungeondata.gameEntityDatas.Count > 0 && useLoadSaveFile)
-        {
-            // 배치 오브젝트
-            Managers.Object.Clear();
-
-            // 오브젝트 로드
-            Managers.Load.ObjectInfoLoad(data.dungeondata.gameEntityDatas); // 오브젝트 등록
-            Managers.Load.ObjectRestoreSaveData(data.dungeondata.gameEntityDatas); // 오브젝트 정보 로드
-
-            // 카드
-            BuildingTypeSelectUI.Instance.RestoreSaveDatas(data.dungeondata.buildingCardDatas);
-
-            // 다운 잼 (재화)
-            Inventory.Instance.m_iDownJamAmount = data.dungeondata.downJam;
-
-            // 카메라
-            CameraController.Instance.m_Follow.transform.SetPositionAndRotation(data.dungeondata.cameraPos, data.dungeondata.cameraRot);
-        }
-        else
-        {
-            // 초기 데이터라면 무작위로 5개 생성
-            // Card Data Load
-            var list = Inventory.Instance.GetEnableCardList();
-            for (int i = 0; i < 5; i++)
-                BuildingTypeSelectUI.Instance.AddCard(list[Random.Range(0, list.Count)], default, true);
-
-            // 카메라
-            if (DungeonCore.instance != null)
-            {
-                CameraController.Instance.m_Follow.transform.SetPositionAndRotation(
-                    DungeonCore.instance.transform.position, DungeonCore.instance.transform.rotation);
-            }
-        }
-    }
-
-    public override void Clear()
-    {
-        if (_npcSpawner != null)
-            _npcSpawner.Clear();
-        
-        _menuUI = null;
-        _npcSpawner = null;
-        base.Clear();
     }
 
     protected override E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Game;
+
+    protected override void LoadSavedGame(SaveSlotData data)
+    {
+        base.LoadSavedGame(data);
+
+        // ✅ 데이터가 있다는 게 확정된 상태
+        Managers.Object.Clear(); // 기존 씬 배치 제거
+
+        Managers.Load.ObjectInfoLoad(data.dungeondata.gameEntityDatas);
+        Managers.Load.ObjectRestoreSaveData(data.dungeondata.gameEntityDatas);
+
+        _buildingCardUI.RestoreSaveDatas(data.dungeondata.buildingCardDatas);
+
+        Managers.SceneServices.InventoryWrite.AddDownJam(data.dungeondata.downJam);
+
+        Managers.SceneServices.CameraInfo.SetPositionAndRotation(
+            data.dungeondata.cameraPos, data.dungeondata.cameraRot);
+    }
+
+    protected override void LoadNewGame()
+    {
+        base.LoadNewGame();
+
+        var list = Managers.SceneServices.InventoryRead.EnabledCards;
+
+        for (int i = 0; i < 5; i++)
+            _buildingCardUI?.AddCard(list[Random.Range(0, list.Count)], default, true);
+
+        if (Managers.SceneServices.DungeonCores.Cores.Count > 0)
+        {
+            Managers.SceneServices.CameraInfo.SetPositionAndRotation
+                (Managers.SceneServices.DungeonCores.Cores.First().Position,
+                 Managers.SceneServices.DungeonCores.Cores.First().Rotation);
+        }
+    }
 }

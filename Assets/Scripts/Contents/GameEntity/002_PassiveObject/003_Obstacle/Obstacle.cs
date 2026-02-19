@@ -6,6 +6,6 @@ public class Obstacle : PassiveObject
 {
     public Obstacle()
     {
-        m_ObjectType = Define.E_ObjectType.Obstacle;
+        m_EObjectType = Define.E_ObjectType.Obstacle;
     }
 }

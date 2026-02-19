@@ -22,20 +22,20 @@ MonoBehaviour:
     _value: 100
   m_iIsStepReduceHP: 0
   m_fHPRegenrate:
-    _value: 2.6
+    _value: 0
   m_fMPRegenrate:
     _value: 0
   m_iMaxMP:
     _value: 100
   m_iCurrentMP:
-    _value: 50
+    _value: 85
   m_fChaseSpeed:
-    _value: 3
+    _value: 1.5
   m_fWalkSpeed:
     _value: 1
-  m_iCommandMoveDistance: 0
-  m_iDetectRange: 0
-  m_iChaseRange: 4
+  m_iCommandMoveRange: 0
+  m_iDetectRange: 2
+  m_iChaseRange: 2
   m_iPhysicalBaseDamamge:
     _value: 0
   m_iMagicalBaseDamamge:
@@ -47,7 +47,7 @@ MonoBehaviour:
   m_fCounterAttackChance:
     _value: 0
   m_fEvasionChance:
-    _value: 0
+    _value: 2
   m_fKnockbackRegist:
     _value: 0
   m_iSpawnCost: 0

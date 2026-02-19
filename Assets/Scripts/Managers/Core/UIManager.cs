@@ -219,7 +219,7 @@ public class UIManager
     /// <param name="colorMode">색상 모드 (RGB, RGB01, HSV)</param>
     public void FadeIn(Image image, float duration, EColorMode colorMode = EColorMode.RGB)
     {
-        CoroutineRunner.Instance.StartCoroutine(FadeRoutine(image, duration, true, colorMode));
+        Managers.SceneServices.CoroutineRunner.Run(FadeRoutine(image, duration, true, colorMode));
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public class UIManager
     /// </summary>
     public  void FadeOut(Image image, float duration, EColorMode colorMode = EColorMode.RGB)
     {
-        CoroutineRunner.Instance.StartCoroutine(FadeRoutine(image, duration, false, colorMode));
+        Managers.SceneServices.CoroutineRunner.Run(FadeRoutine(image, duration, false, colorMode));
     }
 
     public IEnumerator FadeRoutine(Image image, float duration, bool fadeIn, EColorMode colorMode)

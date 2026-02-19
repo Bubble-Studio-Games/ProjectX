@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using static Define;
 
 public class DialogueManager
@@ -30,6 +30,7 @@ public class DialogueManager
     private Action _onEnded;
     private CancellationTokenSource _dialogueCTS;
 
+    IInputActionMapController maps => Managers.SceneServices.InputActionMapController;
 
     public void Init()
     {
@@ -57,43 +58,33 @@ public class DialogueManager
     /// <summary>
     /// Dialogue 입력 이벤트 구독
     /// </summary>
-    private void SubscribeInput(InputManager inputManager)
+    private void SubscribeInput()
     {
-        if (inputManager == null)
-        {
+        if (_isDialogueInputSubscribed)
             return;
-        }
 
-        if (_isDialogueInputSubscribed == true)
-        {
-            return;
-        }
         _isDialogueInputSubscribed = true;
 
-        var dialogue = inputManager.InputActions.Dialogue;
-        dialogue.Submit.performed += OnDialogueSubmit;
-        dialogue.ESC.performed += OnDialogueESC;
+        var events = Managers.SceneServices.InputEvents;
+
+        events.Subscribe(E_InputEvent.DialogueSubmit, OnDialogueSubmit);
+        events.Subscribe(E_InputEvent.DialogueCancel, OnDialogueESC);
     }
 
     /// <summary>
     /// Dialogue 입력 이벤트 구독 해제
     /// </summary>
-    private void UnsubscribeInput(InputManager inputManager)
+    private void UnsubscribeInput()
     {
-        if (inputManager == null)
-        {
-            return;
-        }
-
         if (_isDialogueInputSubscribed == false)
-        {
             return;
-        }
-        _isDialogueInputSubscribed = false;
 
-        var dialogue = inputManager.InputActions.Dialogue;
-        dialogue.Submit.performed -= OnDialogueSubmit;
-        dialogue.ESC.performed -= OnDialogueESC;
+        var events = Managers.SceneServices.InputEvents;
+
+        events.Unsubscribe(E_InputEvent.DialogueSubmit, OnDialogueSubmit);
+        events.Unsubscribe(E_InputEvent.DialogueCancel, OnDialogueESC);
+
+        _isDialogueInputSubscribed = false;
     }
 
     private void Internal_OnSubmit()
@@ -111,7 +102,7 @@ public class DialogueManager
     /// <summary>
     /// Dialogue Submit 입력 처리 - Enter, Space, LeftClick
     /// </summary>
-    private void OnDialogueSubmit(InputAction.CallbackContext context)
+    private void OnDialogueSubmit()
     {
         Internal_OnSubmit();
     }
@@ -119,7 +110,7 @@ public class DialogueManager
     /// <summary>
     /// Dialogue ESC 입력 처리 - ESC
     /// </summary>
-    private void OnDialogueESC(InputAction.CallbackContext context)
+    private void OnDialogueESC()
     {
         if (IsDialogueContext == false)
             return;
@@ -161,14 +152,9 @@ public class DialogueManager
         CurDialogueId = dialogueId;
 
         // ActionMap을 Dialogue로 전환
-        var input = InputManager.Instance;
-        if (input == null)
-        {
-            Debug.LogError("InputManager가 존재하지 않습니다.");
-            return;
-        }
-        input.PushActionMapGroup(Define.E_InputActionMap.Dialogue);
-        SubscribeInput(input);
+
+        maps.PushActionMapGroup(Define.E_InputActionMap.Dialogue);
+        SubscribeInput();
 
         _dialogueUI = Managers.UI.ShowPopupUI<DialogueUI>();
         OnDialogueStarted?.Invoke(dialogueData);
@@ -390,11 +376,8 @@ public class DialogueManager
         }
 
         // Input 구독 해제
-        var input = InputManager.Instance;
-        if (input == null)
-            Debug.LogError("InputManager가 존재하지 않습니다.");
-        UnsubscribeInput(input);
-        input.PopActionMapGroup();
+        UnsubscribeInput();
+        maps.PopActionMapGroup();
 
         OnDialogueEnded?.Invoke(null);
 
@@ -547,3 +530,38 @@ public class DialogueManager
     }
 }
 
+public static class IAsyncCloseableEx
+{
+    /// <summary>
+    /// UI 닫힘 대기 - 여러 UI가 모두 닫힐 때까지 비동기 대기
+    /// </summary>
+    public static async Task WaitForUICloseAsync(CancellationToken ct, params Define.IAsyncCloseable[] closeables)
+    {
+        var registrations = new List<CancellationTokenRegistration>();
+
+        try
+        {
+            var tasks = closeables.Select(ui =>
+            {
+                var tcs = new TaskCompletionSource<bool>();
+
+                if (ct.CanBeCanceled)
+                {
+                    var registration = ct.Register(() => tcs.TrySetCanceled());
+                    registrations.Add(registration);
+                }
+
+                ui.OnClose = null;
+                ui.OnClose = () => tcs.TrySetResult(true);
+                return tcs.Task;
+            }).ToArray();
+
+            await Task.WhenAll(tasks);
+        }
+        finally
+        {
+            foreach (var registration in registrations)
+                registration.Dispose();
+        }
+    }
+}

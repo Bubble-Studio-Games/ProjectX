@@ -1,3 +1,4 @@
+using Data;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,17 +6,8 @@ using static Define;
 
 public class TestScene : BaseScene
 {
-    protected override void Init()
-    {
-        base.Init();
-
+    TestScene() => 
         SceneType = Define.Scene.Test;
-    }
-
-    public override void Clear()
-    {
-        base.Clear();
-    }
 
     protected override E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Lobby;
 }
