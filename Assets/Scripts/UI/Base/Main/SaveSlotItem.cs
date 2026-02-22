@@ -43,7 +43,7 @@ public class SaveSlotItem : UI_Base
         // 복붙 기능이 켜져 있음. 원하는 슬롯을 클릭하면 복붙을 함.
         if (_saveSlotPanel.IsCopying)
         {
-            await Managers.Save.CopySlotAsync(_saveSlotPanel.SelectedSlotID, slotID);
+            await Managers.Game.CopySlotAsync(_saveSlotPanel.SelectedSlotID, slotID);
             _saveSlotPanel.RefreshUI();
             _saveSlotPanel.CopyComplete();
         }

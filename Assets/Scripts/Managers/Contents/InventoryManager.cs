@@ -49,8 +49,13 @@ public class Gold
         return true;
     }
 }
-public class InventoryManager
+public class InventoryManager : IManager
 {
+
+    public void Clear()
+    {
+    }
+
     public Gold Gold { get; } = new Gold();
 
     public event Action OnInventoryChanged;

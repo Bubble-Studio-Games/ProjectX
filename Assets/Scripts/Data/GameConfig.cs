@@ -57,5 +57,6 @@ public static partial class GameConfig
     public static InventorySettings Inventory => LoadConfig<InventorySettings>();
     public static RuntimeSettings RuntimeSettings => LoadConfig<RuntimeSettings>();
     public static TeamRelationSettings TeamRelation => LoadConfig<TeamRelationSettings>();
+    public static GridSettings Grid => LoadConfig<GridSettings>();
 
 }

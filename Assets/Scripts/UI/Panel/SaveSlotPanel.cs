@@ -93,7 +93,7 @@ public class SaveSlotPanel : UI_Base
     /// </summary>
     private async void OnDeleteConfirmed()
     {
-        await Managers.Save.DeleteSlotAsync(_selectedSlotID);
+        await Managers.Game.DeleteSlotAsync(_selectedSlotID);
         Slots[_selectedSlotID].RefreshUI();
         RefreshUI();
         Managers.UI.ClosePopupUI<CheckUI>();
@@ -112,7 +112,7 @@ public class SaveSlotPanel : UI_Base
     /// </summary>
     private async void OnPlayButtonClicked()
     {
-        await Managers.Save.SavePlayStatistics();
+        await Managers.Game.SavePlayStatistics();
         gameObject.SetActive(false);
     }
 

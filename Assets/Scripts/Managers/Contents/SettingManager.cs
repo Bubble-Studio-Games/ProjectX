@@ -7,8 +7,12 @@ using System.Reflection;
 using System;
 using static ProPixelizer.Tools.SteppedAnimation;
 
-public class SettingManager
+public class SettingManager : IManager
 {
+    public void Clear()
+    {
+    }
+
     [Tooltip("Stepped 애니메이션이 저장될 최상위 폴더 경로 (예: Assets/SteppedClips)")]
     public string baseSaveFolder = "Assets/Resources/Data/Animation/SteppedClips";
     private const string CACHE_FILE_NAME = "SteppedCache.json";
@@ -21,7 +25,6 @@ public class SettingManager
         fps = GameConfig.RuntimeSettings.animationStepFps;
         mode = GameConfig.RuntimeSettings.mode;
     }
-
 
     public void ReplaceAnimationClipsInAttackPattern(string ownerName, AttackData pattern)
     {
@@ -341,34 +344,6 @@ public class SettingManager
         return times;
     }
 
-
-    private List<float> GetKeyframeTimes2(AnimationClip clip)
-    {
-        List<float> times = new();
-
-        switch (mode)
-        {
-            case SteppedAnimation.StepMode.FixedRate:
-                int frameCount = Mathf.CeilToInt(clip.length * fps);
-                for (int i = 0; i <= frameCount; i++)
-                    times.Add(i / fps);
-                break;
-
-            case SteppedAnimation.StepMode.FixedTimeDelay:
-                float delay = 1f / fps;
-                int count = Mathf.CeilToInt(clip.length / delay);
-                for (int i = 0; i <= count; i++)
-                    times.Add(i * delay);
-                break;
-
-            case SteppedAnimation.StepMode.Manual:
-                Debug.LogWarning("Manual 모드는 현재 지원되지 않습니다.");
-                break;
-        }
-
-        return times;
-    }
-
     private SteppedCacheData LoadCache(string path)
     {
         if (!File.Exists(path))
@@ -441,13 +416,6 @@ public class SettingManager
             mode = mode.ToString(),
             path = steppedPath
         });
-    }
-
-    public void ClearSteppedCache()
-    {
-        //steppedCache.Clear();
-        //if (File.Exists(cachePath))
-        //    File.Delete(cachePath);
     }
 }
 

@@ -29,7 +29,7 @@ public class CommandMoveAction : MoveAction, ICommandAction
 
         // Find Path
         List<GridPosition> pathGridPositionList = 
-            Managers.SceneServices.Pathfinder.FindPath(m_GameEntity.GetGridPosition(), 
+            Managers.Path.FindPath(m_GameEntity.GetGridPosition(), 
             DestGirdPosition, 
             out int pathLength);
 
@@ -40,14 +40,14 @@ public class CommandMoveAction : MoveAction, ICommandAction
             int count = pathGridPositionList.Count;
 
             // 마지막 위치 & 다음 위치에 유닛이 있는가?
-            if (Managers.SceneServices.Grid.GetCellEntity(pathGridPositionList[0]) == null)
+            if (Managers.Grid.GetUnitAt(pathGridPositionList[0]) == null)
             {
                 if (forwardPosition != default)
-                    Managers.SceneServices.GridMut.SetCellType(Managers.SceneServices.Grid.GetGridPosition(forwardPosition), E_GridCheckType.Walkable);
+                    Managers.Grid.ReleaseCell(Managers.Grid.GetGridPosition(forwardPosition), m_GameEntity);
 
-                forwardPosition = Managers.SceneServices.Grid.GetWorldPosition(pathGridPositionList[0]);
+                forwardPosition = Managers.Grid.GetWorldPosition(pathGridPositionList[0]);
 
-                Managers.SceneServices.GridMut.SetCellType(pathGridPositionList[0], E_GridCheckType.Reserve, m_GameEntity);
+                Managers.Grid.RequestCell(pathGridPositionList[0], m_GameEntity, E_EntityCellType.Reserve);
 
                 // Event
                 ActionStart();
@@ -89,28 +89,24 @@ public class CommandMoveAction : MoveAction, ICommandAction
                     GridPosition offsetGridPosition = new GridPosition(x, z, floor);
                     GridPosition testGridPosition = unitGridPosition + offsetGridPosition;
 
-                    if (!Managers.SceneServices.Grid.IsValidGridPosition(testGridPosition))
-                    {
-                        continue;
-                    }
-
                     if (unitGridPosition == testGridPosition)
                     {
                         // Same Grid Position where the unit is already at
                         continue;
                     }
 
-                    // 빈 곳이어야만 함.
-                    if (!Managers.SceneServices.Grid.IsGridPositionCheckType(testGridPosition, E_GridCheckType.Walkable))
+                    // 목적지가 이동 가능한 지역 그리드인가?
+                    if (!Managers.Grid.CanMoveTo(testGridPosition, unitGridPosition))
                         continue;
 
-                    if (!Managers.SceneServices.Pathfinder.HasPath(unitGridPosition, testGridPosition))
+                    // 해당 위치로 가는 길이 있는가?
+                    if (!Managers.Path.HasPath(unitGridPosition, testGridPosition))
                     {
                         continue;
                     }
 
                     int pathfindingDistanceMultiplier = 10;
-                    if (Managers.SceneServices.Pathfinder.GetPathLength(unitGridPosition, testGridPosition) > m_iGetActionValidRange * pathfindingDistanceMultiplier)
+                    if (Managers.Path.GetPathLength(unitGridPosition, testGridPosition) > m_iGetActionValidRange * pathfindingDistanceMultiplier)
                     {
                         // Path length is too long
                         continue;

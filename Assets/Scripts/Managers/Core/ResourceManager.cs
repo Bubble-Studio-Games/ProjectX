@@ -1,50 +1,48 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class ResourceManager
+public class ResourceManager : IManager
 {
-    public T Load<T>(string path) where T : Object
+    public void Init()
     {
-        // 🔹 경로 확인 로그
-        //Debug.Log($"[Resource Load] Type: {typeof(T).Name}, Path: {path}");
-
-        if (typeof(T) == typeof(GameObject))
-        {
-            string name = path;
-            int index = name.LastIndexOf('/');
-            if (index >= 0)
-                name = name.Substring(index + 1);
-
-            GameObject go = Managers.Pool.GetOriginal(name);
-            if (go != null)
-                return go as T;
-        }
-
-        T resource = Resources.Load<T>(path);
-
-        // 🔹 성공/실패 여부 로그
-        if (resource == null)
-           Debug.LogError($"[Resource Load ❌] Failed to load: {path}");
-        // else
-        //    Debug.Log($"[Resource Load ✅] Successfully loaded: {path}");
-
-        return resource;
     }
 
-    public GameObject Instantiate(GameObject go, Transform parent = null)
+    public void Clear()
     {
-        if(go == null)
+    }
+
+    public T Load<T>(string path) where T : UnityEngine.Object
+    {
+        // 프리퀄 체크 (Pooling 시스템이 있다면 원본을 먼저 확인)
+        if (typeof(T) == typeof(GameObject) && Managers.Pool != null)
         {
-            Debug.Log($"{go.name} Is Null");
+            string name = GetNameFromPath(path);
+            GameObject original = Managers.Pool.GetOriginal(name);
+            if (original != null) return original as T;
         }
 
-        if (go.GetComponent<Poolable>() != null)
-            return Managers.Pool.Pop(go, parent).gameObject;
+        return Resources.Load<T>(path);
+    }
 
-        GameObject gos = Object.Instantiate(go, parent);
-        gos.name = go.name;
-        return gos;
+    public GameObject Instantiate(string path, Transform parent = null)
+    {
+        GameObject original = Load<GameObject>($"Prefabs/{path}");
+        if (original == null) return null;
+
+        return Instantiate(original, parent);
+    }
+
+    public GameObject Instantiate(GameObject original, Transform parent = null)
+    {
+        if (original == null) return null;
+
+        // 설계 원칙: Poolable 체크 후 분기 처리
+        // 직접 Managers.Pool.Pop을 부르지 않고 주입된 시스템을 이용함
+        if (Managers.Pool != null && original.GetComponent<Poolable>() != null)
+            return Managers.Pool.Pop(original, parent).gameObject;
+
+        GameObject go = Object.Instantiate(original, parent);
+        go.name = original.name;
+        return go;
     }
 
     public GameObject Instantiate(GameObject go, Vector3 position, Quaternion rotation, Transform parent = null)
@@ -94,42 +92,7 @@ public class ResourceManager
 
     public T Instantiate<T>(GameObject go, Transform parent = null) where T : Component
     {
-        if (go == null)
-        {
-            Debug.LogWarning("Instantiate Failed: input GameObject is null");
-            return null;
-        }
-
-        GameObject instance;
-
-        if (go.GetComponent<Poolable>() != null)
-            instance = Managers.Pool.Pop(go, parent).gameObject;
-        else
-            instance = Object.Instantiate(go, parent);
-
-        instance.name = go.name;
-        return instance.GetComponent<T>();
-    }
-
-
-    public GameObject Instantiate(string path, Transform parent = null)
-    {
-        if (path.Contains("Prefabs/") == false)
-            path = $"Prefabs/{path}";
-
-        GameObject original = Load<GameObject>($"{path}");
-        if (original == null)
-        {
-            Debug.Log($"Failed to load prefab : {path}");
-            return null;
-        }
-
-        if (original.GetComponent<Poolable>() != null)
-            return Managers.Pool.Pop(original, parent).gameObject;
-
-        GameObject go = Object.Instantiate(original, parent);
-        go.name = original.name;
-        return go;
+        return Instantiate(go, parent).GetComponent<T>();
     }
 
     public void Destroy(GameObject go)
@@ -137,13 +100,31 @@ public class ResourceManager
         if (go == null)
             return;
 
-        Poolable poolable = go.GetComponent<Poolable>();
-        if (poolable != null)
+        if(Managers.Pool != null)
         {
-            Managers.Pool.Push(poolable);
-            return;
+            Poolable poolable = go.GetComponent<Poolable>();
+            if (poolable != null)
+            {
+                Managers.Pool.Push(poolable);
+                return;
+            }
         }
 
         Object.Destroy(go);
     }
+
+    private string GetNameFromPath(string path)
+    {
+        int index = path.LastIndexOf('/');
+        return index >= 0 ? path.Substring(index + 1) : path;
+    }
+}
+
+
+// ResourceManager 자체도 인터페이스로 관리 (다른 곳에서 참조용)
+public interface IResourceService
+{
+    T Load<T>(string path) where T : UnityEngine.Object;
+    GameObject Instantiate(string path, Transform parent = null);
+    void Destroy(GameObject go);
 }

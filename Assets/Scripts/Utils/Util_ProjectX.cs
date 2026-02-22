@@ -1,11 +1,75 @@
+using CodeMonkey.Utils;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using static Define;
 
+public static class LayerUtil
+{
+    /// <summary>
+    /// 대상과 자식들의 기존 레이어를 스냅샷으로 저장하고 새 레이어로 변경.
+    /// 반환된 snapshot은 RestoreLayers에 그대로 넣어서 원복 가능.
+    /// </summary>
+    public static Dictionary<Transform, int> SnapshotAndSetLayerRecursive(GameObject root, int newLayer, bool includeInactive = true)
+    {
+        var snapshot = new Dictionary<Transform, int>(64);
+        if (root == null) return snapshot;
+
+        var transforms = root.GetComponentsInChildren<Transform>(includeInactive);
+        foreach (var t in transforms)
+        {
+            if (t == null) continue;
+            snapshot[t] = t.gameObject.layer;
+            t.gameObject.layer = newLayer;
+        }
+        return snapshot;
+    }
+
+    /// <summary>
+    /// Snapshot으로 저장된 레이어를 원복.
+    /// </summary>
+    public static void RestoreLayers(Dictionary<Transform, int> snapshot)
+    {
+        if (snapshot == null) return;
+
+        foreach (var kv in snapshot)
+        {
+            if (kv.Key == null) continue;
+            kv.Key.gameObject.layer = kv.Value;
+        }
+        snapshot.Clear();
+    }
+
+    /// <summary>
+    /// 단순히 레이어만 통일로 바꾸고(원복 필요 없을 때)
+    /// </summary>
+    public static void SetLayerRecursive(GameObject root, int layer, bool includeInactive = true)
+    {
+        if (root == null) return;
+
+        var transforms = root.GetComponentsInChildren<Transform>(includeInactive);
+        foreach (var t in transforms)
+            t.gameObject.layer = layer;
+    }
+}
+
 ///  ProjectX에서만 사용되는 Util 함수
 public static partial class Util
 {
+    public static class Mouse
+    {
+        public static GridPosition GetMouseWorldGridPosition() => Managers.Grid.GetGridPosition(GetMouseWorldPosition());
+        public static Vector3 GetMouseWorldPosition() => UtilsClass.GetMouseWorldPositionByRaycast(GameConfig.Layer.mousePlaneLayerMask);
+        public static Vector3 GetSnappedWorld()
+        {
+            // local position -> grid position -> local position
+            // 이렇게하면 순수한 그리드 포지션에 맞는 깔끔한 로컬 포지션 값을 가져올 수 있음.
+            var pos = GetMouseWorldPosition();
+            return Managers.Grid.GetWorldPosition(Managers.Grid.GetGridPosition(pos));
+        }
+
+    }
+
     /// <summary>
     /// 특정 GameEntity 리스트에서, TAction을 가진 유닛만 (유닛, 액션) 튜플로 필터링.
     /// </summary>
@@ -133,74 +197,6 @@ public static partial class Util
         return origin + new GridPosition(rotatedX, rotatedZ, offset.floor);
     }
 
-    public static float GetObstacleMaxHeight(
-    IPathfinder pathfinder,
-    IGridQuery grid,
-    GridPosition a,
-    GridPosition b)
-    {
-        if (pathfinder == null || grid == null)
-            return 0f;
-
-        var path = pathfinder.FindPath(a, b, out _, E_GridCheckType.GameEntity);
-        if (path == null || path.Count < 3)
-            return 0f;
-
-        float max = 0f;
-
-        // 양 끝 제외 (RemoveAt 대신 for가 GC/안전 측면에서 더 좋음)
-        for (int i = 1; i < path.Count - 1; i++)
-        {
-            var obj = grid.GetCellEntity(path[i]); // ← 여기 중요!
-            if (obj == null || obj.m_HitCollider == null) continue;
-
-            max = Mathf.Max(max, obj.m_HitCollider.bounds.max.y);
-        }
-
-        return max;
-    }
-
-    public static float GetObstacleMaxHeight(
-    IPathfinder pathfinder,
-    IGridQuery grid,
-    Vector3 a,
-    Vector3 b)
-    {
-        return GetObstacleMaxHeight(pathfinder, grid, grid.GetGridPosition(a), grid.GetGridPosition(b));
-    }
-
-    #endregion
-
-    #region Path
-
-    /// <summary>
-    /// 탐색된 경로들을 거리 순으로 정렬
-    /// </summary>
-    /// <param name="startPos"></param>
-    /// <param name="list"></param>
-    /// <returns></returns>
-    public static IEnumerable<GridPosition> GetGridPositionByOrderPathLength(IPathfinder pathfinder, GridPosition startPos, IEnumerable<GridPosition> list)
-    {
-        // 가까운 위치 순으로 정렬
-        return list
-            .OrderBy(pos =>
-            {
-                int length = pathfinder.GetPathLength(startPos, pos);
-                return length == 0 ? int.MaxValue : length; // 경로 없으면 맨 뒤로
-            });
-    }
-
-
-    /// <summary>
-    /// 리스트 중에서 가장 가까운 그리드 반환
-    /// </summary>
-    /// <param name="startPos"></param>
-    /// <param name="list"></param>
-    /// <returns></returns>
-    public static GridPosition GetGridPositionFindNearest(IPathfinder pathfinder, GridPosition startPos, IEnumerable<GridPosition> list)
-    {
-        return GetGridPositionByOrderPathLength(pathfinder, startPos, list).First();
-    }
 
     #endregion
 
@@ -318,7 +314,7 @@ public static partial class Util
     {
         foreach (var pos in positions)
         {
-            Vector3 wp = Managers.SceneServices.Grid.GetWorldPosition(pos);
+            Vector3 wp = Managers.Grid.GetWorldPosition(pos);
 
             // Sphere-like marker (actually cube for simplicity)
             DebugDrawSphere(wp, size, duration);

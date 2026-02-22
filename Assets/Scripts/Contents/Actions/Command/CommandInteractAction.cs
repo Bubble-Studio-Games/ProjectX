@@ -24,11 +24,6 @@ public class CommandInteractAction : BaseAction, ICommandAction
                 GridPosition offsetGridPosition = new GridPosition(x, z, unitGridPosition.floor);
                 GridPosition testGridPosition = unitGridPosition + offsetGridPosition;
 
-                if (!Managers.SceneServices.Grid.IsValidGridPosition(testGridPosition))
-                {
-                    continue;
-                }
-
                 if (unitGridPosition == testGridPosition)
                 {
                     // Same Grid Position where the unit is already at
@@ -37,7 +32,7 @@ public class CommandInteractAction : BaseAction, ICommandAction
 
                 // 너무 멀면 패스
                 //int pathfindingDistanceMultiplier = 10;
-                //if (Managers.SceneServices.Pathfinder.GetPathLength(unitGridPosition, testGridPosition) > 
+                //if (Managers.Path.GetPathLength(unitGridPosition, testGridPosition) > 
                 //    m_iDetectRange * pathfindingDistanceMultiplier)
                 //{
                 //    // Path length is too long
@@ -54,7 +49,7 @@ public class CommandInteractAction : BaseAction, ICommandAction
 
     public override BaseAction TakeAction(GridPosition gridPosition = default)
     {
-        var target = Managers.SceneServices.Grid.GetCellEntity(gridPosition);
+        var target = Managers.Grid.GetUnitAt(gridPosition);
         var interact = target.GetComponent<IInteractable>();
 
         var attackerGridPosition = m_GameEntity.GetGridPosition();
@@ -70,13 +65,8 @@ public class CommandInteractAction : BaseAction, ICommandAction
                 GridPosition offsetGridPosition = new GridPosition(x, z, gridPosition.floor);
                 GridPosition testGridPosition = gridPosition + offsetGridPosition;
 
-                if (!Managers.SceneServices.Grid.IsValidGridPosition(testGridPosition))
-                {
-                    continue;
-                }
-
                 if(testGridPosition != attackerGridPosition &&
-                    !Managers.SceneServices.Grid.IsGridPositionCheckType(testGridPosition, E_GridCheckType.Walkable))
+                    !Managers.Grid.CanMoveTo(testGridPosition, attackerGridPosition))
                     continue;
 
                 validGridPositionList.Add(testGridPosition);
@@ -101,7 +91,7 @@ public class CommandInteractAction : BaseAction, ICommandAction
         }
         else
         {
-            var candidateGridPosition = Util.GetGridPositionFindNearest(Managers.SceneServices.Pathfinder, attackerGridPosition, validGridPositionList);
+            var candidateGridPosition = Managers.Path.FindNearestByPathDistance(attackerGridPosition, validGridPositionList);
             //Debug.Log($"상호작용을 위한 최적의 위치 {candidateGridPosition}로 이동 명령을 내림");
 
             // 지정된 위치로 이동 예약
@@ -127,7 +117,7 @@ public class CommandInteractAction : BaseAction, ICommandAction
         if (GetValidActionGridPositionList().Contains(grid) == false)
             return false;
 
-        var interact = Managers.SceneServices.Grid.GetCellEntity(grid).GetComponent<IInteractable>();
+        var interact = Managers.Grid.GetUnitAt(grid).GetComponent<IInteractable>();
         return interact!=null && interact.CanInteract(m_GameEntity) && GetValidActionGridPositionList().Contains(grid);
     }
 }

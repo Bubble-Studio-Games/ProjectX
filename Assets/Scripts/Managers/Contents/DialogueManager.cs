@@ -6,15 +6,16 @@ using System.Threading.Tasks;
 using UnityEngine;
 using static Define;
 
-public class DialogueManager
+public class DialogueManager : IManager
 {
+
+
     private const string LINE_TYPE_CHOICE = "Choice";
     private const string SPEAKER_TYPE_SYSTEM = "System";
 
     private Dictionary<string, List<Dialogue.Data>> _dialogueData;
     public bool IsDialogueContext { get; private set; } = false;
     public string CurDialogueId { get; private set; } = string.Empty;
-    private bool _isDialogueInputSubscribed = false;
 
     public event Action<List<Dialogue.Data>> OnDialogueStarted;
     public event Action<List<Dialogue.Data>> OnDialogueEnded;
@@ -55,38 +56,6 @@ public class DialogueManager
 
     #region Input 처리
 
-    /// <summary>
-    /// Dialogue 입력 이벤트 구독
-    /// </summary>
-    private void SubscribeInput()
-    {
-        if (_isDialogueInputSubscribed)
-            return;
-
-        _isDialogueInputSubscribed = true;
-
-        var events = Managers.SceneServices.InputEvents;
-
-        events.Subscribe(E_InputEvent.DialogueSubmit, OnDialogueSubmit);
-        events.Subscribe(E_InputEvent.DialogueCancel, OnDialogueESC);
-    }
-
-    /// <summary>
-    /// Dialogue 입력 이벤트 구독 해제
-    /// </summary>
-    private void UnsubscribeInput()
-    {
-        if (_isDialogueInputSubscribed == false)
-            return;
-
-        var events = Managers.SceneServices.InputEvents;
-
-        events.Unsubscribe(E_InputEvent.DialogueSubmit, OnDialogueSubmit);
-        events.Unsubscribe(E_InputEvent.DialogueCancel, OnDialogueESC);
-
-        _isDialogueInputSubscribed = false;
-    }
-
     private void Internal_OnSubmit()
     {
         // 선택지 대기 중일 때는 입력 무시
@@ -102,7 +71,7 @@ public class DialogueManager
     /// <summary>
     /// Dialogue Submit 입력 처리 - Enter, Space, LeftClick
     /// </summary>
-    private void OnDialogueSubmit()
+    public void OnDialogueSubmit()
     {
         Internal_OnSubmit();
     }
@@ -110,7 +79,7 @@ public class DialogueManager
     /// <summary>
     /// Dialogue ESC 입력 처리 - ESC
     /// </summary>
-    private void OnDialogueESC()
+    public void OnDialogueESC()
     {
         if (IsDialogueContext == false)
             return;
@@ -154,7 +123,6 @@ public class DialogueManager
         // ActionMap을 Dialogue로 전환
 
         maps.PushActionMapGroup(Define.E_InputActionMap.Dialogue);
-        SubscribeInput();
 
         _dialogueUI = Managers.UI.ShowPopupUI<DialogueUI>();
         OnDialogueStarted?.Invoke(dialogueData);
@@ -376,7 +344,6 @@ public class DialogueManager
         }
 
         // Input 구독 해제
-        UnsubscribeInput();
         maps.PopActionMapGroup();
 
         OnDialogueEnded?.Invoke(null);

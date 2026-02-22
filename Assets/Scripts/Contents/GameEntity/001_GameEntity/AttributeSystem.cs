@@ -9,8 +9,6 @@ using Data;
 // 유니티 라이프 사이클, 보상, 등급 강화/원복, 데이터 세이브/로드
 public partial class AttributeSystem : MonoBehaviour
 {
-    private IUnitActionTickService _unitActionTickService;
-
     // OnDamaged/OnDead는 전투 로직용으로만 유지
     public event Action OnRevived; // 	HP 회복 등으로 다시 살아날 때
     public event Action<OnAttackInfoEventArgs> OnDead; // HP 0일 때 죽는 순간
@@ -47,7 +45,6 @@ public partial class AttributeSystem : MonoBehaviour
 
     protected void Start()
     {
-        _unitActionTickService = Managers.SceneServices.UnitActionTick;
         Validate();
     }
 
@@ -59,10 +56,8 @@ public partial class AttributeSystem : MonoBehaviour
         if (m_GameEntity is IUpgradeble cobj)
             cobj.OnChangeGrade += UpdateStatOfGrade;
 
-        if(_unitActionTickService ==null)
-            _unitActionTickService = Managers.SceneServices.UnitActionTick;
 
-        _unitActionTickService.OnUpdateActionTick += UpdateTickStat;
+        Managers.Tick.OnUpdateActionTick += UpdateTickStat;
     }
 
     protected void OnDisable()
@@ -73,7 +68,7 @@ public partial class AttributeSystem : MonoBehaviour
         if (m_GameEntity is IUpgradeble cobj)
             cobj.OnChangeGrade -= UpdateStatOfGrade;
 
-        _unitActionTickService.OnUpdateActionTick -= UpdateTickStat;
+        Managers.Tick.OnUpdateActionTick -= UpdateTickStat;
     }
 
     #endregion

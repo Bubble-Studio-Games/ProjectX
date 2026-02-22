@@ -2,10 +2,17 @@ using UnityEngine;
 using System;
 using static Define;
 using System.Linq;
-using System.Collections.Generic;
 
-public class CommandManager
+public class CommandManager : IManager
 {
+    public void Init()
+    {
+    }
+
+    public void Clear()
+    {
+    }
+
     public event Action<OnCommandActionEventArgs> OnSelectedActionChanged;
     public event Action<OnCommandActionEventArgs> OnCommandAction;
     public class OnCommandActionEventArgs : EventArgs
@@ -62,7 +69,7 @@ public class CommandManager
                 obj = hit.collider.GetComponentInParent<GameEntity>();
             }
 
-            gp = Managers.SceneServices.Cursor.GetMouseWorldGridPosition(); 
+            gp = Util.Mouse.GetMouseWorldGridPosition(); 
             return true;
         }
     }

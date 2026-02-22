@@ -13,7 +13,7 @@ public class EscapeUI : MonoBehaviour
         m_gototheCampBtn.onClick.AddListener(async () => 
         {
             if(Managers.Scene.CurrentScene.isSaveFile)
-                await Managers.Save.SaveAllData();
+                await Managers.Game.SaveAllPlayRuntimeData();
             Managers.Scene.LoadScene(Define.Scene.Camp);
         });
     }

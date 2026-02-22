@@ -16,6 +16,8 @@ public class ItemObject : MonoBehaviour, ISaveable, IGuidObject
     public string _guid { get; private set; } = string.Empty; // private field로 변경하고 프로퍼티로 접근
     public string guid => _guid;
 
+    [SerializeField] protected float m_fDealyDestroyTime = 3f;
+
     public void SetGUID(string inputGuid)
     {
         _guid = inputGuid;
@@ -47,9 +49,9 @@ public class ItemObject : MonoBehaviour, ISaveable, IGuidObject
         StartCoroutine(DestroyRoutine());
     }
 
-    private IEnumerator DestroyRoutine(float seconds = 3.0f)
+    private IEnumerator DestroyRoutine()
     {
-        yield return new WaitForSecondsRealtime(seconds);
+        yield return new WaitForSecondsRealtime(m_fDealyDestroyTime);
 
         Managers.Resource.Destroy(gameObject); // 풀 반환
         Managers.Object.Remove(gameObject);
@@ -66,7 +68,7 @@ public class ItemObject : MonoBehaviour, ISaveable, IGuidObject
             position = transform.position,
             rotation = transform.rotation,
             guid = _guid,
-            onwerGuid = m_Owner?._guid,
+            onwerGuid = m_Owner?.guid,
         };
     }
 

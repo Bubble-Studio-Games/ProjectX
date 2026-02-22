@@ -81,8 +81,10 @@ public abstract class UI_Notification : UI_Base
         Managers.Resource.Destroy(gameObject);
     }
 
-    protected virtual void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
+
         _fadeTweener?.Kill();
         _canvasGroup?.DOKill();
     }

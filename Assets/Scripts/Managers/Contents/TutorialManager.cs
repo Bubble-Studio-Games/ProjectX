@@ -1,8 +1,6 @@
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using static Define;
 
 [System.Serializable]
 public class TutorialInfo
@@ -12,8 +10,9 @@ public class TutorialInfo
     public string _tutorialDescription;
 }
 
-public class TutorialManager
+public class TutorialManager : IManager
 {
+
     private Dictionary<string, TutorialInfo> _tutorials = new Dictionary<string, TutorialInfo>();
     private Dictionary<TaskCompletionSource<bool>, string> _tutorialTasks = new Dictionary<TaskCompletionSource<bool>, string>();
 

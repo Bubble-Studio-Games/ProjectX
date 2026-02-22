@@ -202,7 +202,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5152035430160485438, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 18
+      value: 13.95
       objectReference: {fileID: 0}
     - target: {fileID: 5152035430160485438, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       propertyPath: m_LocalRotation.w
@@ -249,17 +249,20 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1682568708250915358, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7038559782662909051}
+      addedObject: {fileID: 4386502797140774729}
     - targetCorrespondingSourceObject: {fileID: 1682568708250915358, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5998534592897049374}
+      addedObject: {fileID: 7554066770447232050}
+    - targetCorrespondingSourceObject: {fileID: 1682568708250915358, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2153359887269297818}
   m_SourcePrefab: {fileID: 100100000, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
 --- !u!1 &5600623233285319036 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1682568708250915358, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}
   m_PrefabInstance: {fileID: 6548452090077690722}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7038559782662909051
+--- !u!114 &4386502797140774729
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -268,25 +271,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 5600623233285319036}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 068486ab95534ce4b899539e0381b47c, type: 3}
+  m_Script: {fileID: 11500000, guid: bbb541832ceb6124eb8ad2c846f7860d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_GridPositionOffsets: []
   m_EObjectType: 7
-  m_CurrentEDir: 4
+  m_CurrentEDir: 1
   m_TeamId: 0
   currentAction: {fileID: 0}
   m_IsDirectDesawnAtDeath: 1
+  m_DisableDespawnFlowForAnimTest: 0
   m_IsTowardDungeonCore: 0
   crateDestroyedPrefab: {fileID: 0}
-  m_HitStunDuration: 1
-  m_HitColor: {r: 1, g: 0, b: 0, a: 1}
-  m_HitParticles: {fileID: 0}
-  m_fMinForce: 1
-  m_fMaxForce: 5
-  m_fMinTime: 0.5
-  m_fMaxTime: 3
---- !u!114 &5998534592897049374
+--- !u!114 &7554066770447232050
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -295,50 +292,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 5600623233285319036}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 180ecf9b41d478f468eb3e9083753217, type: 3}
+  m_Script: {fileID: 11500000, guid: e843b6a6d66bffa459d963cd4c884303, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ImpulseDefinition:
-    ImpulseChannel: 1
-    ImpulseShape: 2
-    CustomImpulseShape:
-      serializedVersion: 2
-      m_Curve: []
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    ImpulseDuration: 0.2
-    ImpulseType: 0
-    DissipationRate: 0.25
-    RawSignal: {fileID: 0}
-    AmplitudeGain: 1
-    FrequencyGain: 1
-    RepeatMode: 0
-    Randomize: 1
-    TimeEnvelope:
-      AttackShape:
-        serializedVersion: 2
-        m_Curve: []
-        m_PreInfinity: 2
-        m_PostInfinity: 2
-        m_RotationOrder: 4
-      DecayShape:
-        serializedVersion: 2
-        m_Curve: []
-        m_PreInfinity: 2
-        m_PostInfinity: 2
-        m_RotationOrder: 4
-      AttackTime: 0
-      SustainTime: 0.2
-      DecayTime: 0.7
-      ScaleWithImpact: 1
-      HoldForever: 0
-    ImpactRadius: 100
-    DirectionMode: 0
-    DissipationMode: 2
-    DissipationDistance: 100
-    PropagationSpeed: 343
-  DefaultVelocity: {x: 0, y: -1, z: 0}
+  m_HitStunDuration: 1
+  m_HitColor: {r: 1, g: 0, b: 0, a: 1}
+--- !u!114 &2153359887269297818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5600623233285319036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d4a0841ea327284588da1801ce108b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hitDuration: 1
+  hitColor: {r: 1, g: 0, b: 0, a: 1}
+  hitParticles: {fileID: 0}
 --- !u!4 &6858996084434629647 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 419057838317096813, guid: 02519cb1cdf068141919a90836ab3af5, type: 3}

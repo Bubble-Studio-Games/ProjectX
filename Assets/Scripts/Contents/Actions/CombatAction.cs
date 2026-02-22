@@ -19,9 +19,6 @@ public class CombatAction : BaseAction
 
     Func<bool> conditionPase;
     bool isChaningPase;
-    float m_fRotateTimer = 0;
-    [SerializeField] float m_rotateTick = 0.1f;
-    [SerializeField] float rotateSpeed = 70;
 
     BaseAction m_TODOChangeAction;
 
@@ -49,7 +46,8 @@ public class CombatAction : BaseAction
         if (m_GameEntity.m_CurrentAction != this)
             return;
 
-        if (RotateTowardTarget() == false)
+        // 적을 향해 마주보고 있지 않으면 회전
+        if (!m_GameEntity.RotateTowardTarget())
             return;
 
         // 애니메이션이 진행중이면 대기
@@ -115,41 +113,6 @@ public class CombatAction : BaseAction
                 || grouped.TryGetValue(E_AttackCondition.Fail_ManaCost, out var manaList))
         {
             // 대기
-        }
-    }
-
-    private bool RotateTowardTarget()
-    {
-        if (m_GameEntity.m_Target == null)
-            return true;
-
-        // 타겟 방향 계산
-        Vector3 moveDirection = (m_GameEntity.m_Target.transform.position - m_GameEntity.transform.position).normalized;
-
-        // 회전 완료 여부 판단
-        float angleThreshold = 5f; // 허용 오차 각도 (예: 5도)
-        float angle = Vector3.Angle(m_GameEntity.transform.forward, moveDirection);
-
-        if (angle < angleThreshold)
-        {
-            return true;
-        }
-        else
-        {
-            m_fRotateTimer -= Time.deltaTime;
-            if(m_fRotateTimer <= 0)
-            {
-                m_fRotateTimer = m_rotateTick;
-
-                // 회전
-                m_GameEntity.transform.forward = Vector3.Slerp(
-                    m_GameEntity.transform.forward,
-                    moveDirection,
-                    Time.deltaTime * rotateSpeed
-                );
-            }
-
-            return false;
         }
     }
 

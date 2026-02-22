@@ -1,5 +1,4 @@
 using System;
-using Unity.Android.Types;
 using UnityEngine;
 using static Define;
 
@@ -66,7 +65,7 @@ public partial class AttributeSystem : MonoBehaviour
         Init();
     }
 
-    private void ReStoreStat()
+    public void ReStoreStat()
     {
         m_Stat = m_originalStat;
 
@@ -301,7 +300,7 @@ public partial class AttributeSystem : MonoBehaviour
         {
             if (m_GameEntity.m_TeamId == E_TeamId.Monster)
             {
-                bool targetIsCore = Managers.SceneServices.DungeonCores.IsCore(m_GameEntity.m_Target);
+                bool targetIsCore = m_GameEntity.m_Target is IDungeonCore;
 
                 m_EMoveType = targetIsCore ? E_MoveType.Walk : E_MoveType.Run;
             }

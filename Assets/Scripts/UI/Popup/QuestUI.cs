@@ -55,8 +55,9 @@ public class QuestUI : UI_Popup
         return true;
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
         _rewardButton.onClick.RemoveAllListeners();
         _closeButton.onClick.RemoveAllListeners();
         _rewardButton = null;

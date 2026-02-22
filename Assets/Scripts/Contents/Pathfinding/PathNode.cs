@@ -1,10 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public class PathNode
 {
-
     private GridPosition gridPosition;
     private int gCost;
     private int hCost;

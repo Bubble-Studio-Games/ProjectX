@@ -1,9 +1,4 @@
-
-
-
 using System;
-using System.Numerics;
-using static Define;
 
 [System.Serializable]
 public struct GridPosition : IEquatable<GridPosition>

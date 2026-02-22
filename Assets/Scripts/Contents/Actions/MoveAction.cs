@@ -145,8 +145,8 @@ public class MoveAction : BaseAction
 
         if (forwardPosition != default)
         {
-            Managers.SceneServices.GridMut.SetCellType(
-                Managers.SceneServices.Grid.GetGridPosition(forwardPosition), E_GridCheckType.Walkable);
+            Managers.Grid.ReleaseCell(
+                Managers.Grid.GetGridPosition(forwardPosition), m_GameEntity);
             forwardPosition = default;
             m_iPathCurrentCount = 0;
         }

@@ -218,7 +218,7 @@ public class Projectile : ItemObject
             position = transform.position,
             rotation = transform.rotation,
             guid = _guid,
-            targetGuid = m_Target != null ? m_Target._guid : string.Empty,
+            targetGuid = m_Target != null ? m_Target.guid : string.Empty,
             onwerGuid = iData.onwerGuid,
 
         };

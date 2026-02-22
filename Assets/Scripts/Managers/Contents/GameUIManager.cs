@@ -1,7 +1,15 @@
 // 인 게임 내 UI를 관리할 스크립트
 // 특정 UI를 Show/Close 등을 하는 등의 기능.
-public class GameUIManager
+public class GameUIManager : IManager
 {
+    public void Init()
+    {
+    }
+
+    public void Clear()
+    {
+    }
+
     public void ShowAndCloseMenuUI()
     {
         // 유닛의 액션 창이 떠 있다면 액션 창 닫기 

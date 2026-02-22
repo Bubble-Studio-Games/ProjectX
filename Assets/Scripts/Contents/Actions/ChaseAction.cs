@@ -1,10 +1,5 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using Unity.VisualScripting;
-using UnityEngine;
 using static Define;
 
 // 타겟을 쫓아가는 액션
@@ -33,25 +28,22 @@ public class ChaseAction : MoveAction
             // 몬스터의 경우 추가 설정
             if (m_GameEntity.m_TeamId == E_TeamId.Monster && m_GameEntity.m_IsTowardDungeonCore)
             {
-                if (_dungeonCoreRegistry.Cores.Count > 0)
-                {
-                    // TODO 가장 가까운 코어로 이동
-                    serchTargetPosList.Add(_dungeonCoreRegistry.Cores.First().GetGridPosition());
-                }
+                foreach (var core in Managers.Player.playerHealth.Cores)
+                    serchTargetPosList.Add(core.GetGridPosition());
             }
 
             // 적이 탐지 되지 않으면 대기
-            if (serchTargetPosList.Count() == 0)
+            if (serchTargetPosList.Count == 0)
                 return this;
 
             // 탐지된 적들을 경로거리 기반으로 정렬
             // 가까운 위치 순으로 정렬
-            serchTargetPosList = Util.GetGridPositionByOrderPathLength(Managers.SceneServices.Pathfinder, m_GameEntity.GetGridPosition(), serchTargetPosList).ToList();
+            serchTargetPosList = Managers.Path.SortByPathDistance(m_GameEntity.GetGridPosition(), serchTargetPosList);
 
             // 가장 가까운 적들부터 현재 공격 가능한 위치가 있는지 체크
             foreach (var serchTargetPos in serchTargetPosList)
             {
-                var serachTareget = Managers.SceneServices.Grid.GetCellEntity(serchTargetPos);
+                var serachTareget = Managers.Grid.GetUnitAt(serchTargetPos);
 
                 // 현재 특정 조건을 만족하는 공격 후보들을 가져오기
                 // 쿨타임, 거리, 바로 사용 가능.
@@ -82,6 +74,10 @@ public class ChaseAction : MoveAction
                     //Util.DrawDebugPositions(best.canAttackPosition);
 #endif
                     m_GameEntity.SetTarget(serachTareget);
+
+                    if (!m_GameEntity.RotateTowardTarget())
+                        return this;
+
                     return m_GameEntity.GetAction<CombatAction>();
                 }
 
@@ -93,7 +89,7 @@ public class ChaseAction : MoveAction
                         m_SelectAttackPattern = distList.RandomPick();
 
                     // 공격 가능한 위치들 중에서 가장 빠르게 도달할 수 있는 위치를 찾아서, 경로 반환
-                    var bestAttackPosPath = Managers.SceneServices.Pathfinder.FindNearestCandidatePath
+                    var bestAttackPosPath = Managers.Path.FindNearestCandidatePath
                         (m_GameEntity.GetGridPosition(), m_SelectAttackPattern.canAttackPosition, allowApproachWhenUnreachable: true);
 
                     // 현재 유닛이 위치한 자리 제거
@@ -104,11 +100,11 @@ public class ChaseAction : MoveAction
 
                     // 그리드 변경
                     if (forwardPosition != default)
-                        Managers.SceneServices.GridMut.SetCellType(Managers.SceneServices.Grid.GetGridPosition(forwardPosition), E_GridCheckType.Walkable);
-                    Managers.SceneServices.GridMut.SetCellType(bestAttackPosPath[0], E_GridCheckType.Reserve, m_GameEntity);
+                        Managers.Grid.ReleaseCell(Managers.Grid.GetGridPosition(forwardPosition), m_GameEntity);
+                    Managers.Grid.RequestCell(bestAttackPosPath[0], m_GameEntity, E_EntityCellType.Reserve);
 
                     // 바로 이동할 그리드 목적지 설정
-                    forwardPosition = Managers.SceneServices.Grid.GetWorldPosition(bestAttackPosPath[0]);
+                    forwardPosition = Managers.Grid.GetWorldPosition(bestAttackPosPath[0]);
 
                     var best = distList.First();
                     //Debug.Log("현재 타겟 : " + serachTareget);
@@ -155,16 +151,9 @@ public class ChaseAction : MoveAction
                 {
                     GridPosition offsetGridPosition = new GridPosition(x, z, floor);
                     GridPosition testGridPosition = unitGridPosition + offsetGridPosition;
-                    
-                    if (!Managers.SceneServices.Grid.IsValidGridPosition(testGridPosition))
-                        continue;
-
-                    // Same Grid Position where the unit is already at
-                    if (unitGridPosition == testGridPosition)
-                        continue;
 
                     // Detect Object
-                    var target = _grid.GetCellEntity(testGridPosition);
+                    var target = Managers.Grid.GetUnitAt(testGridPosition);
                     if (!m_GameEntity.IsEnemy(target))
                         continue;
 

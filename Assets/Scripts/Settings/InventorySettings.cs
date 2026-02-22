@@ -45,4 +45,7 @@ public class InventorySettings : ScriptableObject
             }
         }
     }
+
+    [SerializeField] private List<GameEntity> gameEntitiesPrefab;
+    public IReadOnlyList<GameEntity> GameEntityPrefab => gameEntitiesPrefab;
 }

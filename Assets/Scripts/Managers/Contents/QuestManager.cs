@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static Define;
 
 /// <summary>
 /// 퀘스트 매니저 - 퀘스트 수령, 진행도 추적, 완료/실패 처리
 /// </summary>
-public class QuestManager
+public class QuestManager : IManager
 {
     private Dictionary<string, Quest.Data> _questData;
     private Dictionary<string, QuestData> _quests = new();

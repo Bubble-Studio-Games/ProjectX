@@ -1,38 +1,7 @@
+using System;
+
 public partial class Define
 {
-
-    public enum E_InputEvent
-    {
-        // 순간 이벤트
-        EscPressed,
-        RPressed,
-
-        // 상태 키
-        RightHold,
-        Sprint,
-
-        // 상태 전이 이벤트
-        RightHoldStarted,
-        RightHoldEnded,
-        SprintStarted,
-        SprintEnded,
-
-        // 마우스 순간 이벤트
-        MouseLeftDown,
-        MouseLeftUp,
-
-        MouseRightDown,
-        MouseRightUp,
-
-        MouseWheelDown,
-        MouseWheelUp,
-
-        // 🔽 다이얼로그 입력
-        DialogueSubmit,
-        DialogueCancel,
-    }
-
-
     public enum E_StatDeltaKind { HP, MP, Shield, /* ... */ }
     public enum E_StatDeltaSign { Plus, Minus, Zero }
     public enum E_StatDeltaCause { Damage, Heal, LifeSteal, Regen, Cost, Unknown }
@@ -307,8 +276,35 @@ public partial class Define
 
     #region Grid
 
+    public enum E_TerrainCellType
+    {
+        Walkable = 0,
+        Obstacle = 1, // 벽/바위/막힘
+        Void = 2,     // 맵 밖 / 구멍 / 아예 존재 안함
+    }
+
     [System.Flags]
-    public enum E_GridCheckType
+    public enum E_EntityCellType
+    {
+        None = 0, // 유닛 없음
+        GameEntity = 1 << 0, // 유닛이 실제로 차지
+        Reserve = 1 << 1, // 예약(이동/소환 예약)
+        Blocker = 1 << 2, // 엔티티 기반 장애물(배치물/트랩 등)
+    }
+
+    [Flags]
+    public enum E_CellBlockReason
+    {
+        None = 0,
+        Void = 1 << 0,
+        Obstacle = 1 << 1,
+        Occupied = 1 << 2,
+        Reserved = 1 << 3,
+    }
+
+
+    [System.Flags]
+    public enum E_GridCheckType2
     {
         // 비어 있음
         Walkable = 0,

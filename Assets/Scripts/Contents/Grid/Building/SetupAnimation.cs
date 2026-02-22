@@ -2,6 +2,7 @@ using DG.Tweening;
 using System.Collections;
 using UnityEngine;
 
+// TODO 컴포넌트 말고 기능으로 따로 빼기
 public class SetupAnimation : MonoBehaviour
 {
     GameEntity gameEntity;

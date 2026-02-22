@@ -2,11 +2,10 @@ using Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.Collections;
+using UnityEditor;
 using UnityEngine;
 using static Define;
 using Material = UnityEngine.Material;
-
 
 [RequireComponent(typeof(AttributeSystem))]
 public class GameEntity : MonoBehaviour,
@@ -15,11 +14,6 @@ public class GameEntity : MonoBehaviour,
     ISelectable
 {
     #region Field
-
-    private IGridQuery _grid;
-    private IUnitGridManager _unitGrid;
-    private IUnitActionTickService _tick;
-    private IGridVisualUpdateSource _gridVisualSource;
 
     // Spawn & DeSpawn
     public event Action OnSpawnObjectSelected; // 오브젝트를 배치하려고 할 때
@@ -51,9 +45,8 @@ public class GameEntity : MonoBehaviour,
     public event Action OnStep;
     public event Action<OnChangeFloorsStartedEventArgs> OnChangedFloorsStarted;
 
-    public string _guid { get; private set; } = string.Empty; // private field로 변경하고 프로퍼티로 접근
+    private string _guid;
     public string guid => _guid;
-
 
     public GameEntityAnimator m_GameEntityAnimator { get; private set; }
     public AttributeSystem m_AttributeSystem { get; private set; }
@@ -131,17 +124,15 @@ public class GameEntity : MonoBehaviour,
 
     protected virtual void Start()
     {
+        if (string.IsNullOrEmpty(_guid))
+            _guid = GUID.Generate().ToString();
+
         // 해당 조건은 몬스터 전용이다.
         if (m_TeamId != E_TeamId.Monster && m_IsTowardDungeonCore)
         {
             m_IsTowardDungeonCore = false;
             Debug.Log($"{name}의 팀 타입이 변경됩니다. 해당 조건은 팀 타입이 몬스터일 때에만 허용됩니다.");
         }
-
-        // 씬에 배치된 오브젝트인 경우, GUID가 없으면 새로 생성
-        if (string.IsNullOrEmpty(_guid))
-            _guid = Guid.NewGuid().ToString(); // System.Guid를 사용하여 새 GUID 생성
-
 
         // 현재 Command Action에만 지정 명령 종료를 지정함.
         GetActions()
@@ -168,10 +159,8 @@ public class GameEntity : MonoBehaviour,
 
     protected virtual void OnEnable()
     {
-        ResolveServices();
-
         if (baseActionDict.Count > 0)
-            _tick.OnUpdateActionTick += ExecuteAction;
+            Managers.Tick.OnUpdateActionTick += ExecuteAction;
 
         if (m_GameEntityAnimator != null)
         {
@@ -207,7 +196,7 @@ public class GameEntity : MonoBehaviour,
     protected virtual void OnDisable()
     {
         if (baseActionDict.Count > 0)
-            _tick.OnUpdateActionTick -= ExecuteAction;
+            Managers.Tick.OnUpdateActionTick -= ExecuteAction;
 
         if (m_GameEntityAnimator != null)
         {
@@ -246,24 +235,6 @@ public class GameEntity : MonoBehaviour,
 
     #endregion
 
-    private void ResolveServices()
-    {
-        var ss = Managers.SceneServices;
-
-        if (_grid == null || ss.IsNull(_grid))
-            _grid = ss.Grid;
-
-        if (_unitGrid == null || ss.IsNull(_unitGrid))
-            _unitGrid = ss.UnitGrid;
-
-        if (_tick == null || ss.IsNull(_tick))
-            _tick = ss.UnitActionTick;
-
-        if (_gridVisualSource == null || ss.IsNull(_gridVisualSource))
-            _gridVisualSource = ss.GridVisualUpdateSource;
-    }
-
-
     #region Grid
 
     public List<Collider> GetChildColliders()
@@ -288,7 +259,7 @@ public class GameEntity : MonoBehaviour,
 
     public void UpdateGridPosition()
     {
-        GridPosition newGridPosition = _grid.GetGridPosition(transform.position);
+        GridPosition newGridPosition = Managers.Grid.GetGridPosition(transform.position);
 
         if (newGridPosition != m_GridPosition)
         {
@@ -297,7 +268,7 @@ public class GameEntity : MonoBehaviour,
             m_GridPosition = newGridPosition;
             List<GridPosition> newGridPositions = GetGridPositionListAtCurrentDir();
 
-            _unitGrid.MoveUnit(this, oldGridPositions, newGridPositions);
+            Managers.Grid.UpdateUnitPosition(this, oldGridPositions, newGridPositions);
         }
     }
 
@@ -318,7 +289,7 @@ public class GameEntity : MonoBehaviour,
     }
     private void CheckRotateSymmetry()
     {
-        string prefabKey = _guid;
+        string prefabKey = guid;
 
         // 딕셔너리 2번 조회 대신 TryGetValue 한 번
         if (!s_RotateSymmetryCache.TryGetValue(prefabKey, out bool isSymmetry))
@@ -364,7 +335,6 @@ public class GameEntity : MonoBehaviour,
         return m_ModelMaterials;
     }
 
-    public void SetGUID(string inputGuid) => _guid = inputGuid;
 
     #region Select
 
@@ -395,7 +365,6 @@ public class GameEntity : MonoBehaviour,
             case E_Dir.East: return E_Dir.South;
         }
     }
-
 
     // GameEntity의 GridOffset과 원점인 GridPosition을 반환한다.
     public List<GridPosition> GetGridPositionListAtCurrentDir()
@@ -443,8 +412,6 @@ public class GameEntity : MonoBehaviour,
         m_HitCollider.enabled = false;
         m_IsSpawning = true;
 
-
-
         OnSpawnObjectSelected?.Invoke();
     }
 
@@ -460,9 +427,11 @@ public class GameEntity : MonoBehaviour,
         OnObjectSpawnStart?.Invoke();
 
         // 회전 대칭 cache 제거
-        s_RotateSymmetryCache.Remove(_guid);
-    }
+        if (string.IsNullOrEmpty(_guid))
+            _guid = GUID.Generate().ToString();
 
+        s_RotateSymmetryCache.Remove(guid);
+    }
 
     // 소환 완료 후
     public void SpawnComplete()
@@ -484,7 +453,6 @@ public class GameEntity : MonoBehaviour,
         OnSpawnCompleted?.Invoke();
     }
 
-
     private void SpawnRegister()
     {
         if (_isSpawnRegistered) return;
@@ -494,11 +462,8 @@ public class GameEntity : MonoBehaviour,
         Managers.Object.Add(gameObject);
 
         // 그리드 점유 등록
-        m_GridPosition = _grid.GetGridPosition(transform.position);
-        _unitGrid.AddUnitAtGridPositions(GetGridPositionListAtCurrentDir(), this);
-
-        // 그리드 비쥬얼 업데이트
-        _gridVisualSource.DrawGridVisual();
+        m_GridPosition = Managers.Grid.GetGridPosition(transform.position);
+        Managers.Grid.RequestCell(GetGridPositionListAtCurrentDir(), this, E_EntityCellType.GameEntity);
     }
 
     private void SpawnUnregister()
@@ -506,12 +471,9 @@ public class GameEntity : MonoBehaviour,
         if (!_isSpawnRegistered) return;
         _isSpawnRegistered = false;
 
-        _unitGrid.RemoveUnitAtGridPositions(GetGridPositionListAtCurrentDir(), this);
+        Managers.Grid.ReleaseCell(GetGridPositionListAtCurrentDir(), this);
         Managers.Object.Remove(gameObject);
-
-        _gridVisualSource.DrawGridVisual();
     }
-
 
     // 보통은 디스폰을 사망 애니메이션이 끝나면 바로 호출.
     public void DeSpawnStart()
@@ -778,7 +740,7 @@ public class GameEntity : MonoBehaviour,
     {
         return;
         GameEntityData gdata = data as GameEntityData;
-        _guid = gdata.guid;
+        //_guid = gdata.guid;
         transform.position = gdata.position;
         transform.rotation = gdata.rotation;
         //m_AttributeSystem.RestoreSaveData(gdata.attributeSystemData);
@@ -844,14 +806,14 @@ public class GameEntity : MonoBehaviour,
         OnAttackReadyFailed?.Invoke(failAttack);
     }
 
-    private void HandleDead(OnAttackInfoEventArgs e)
+    protected virtual void HandleDead(OnAttackInfoEventArgs e)
     {
         OnDead?.Invoke(e); // 기존 호환용
-        m_CurrentAction.ClearAction();
+        m_CurrentAction?.ClearAction();
         ClearAction();
     }
 
-    private void HandleDamaged(OnAttackInfoEventArgs e)
+    protected virtual void HandleDamaged(OnAttackInfoEventArgs e)
     {
         OnDamaged?.Invoke(e);
     }
@@ -910,6 +872,63 @@ public class GameEntity : MonoBehaviour,
         StartCoroutine(m_SetupAnimation.PlacedSpawnAnimation());
     }
 
+    #region GUID
+
+    public void SetGUID(string inputGuid) => _guid = inputGuid;
+
+    #endregion
+
+    #region Rotate
+
+    private bool IsFacingTarget(float angleThreshold = 5f)
+    {
+        if (m_Target == null)
+            return true;
+
+        Vector3 moveDirection =
+            (m_Target.transform.position - transform.position).normalized;
+
+        float angle = Vector3.Angle(transform.forward, moveDirection);
+
+        return angle < angleThreshold;
+    }
+
+    private void RotateStepTowardTarget()
+    {
+        if (m_Target == null)
+            return;
+
+        m_fRotateTimer -= Time.deltaTime;
+        if (m_fRotateTimer > 0)
+            return;
+
+        m_fRotateTimer = m_rotateTick;
+
+        Vector3 moveDirection =
+            (m_Target.transform.position - transform.position).normalized;
+
+        transform.forward = Vector3.Slerp(
+            transform.forward,
+            moveDirection,
+            Time.deltaTime * rotateSpeed
+        );
+    }
+
+    public bool RotateTowardTarget()
+    {
+        if (IsFacingTarget())
+            return true;
+
+        RotateStepTowardTarget();
+        return false;
+    }
+
+
+    float m_fRotateTimer = 0;
+    [SerializeField] float m_rotateTick = 0.1f;
+    [SerializeField] float rotateSpeed = 70;
+
+    #endregion
 }
 
 

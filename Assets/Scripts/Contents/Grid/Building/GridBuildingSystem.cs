@@ -1,114 +1,167 @@
 using static Define;
 using System.Collections.Generic;
-using System;
 using UnityEngine;
 
-[EditorShowInfo(@"
-역할: “건설 모드 상태(무엇을 짓는 중인지) + 배치 가능 검사 + 배치 이벤트 발행”
-
-IBuildPlacementService 구현체로서 “현재 배치 대상(Current)”을 관리한다. 
-ChangeSelection()에서 건설 대상 변경/취소를 처리하고 OnSelectedChanged/OnCanceled 이벤트를 발행한다. 
-TryPlace()에서:
-ICursor.GetMouseGridPosition()으로 기준 위치를 얻고
-대상의 footprint 셀들을 구해서
-IGridQuery로 유효/Walkable인지 검사 후 성공하면 OnPlaced를 발행한다. 
-RotateSelectObject()로 회전 입력을 처리하고 OnRotated 이벤트를 발행한다. 
-
-결론: **“배치 가능하냐/확정하냐”**를 판단하는 게임플레이 로직 담당.
-")]
-public class GridBuildingSystem : MonoBehaviour, IBuildPlacementService
+public class GridBuildingSystem : MonoBehaviour
 {
-    private IGridQuery _grid;
-    private ICursor _cursor;
+    private GameEntity _template; // 선택된 원본(데이터/계산용)
+    private GameEntity _ghost;    // 움직이는 프리뷰(인스턴스)
 
+    [SerializeField] private float floatingHeight = 1f;
+    [SerializeField] private float followSpeed = 15f;
 
-    public event Action<E_SetupObjectOffsetChange> OnSelectedChanged;
-    public event Action<BuildPlacedEventArgs> OnPlaced;
-    public event Action OnCanceled;
-    public event Action<E_SetupObjectOffsetChange> OnRotated;
+    private Dictionary<Transform, int> _layerSnapshot;
 
-    [SerializeField] private List<GameEntity> placedObjectList;
+    #region Unity Life Cycle
 
-    public GameEntity Current { get; private set; }
-
-    public bool IsSetuping => Current != null;
-
-    private void Awake()
+    private void OnEnable()
     {
-        // 서비스 등록 (Generic SceneServices 전제)
-        Managers.SceneServices.Register<IBuildPlacementService>(this);
+        Managers.Building.OnRequestApply += Apply;
     }
 
-    private void Start()
+    private void OnDisable()
     {
-        _grid = Managers.SceneServices.Grid;
-        _cursor = Managers.SceneServices.Cursor;
+        Managers.Building.OnRequestApply -= Apply;
     }
 
-    public void ChangeSelection(GameEntity toChangeObject, bool isInputNumberPad = false)
+    private void LateUpdate()
     {
-        var before = Current;
-        Current = toChangeObject;
+        if (_ghost == null) return;
 
-        if (before == Current) return;
+        Vector3 target = Util.Mouse.GetSnappedWorld();
+        target.y += floatingHeight;
 
-        if (toChangeObject == null)
+        _ghost.transform.position = Vector3.Lerp(_ghost.transform.position, target, Time.deltaTime * followSpeed);
+
+        var rot = (_template != null)
+            ? Quaternion.Euler(0, _template.GetRotationAngle(), 0)
+            : Quaternion.identity;
+
+        _ghost.transform.rotation = Quaternion.Lerp(_ghost.transform.rotation, rot, Time.deltaTime * followSpeed);
+    }
+
+    #endregion
+
+    private void Apply(BuildContext req)
+    {
+        switch (req.Type)
         {
-            OnCanceled?.Invoke();
+            case BuildRequestType.Select: ApplySelect(req.Target); break;
+            case BuildRequestType.Rotate: ApplyRotate(); break;
+            case BuildRequestType.Place: ApplyPlace(); break;
+            case BuildRequestType.Cancel: ApplyCancel(); break;
+        }
+
+        // GridVisual은 GridManager 이벤트만 듣고 갱신
+        Managers.Grid.RequestVisualRefresh();
+    }
+
+    // 인자로 받은 오브젝트의 모습을 보여주기 시작.
+    private void ApplySelect(GameEntity toChangeObject)
+    {
+        Debug.Log("배치 시작");
+        var before = _template;
+        _template = toChangeObject;
+
+        // 이전 고스트 정리
+        DestroyGhost();
+
+        if (_template == null)
+        {
+            Managers.Building.RaiseCanceled();
             return;
         }
 
-        
+        // 상태 계산(기존 로직 유지)
         var state = E_SetupObjectOffsetChange.All;
-        if (isInputNumberPad)
+
+        if (before != null)
         {
-            if (before != null)
+            if (before.GetGridPositionListAtCurrentDir() != _template.GetGridPositionListAtCurrentDir())
             {
-                if (before.GetGridPositionListAtCurrentDir() != Current.GetGridPositionListAtCurrentDir())
-                {
-                    state = (before.GetGridPositionYOffset() != Current.GetGridPositionYOffset())
-                        ? E_SetupObjectOffsetChange.All
-                        : E_SetupObjectOffsetChange.XZOffset;
-                }
-                else state = E_SetupObjectOffsetChange.None;
+                state = (before.GetGridPositionYOffset() != _template.GetGridPositionYOffset())
+                    ? E_SetupObjectOffsetChange.All
+                    : E_SetupObjectOffsetChange.XZOffset;
             }
-            else state = E_SetupObjectOffsetChange.All;
+            else state = E_SetupObjectOffsetChange.None;
         }
 
-        OnSelectedChanged?.Invoke(state);
+        // 고스트 생성
+        _ghost = Managers.Resource.Instantiate<GameEntity>(_template.gameObject, Vector3.zero, Quaternion.identity);
+
+        // 레이어 스냅샷 + Ghost 레이어 적용(유틸 사용)
+        _layerSnapshot = LayerUtil.SnapshotAndSetLayerRecursive(_ghost.gameObject, LayerMask.NameToLayer("Ghost"));
+
+        _ghost.m_CurrentEDir = _template.m_CurrentEDir;
+        _ghost.SelectSpawnObject();
     }
 
-    public bool TryPlace()
+    private void ApplyRotate()
     {
-        if (Current == null) return false;
+        if (_template == null) return;
 
-        GridPosition pivot = _cursor.GetMouseWorldGridPosition();
-        var cells = Current.GetGridPositionListAtSelectPosition(pivot);
+        _template.m_CurrentEDir = _template.GetNextDir();
+        if (_ghost != null) _ghost.m_CurrentEDir = _template.m_CurrentEDir;
+
+        var e = _template.m_IsRotateSymmetry ? E_SetupObjectOffsetChange.None : E_SetupObjectOffsetChange.XZOffset;
+        Managers.Building.RaiseRotated();
+    }
+
+    private void ApplyPlace()
+    {
+        if (_template == null || _ghost == null) return;
+
+        GridPosition pivot = Util.Mouse.GetMouseWorldGridPosition();
+        var cells = _template.GetGridPositionListAtSelectPosition(pivot);
 
         foreach (var gp in cells)
         {
-            if (!_grid.IsValidGridPosition(gp) || !_grid.IsGridPositionCheckType(gp, E_GridCheckType.Walkable))
-                return false;
+            if (!Managers.Grid.IsWalkableTerrain(gp) || Managers.Grid.HasUnitAt(gp))
+            {
+                Managers.Building.Reqeust(new BuildContext(BuildRequestType.Fail, _template));
+                Debug.Log("실패");
+                return;
+            }
         }
 
-        OnPlaced?.Invoke(new BuildPlacedEventArgs { PivotGridPosition = pivot });
-        Current = null;
-        return true;
+        // 레이어 원복
+        LayerUtil.RestoreLayers(_layerSnapshot);
+
+        // Reserve 처리(확정은 고스트 인스턴스 기준)
+        Managers.Grid.RequestCell(
+            _ghost.GetGridPositionListAtSelectPosition(pivot),
+            _ghost,
+            E_EntityCellType.Reserve
+        );
+
+        _ghost.PlayPlacedSpawnAnimation();
+
+        Managers.Grid.RequestVisualRefresh();
+
+        Managers.Building.RaisePlaced(pivot);
+
+        _ghost = null;
+        _template = null;
     }
 
-    public Quaternion CurrentRotation =>
-        (Current != null) ? Quaternion.Euler(0, Current.GetRotationAngle(), 0) : Quaternion.identity;
-
-    public void RotateSelectObject()
+    private void ApplyCancel()
     {
-        if (Current == null) return;
+        if (_template == null) return;
 
-        Current.m_CurrentEDir = Current.GetNextDir();
+        DestroyGhost();
+        Managers.Building.RaiseCanceled();
 
-        var e = Current.m_IsRotateSymmetry
-            ? E_SetupObjectOffsetChange.None
-            : E_SetupObjectOffsetChange.XZOffset;
+        _template = null;
+    }
 
-        OnRotated?.Invoke(e);
+    private void DestroyGhost()
+    {
+        LayerUtil.RestoreLayers(_layerSnapshot);
+
+        if (_ghost != null)
+        {
+            Managers.Resource.Destroy(_ghost.gameObject);
+            _ghost = null;
+        }
     }
 }

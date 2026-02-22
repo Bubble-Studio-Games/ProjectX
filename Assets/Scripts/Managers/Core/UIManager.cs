@@ -5,8 +5,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using static Define;
 
-public class UIManager
+public class UIManager : IManager
 {
+    public void Init()
+    {
+    }
+
     private int _order = 10;
 
     public Stack<UI_Popup> _popupStack = new Stack<UI_Popup>();
@@ -88,9 +92,10 @@ public class UIManager
 			name = typeof(T).Name;
 
 		GameObject go = Managers.Resource.Instantiate($"UI/Notification/{name}");
-		T notification = Util.GetOrAddComponent<T>(go);
+    	T notification = Util.GetOrAddComponent<T>(go);
 
-		go.transform.SetParent(Root.transform);
+        if(go != null)
+    		go.transform.SetParent(Root.transform);
 
 		return notification;
 	}

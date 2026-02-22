@@ -53,7 +53,7 @@ public abstract class BaseScene : MonoBehaviour
         }
         else
         {
-            Managers.Data.OnDataReady += SafeDataLoad;
+            Managers.Data.OnRuntimeDataReady += SafeDataLoad;
         }
     }
 
@@ -67,7 +67,7 @@ public abstract class BaseScene : MonoBehaviour
 
     private void SafeDataLoad()
     {
-        Managers.Data.OnDataReady -= SafeDataLoad;
+        Managers.Data.OnRuntimeDataReady -= SafeDataLoad;
         DataLoad();
     }
 
@@ -81,7 +81,7 @@ public abstract class BaseScene : MonoBehaviour
         }
 
         // 여기서만 실제 load 호출
-        var data = Managers.Load.GetContinueSaveData();
+        var data = Managers.Game.GetContinueSaveData();
 
         if (data != null && data.dungeondata.gameEntityDatas.Count > 0)
         {

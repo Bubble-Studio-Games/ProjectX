@@ -388,7 +388,7 @@ public partial class CustomToolWindow
 
             // 추가 텍스처가 존재하는 경우 → 변환하지 않음
             string[] extraProps = {
-                "_MaskMap", "_DetailMap", "_ParallaxMap", "_SpecGlossMap", "_EmissionMap"
+                "_MaskMap", "_DetailMap", "_ParallaxMap", "_SpecGlossMap"
             };
 
             bool hasExtraTextures = false;
@@ -412,6 +412,22 @@ public partial class CustomToolWindow
             Texture baseMap = mat.HasProperty("_BaseMap") ? mat.GetTexture("_BaseMap") : null;
             Texture normalMap = mat.HasProperty("_BumpMap") ? mat.GetTexture("_BumpMap") : null;
 
+            // 🔥 추가: URP/Lit Emission 정보 백업
+            Texture emissionMap = null;
+            Color emissionColor = Color.black;
+            bool hasEmission = false;
+
+            if (mat.HasProperty("_EmissionMap") && mat.GetTexture("_EmissionMap") != null)
+            {
+                emissionMap = mat.GetTexture("_EmissionMap");
+                hasEmission = true;
+            }
+
+            // URP/Lit 도 _EmissionColor 를 쓰기 때문에 그대로 백업
+            if (mat.HasProperty("_EmissionColor"))
+                emissionColor = mat.GetColor("_EmissionColor");
+
+
             mat.shader = Shader.Find("ProPixelizer/SRP/PixelizedWithOutline");
 
             // ProPixelizer 쉐이더의 실제 프로퍼티 이름에 할당
@@ -421,6 +437,20 @@ public partial class CustomToolWindow
             if (normalMap != null && mat.HasProperty("_NormalMap"))
                 mat.SetTexture("_NormalMap", normalMap);
 
+
+            if (hasEmission && mat.HasProperty("_Emission"))
+            {
+                mat.SetTexture("_Emission", emissionMap);
+
+                // 필요하다면 키워드도 활성화 (셰이더에서 쓴다면)
+                mat.EnableKeyword("_EMISSION");
+            }
+
+            // 색상도 넘겨주기 (PixelizedWithOutline 도 _EmissionColor 사용)
+            if (mat.HasProperty("_EmissionColor"))
+            {
+                mat.SetColor("_EmissionColor", emissionColor);
+            }
 
             Debug.Log($"[변환 완료] {mat.name} → ProPixelizer");
             convertedCount++;

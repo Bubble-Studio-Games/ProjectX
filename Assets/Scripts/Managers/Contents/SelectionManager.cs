@@ -3,8 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using static Define;
 
-public class SelectionManager
+public class SelectionManager : IManager
 {
+    public void Init()
+    {
+    }
+
+    public void Clear()
+    {
+    }
+
     // 필드 / 프로퍼티 (유닛 리스트)
     private readonly HashSet<ISelectable> _selectedUnits = new();
     public IReadOnlyCollection<ISelectable> SelectedUnits => _selectedUnits;

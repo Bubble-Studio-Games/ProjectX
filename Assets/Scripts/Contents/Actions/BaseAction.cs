@@ -1,22 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static Define;
 
 public abstract class BaseAction : MonoBehaviour
 {
     #region Field
-    protected IGridVisualUpdateSource _gridUpdate;
-    protected IGridQuery _grid;
-    protected IDungeonCoreRegistry _dungeonCoreRegistry;
 
     public event Action OnActionStarted;
     public event Action OnActionCompleted;
-
-    public class OnChangeMoveGridEventArgs : EventArgs
-    {
-        public ControllableObject obj;
-    }
 
     [Header("Ref")]
     protected bool m_bIsActive;
@@ -35,12 +28,8 @@ public abstract class BaseAction : MonoBehaviour
     {
         m_GameEntity = GetComponentInParent<GameEntity>();
     }
-
     protected virtual void Start()
     {
-        _gridUpdate = Managers.SceneServices.GridVisualUpdateSource;
-        _grid = Managers.SceneServices.Grid;
-        _dungeonCoreRegistry = Managers.SceneServices.DungeonCores;
     }
 
     protected virtual void Update() { }
@@ -96,8 +85,7 @@ public abstract class BaseAction : MonoBehaviour
 
     public virtual void ClearAction() { }
 
-    protected void DrawGridVisual() => _gridUpdate.DrawGridVisual();
-    protected void DrawGridVisual(AttackData e = null) => _gridUpdate.DrawGridVisual();
-
+    protected void DrawGridVisual() => Managers.Grid.RequestVisualRefresh();
+    protected void DrawGridVisual(AttackData e = null) => Managers.Grid.RequestVisualRefresh();
     #endregion
 }

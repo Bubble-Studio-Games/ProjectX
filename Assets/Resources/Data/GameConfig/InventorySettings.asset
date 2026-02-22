@@ -25,3 +25,12 @@ MonoBehaviour:
     Count: 1
   - ItemId: ITM_Potion_MP_L
     Count: 1
+  gameEntitiesPrefab:
+  - {fileID: 7887375611610818135, guid: 9060abdd5bcf5734d83132dbaf0b203c, type: 3}
+  - {fileID: 4725769205855278606, guid: 42e1fe730d284ec4f86141b11e52579f, type: 3}
+  - {fileID: 691170306586916750, guid: dcee48727ac49dd458ad2fcf124f076a, type: 3}
+  - {fileID: 5855602145494971189, guid: 41542b81d85246c4db0f5022edab1355, type: 3}
+  - {fileID: 1914268851281847388, guid: c9d99748b11c5094ebcb3e22c89f8c46, type: 3}
+  - {fileID: 6252819232762060580, guid: d56c4f553c0df7e4d97345271b680220, type: 3}
+  - {fileID: 6836500385274136911, guid: bddaad5b0f5cc6b4a80f51053ba66061, type: 3}
+  - {fileID: 5922532197617452782, guid: ebfd1303e61caa1419f7ddc02d61c068, type: 3}

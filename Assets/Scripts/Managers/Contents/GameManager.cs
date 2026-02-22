@@ -1,16 +1,22 @@
+using Data;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using static Define;
 
-public partial class GameManager
+public partial class GameManager : IManager
 {
+
+    public void Clear()
+    {
+        _patternOffsetCache.Clear();
+    }
+
     public Action OnDungeonExplosionStart; // 미궁 탐험 시작
     public Action OnDungeonExplosionFail; // 미궁 탐험 실패
     public Action OnDungeonExplosionFinish; // 미궁 탐험 종료
@@ -93,7 +99,6 @@ public partial class GameManager
     {
         // 게임 진행 멈춤
         Time.timeScale = 0f;
-        AudioListener.pause = false; // 음악은 유지
         m_IsGamePauseing = true;
 
 
@@ -119,7 +124,7 @@ public partial class GameManager
 
         // 저장 팝업 표시하기
 
-        await Managers.Save.SaveAllData();
+        await SaveAllPlayRuntimeData();
 
         action?.Invoke();
     }
@@ -233,5 +238,239 @@ public partial class GameManager
 
     #endregion
 
+    #region Runtime Data Save & Load
 
+    public async Task SaveAllPlayRuntimeData()
+    {
+        await AutoSaveSlotAsync();
+        //await SaveAsync<SettingData>();
+        //await SaveAsync<AchievementData>();
+        await SavePlayStatistics();
+    }
+
+    #region Slot
+    /// <summary>
+    /// 🔹 현재 슬롯의 인게임 데이터를 DataManager 캐시에 반영
+    /// </summary>
+    private void CacheSlotData(int slotId)
+    {
+        var sceneType = Managers.Scene.CurrentScene.SceneType;
+        var saveDic = Managers.Data.SaveDic;
+
+        bool isNewGame = false;
+        // 슬롯 없으면 생성
+        if (!saveDic.ContainsKey(slotId))
+        {
+            saveDic[slotId] = new SaveSlotData { slotId = slotId };
+            isNewGame = true;
+        }
+
+        // 씬 타입별로 분기
+        switch (sceneType)
+        {
+            case Define.Scene.Dungeon:
+
+                saveDic[slotId].dungeondata = new DungeonSaveData
+                {
+                    gameEntityDatas = Managers.Object?._objects?
+                            .Where(obj => obj != null)
+                            .Select(obj => obj?.GetComponent<ISaveable>())
+                            .Where(isave => isave != null)
+                            .Select(isave => isave.CaptureSaveData())
+                            .ToList(),
+
+                    buildingCardDatas = Managers.SceneServices.BuildingCardUI.CaptureSaveData(),
+                    downJam = Managers.Player.Inventory.DownJamAmount,
+                    cameraPos = Managers.SceneServices.CameraInfo.Position,
+                    cameraRot = Managers.SceneServices.CameraInfo.Rotation,
+                };
+                break;
+
+            case Define.Scene.Camp:
+                saveDic[slotId].campdata = new CampSaveData
+                {
+                    // 캠프 전용 데이터 추가 시 여기에 작성
+                };
+                break;
+            case Define.Scene.Start:
+                if (isNewGame)
+                {
+                    saveDic[slotId].dungeondata = new DungeonSaveData();
+                    saveDic[slotId].campdata = new CampSaveData();
+                }
+                break;
+            default:
+                Debug.LogWarning($"⚠️ CacheSlotData: 정의되지 않은 SceneType ({sceneType})");
+                break;
+        }
+
+        // 공통 필드 갱신
+        saveDic[slotId].LastScene = sceneType;
+
+        // DataManager에 캐시 반영
+        Managers.Data.SetDic<SaveSlotLoader, int, SaveSlotData>(saveDic);
+
+        Debug.Log($"💾 슬롯 {slotId} 데이터 캐싱 완료 ({sceneType})");
+    }
+
+    /// <summary>
+    /// 🔹 현재 진행 중인 슬롯 자동 저장
+    /// </summary>
+    public async Task AutoSaveSlotAsync()
+    {
+        await AutoSaveSlotAsync(m_PlaySlotId);
+    }
+
+    public async Task AutoSaveSlotAsync(int slotId)
+    {
+        if (slotId < 0 || slotId > 2)
+        {
+            Debug.LogError("❌ 잘못된 슬롯 ID");
+            return;
+        }
+
+        // 1️ 현재 게임 상태 캐싱
+        CacheSlotData(slotId);
+
+        // 2️ 메타데이터 갱신
+        var slot = Managers.Data.SaveDic[slotId];
+        if (string.IsNullOrEmpty(slot.createTime))
+            slot.createTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+        slot.lastSaveTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+        // 3️ 플레이 타임 누적
+        float sessionTime = Time.realtimeSinceStartup - sessionStartTime;
+        slot.totalPlaySeconds += sessionTime;
+        sessionStartTime = Time.realtimeSinceStartup;
+
+        // 4️ 스크린샷 저장
+        CaptureAndSave();
+
+        // 5️⃣ DataManager를 통한 비동기 저장 (자동 백업/파일 관리)
+        await Managers.Data.SaveAsync<SaveSlotLoader>();
+
+        Debug.Log($"💾 슬롯 {slotId} 저장 완료! 총 {slot.totalPlaySeconds:0.0}s");
+    }
+
+    /// <summary>
+    /// 🔹 슬롯 복사 (예: 0번 슬롯 → 2번 슬롯)
+    /// </summary>
+    public async Task CopySlotAsync(int fromSlotId, int toSlotId)
+    {
+        await Managers.Data.CopyDicValueAsync<SaveSlotLoader, int, SaveSlotData>(fromSlotId, toSlotId);
+
+        // 미리보기 이미지 복사
+        FilCopyAndRename(
+            Managers.Data.GetFilePath(),
+            $"slot_{fromSlotId}.png",
+            $"slot_{toSlotId}.png");
+
+#if UNITY_EDITOR
+        AssetDatabase.Refresh();
+#endif
+
+        Debug.Log($"✅ 슬롯 {fromSlotId} → {toSlotId} 복사 완료");
+    }
+
+    /// <summary>
+    /// 🔹 슬롯 데이터 삭제
+    /// </summary>
+    public async Task DeleteSlotAsync(int slotId)
+    {
+        await Managers.Data.DeleteDicKeyAsync<SaveSlotLoader, int, SaveSlotData>(slotId);
+
+        string slotImage = $"{Managers.Data.GetFilePath()}/slot_{slotId}.png";
+        if (System.IO.File.Exists(slotImage))
+            System.IO.File.Delete(slotImage);
+
+#if UNITY_EDITOR
+        AssetDatabase.Refresh();
+#endif
+
+        Debug.Log($"🗑️ 슬롯 {slotId} 삭제 완료 (백업됨)");
+    }
+
+    /// <summary>
+    /// 🔹 슬롯 복원 (백업 시점 기준)
+    /// </summary>
+    public async Task RestoreSlotAsync(string timestamp)
+    {
+        await Managers.Data.RestoreBackupAsync<SaveSlotLoader>(timestamp);
+        Debug.Log($"♻️ 슬롯 데이터 복원 완료 → {timestamp}");
+    }
+
+    #endregion
+
+    public async Task SavePlayStatistics()
+    {
+        // 딕셔너리에 슬롯이 없으면 신규 생성
+        var data = Managers.Data.playStatistics;
+        data.lastSlotID = m_PlaySlotId;
+
+        Managers.Data.Set<PlayStatistics>(data);
+
+        await Managers.Data.SaveAsync<PlayStatistics>();
+    }
+
+    #endregion
+
+    #region Runtime (실시간 유동 데이터)
+
+    public SaveSlotData GetContinueSaveData()
+    {
+        if (Managers.Data.SaveDic.TryGetValue(Managers.Data.playStatistics.lastSlotID, out var slot))
+            return slot;
+
+        return null;
+    }
+
+    public void ObjectInfoLoad(List<BaseData> objs)
+    {
+        foreach (var obj in objs)
+            ObjectInfoLoad(obj);
+    }
+
+    public void ObjectInfoLoad(BaseData data)
+    {
+        // 2. ObjectManager에서 프리팹 원본을 가져옵니다.
+        GameObject go = Managers.Object.GetPrefabByName(data.prefabName);
+
+        if (go == null)
+        {
+            Debug.LogError($"ObjectLoad Failed: Prefab '{data.prefabName}' not found in ObjectManager.");
+            return;
+        }
+
+        GameObject newGO = Managers.Resource.Instantiate(go);
+
+        newGO.GetComponent<IGuidObject>().SetGUID(data.guid);
+        Managers.Object.Add(newGO);
+    }
+
+    public void ObjectRestoreSaveData(List<BaseData> datas)
+    {
+        foreach (var obj in datas)
+            ObjectRestoreSaveData(obj);
+    }
+
+    public void ObjectRestoreSaveData(BaseData data)
+    {
+        GameObject newGO = Managers.Object.FindByGuidObject(data.guid);
+
+        // 4. 소환된 오브젝트에서 ISaveable 컴포넌트를 얻어 데이터를 복원합니다.
+        ISaveable saveableComponent = newGO.GetComponent<ISaveable>();
+
+        if (saveableComponent != null)
+        {
+            // 5. RestoreSaveData를 호출하여 GUID, 스탯 등의 런타임 상태를 덮어씁니다.
+            saveableComponent.RestoreSaveData(data);
+        }
+        else
+        {
+            Debug.LogError($"ObjectLoad Failed: Instantiated object '{data.prefabName}' is missing ISaveable component.");
+        }
+    }
+
+    #endregion
 }

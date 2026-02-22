@@ -14,7 +14,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3729617502439001109, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 2
+      value: 18
       objectReference: {fileID: 0}
     - target: {fileID: 3729617502439001109, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
       propertyPath: m_LocalPosition.y
@@ -22,7 +22,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3729617502439001109, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 30
+      value: 22
       objectReference: {fileID: 0}
     - target: {fileID: 3729617502439001109, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -88,6 +88,74 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: DamagedClipList.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: DestroyClipList.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: InteractClipList.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: SelectedClipList.Array.size
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: DamagedClipList.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: 2b767caad6a1f464f99ac916e1e8f579, type: 3}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: DamagedClipList.Array.data[1]
+      value: 
+      objectReference: {fileID: 8300000, guid: 0c7a9966e01436a41a80d96a77f7ae01, type: 3}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: DamagedClipList.Array.data[2]
+      value: 
+      objectReference: {fileID: 8300000, guid: 39d70957eeffb69469916bbf555c6ca2, type: 3}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: DamagedClipList.Array.data[3]
+      value: 
+      objectReference: {fileID: 8300000, guid: bf667425259925c4fb4b0f8dda1cddd2, type: 3}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: DestroyClipList.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: 4f8b63f675a5743408dbdd2e49b35703, type: 3}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: DestroyClipList.Array.data[1]
+      value: 
+      objectReference: {fileID: 8300000, guid: 046606e7f103d6341a8f11cf95bae156, type: 3}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: DestroyClipList.Array.data[2]
+      value: 
+      objectReference: {fileID: 8300000, guid: ab4adf34a19735947b535c52bf20f9f8, type: 3}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: DestroyClipList.Array.data[3]
+      value: 
+      objectReference: {fileID: 8300000, guid: 547ba84f21b0da04ebe142e723bddb9d, type: 3}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: InteractClipList.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: 2dbdaa3d36efdd249b38ac63f8fa2d5e, type: 3}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: SelectedClipList.Array.data[0]
+      value: 
+      objectReference: {fileID: 8300000, guid: 3fbb385f61400e944906ab75a33a9fdd, type: 3}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: SelectedClipList.Array.data[1]
+      value: 
+      objectReference: {fileID: 8300000, guid: c1883807d2f4fb64083560b9a377bd67, type: 3}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: SelectedClipList.Array.data[2]
+      value: 
+      objectReference: {fileID: 8300000, guid: 532e2e5f9d4472f4386a6091f382d16c, type: 3}
+    - target: {fileID: 6797805800662393266, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+      propertyPath: SelectedClipList.Array.data[3]
+      value: 
+      objectReference: {fileID: 8300000, guid: a87627892a1c9384dbd999c6ba306580, type: 3}
     - target: {fileID: 7197975847926387253, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
       propertyPath: m_Name
       value: TreasureChest
@@ -139,6 +207,7 @@ PrefabInstance:
     - {fileID: 1858603395750912314, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
     - {fileID: 7540657628865413251, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
     - {fileID: 9094740110015393887, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
+    - {fileID: 7180099738473067391, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 8173256332975951686, guid: c6fcd507dc697d34d93629acc039f49f, type: 3}

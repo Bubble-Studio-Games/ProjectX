@@ -5,8 +5,10 @@ using UnityEngine;
 /// <summary>
 /// 상점 관리 - 상점 데이터, 구매/판매, 재고 관리
 /// </summary>
-public class ShopManager
+public class ShopManager : IManager
 {
+
+
     private Dictionary<string, List<Shop.Data>> _shopData;
     private string _currentShopId;
     private ShopUI _shopUI;
@@ -80,7 +82,14 @@ public class ShopManager
     /// <summary>
     /// 상점 아이템의 실제 가격 반환 - Price_Override가 -1이면 기본가 사용
     /// </summary>
-    public int GetItemPrice(Shop.Data shopData) => Managers.Data.GetShopItemPrice(shopData);
+    public int GetItemPrice(Shop.Data shopData)
+    {
+        if (shopData.Price_Override >= 0)
+            return shopData.Price_Override;
+
+        Managers.Data.ItemData.TryGetValue(shopData.Item_ID, out var data);
+        return data.Price_Buy;
+    }
 
     /// <summary>
     /// 아이템 판매 가격 반환

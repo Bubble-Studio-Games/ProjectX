@@ -58,8 +58,10 @@ public class RewardUI : UI_Popup, IAsyncCloseable
         _currentQuestData = null;
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
+
         _sequence?.Kill();
         _onRewarded = null;
         _currentQuestData = null;

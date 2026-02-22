@@ -38,7 +38,10 @@ public sealed class AttackPattern_Summon
         var spawnCandidate = GetAttackRangeGridPositions(attacker.GetGridPosition(), target, data);
 
         // 그리드 체크
-        var spawnfilterd = spawnCandidate.Where(pos => GetGridListValidByCheckTypes(pos, attacker, data));
+        var spawnfilterd =  spawnCandidate.Where(pos => GetGridListValidByCheckTypes(pos, attacker, data)).ToList();
+
+        // 타겟 위치 제외
+        spawnfilterd.Remove(target.GetGridPosition());
 
         Debug.Log($"소환 가능 : {string.Join(" \n", spawnfilterd)}");
 
@@ -69,9 +72,9 @@ public sealed class AttackPattern_Summon
         // 섞음
         data.selectedPositions = spawnfilterd.OrderBy(_ => UnityEngine.Random.value).Take(data.m_iThisAttackSummonCount).ToList();
 
-        Debug.Log($"예약 : {string.Join(" ", data.selectedPositions)}");
-
-        Managers.SceneServices.GridMut.SetCellType(data.selectedPositions, E_GridCheckType.Reserve, spawnEneity);
+        // Debug.Log($"예약 : {string.Join(" ", data.selectedPositions)}");
+            
+        Managers.Grid.RequestCell(data.selectedPositions, spawnEneity, E_EntityCellType.Reserve);
     }
 
     protected override IEnumerable<GridPosition> GetAttackSelectGridPositions(IEnumerable<GridPosition> rangeGridList, GameEntity attacker, GameEntity target, AttackData data)
@@ -90,26 +93,25 @@ public sealed class AttackPattern_Summon
 
         foreach (GridPosition spawnPos in data.selectedPositions)
         {
-            Vector3 worldPos = Managers.SceneServices.Grid.GetWorldPosition(spawnPos);
+            Vector3 worldPos = Managers.Grid.GetWorldPosition(spawnPos);
             GameObject unitObj = Managers.Resource.Instantiate(data._summonUnitPrefab, worldPos, Quaternion.identity);
 
             if (unitObj.TryGetComponent<GameEntity>(out var summonedUnit))
             {
                 List<GridPosition> unitGridPositions = summonedUnit.GetGridPositionListAtCurrentDir();
+                summonedUnit.GetComponent<AttributeSystem>().ReStoreStat();
                 summonedUnit.SpawnStart();
 
                 // 등급 업 시도
-                if (summonedUnit is ControllableObject cobj)
-                {
+                if (summonedUnit is IUpgradeble cobj)
                     cobj.TryEnhanceGrade();
-                }
 
                 if (data.m_IsInfiniteSpawn == false)
                     data._summonInstances.Add(summonedUnit);
             }
             else
             {
-                Managers.SceneServices.GridMut.SetCellType(spawnPos, E_GridCheckType.Walkable);
+                Managers.Grid.ReleaseCell(spawnPos, summonedUnit);
             }
         }
 

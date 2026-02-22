@@ -5,33 +5,21 @@ using System.Linq;
 using UnityEngine;
 using static Define;
 
+
+[Serializable]
+public struct GridVisualTypeMaterial
+{
+    public E_GridVisualType_Color gridVisualType;
+    public Material material;
+    [Range(0, 100)] public int UpIntensity;
+    [Range(0, 100)] public int DownIntensity;
+}
+
 [EditorShowInfo(@"
 역할: 그리드 타일을 실제로 그려주는 렌더러(표시/숨김/색상/강도)
-IGridPlacementVisualizer 구현체로 등록되고, Show / HideAll로 타일을 표시한다. 
-그리드 전체 타일 오브젝트를 생성해두고(BuildVisualTiles), 머티리얼 캐시를 만든다. 
-IGridVisualUpdateSource의 OnDirty만 구독하고, Dirty가 오면 Refresh()에서 그린다. 
-Refresh()는 updateSource 상태로 모드 분기:
-배치 중이면 UpdateGridPositionPlace(floor, mouseGrid)로 배치용 표시 
-평소면 UpdateGridVisual(selectedActionType)로 일반 표시(예: 이동/전투 범위) 
-
-결론: “판단은 하지 않고, 받은 정보로 그리기만 하는” 시각화 전용 클래스.
 ")]
-public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
+public class GridSystemVisual : MonoBehaviour
 {
-    public bool m_isShowReservationGrid;
-
-    private IGridQuery _grid;
-    private IGridVisualUpdateSource _update;   // ✅ 2단계 핵심
-
-    [Serializable]
-    public struct GridVisualTypeMaterial
-    {
-        public E_GridVisualType_Color gridVisualType;
-        public Material material;
-        [Range(0, 100)] public int UpIntensity;
-        [Range(0, 100)] public int DownIntensity;
-    }
-
     [Header("GridVisualColor")]
     [SerializeField] private Transform gridSystemVisualSinglePrefab;
     [SerializeField] public List<GridVisualTypeMaterial> gridVisualTypeMaterialList;
@@ -39,47 +27,58 @@ public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
     public Dictionary<E_GridVisualType_Color, Dictionary<E_GridVisualType_Intensity, Material>> _materialCache;
     private readonly Dictionary<int, GridSystemVisualSingle[,]> _floorVisuals = new();
 
+    // 현재 상태 스냅샷
+    public int CurrentFloor { get; private set; }
+
+    // ✅ 최적화: HashSet 재사용 (GC Alloc 방지)
+    private HashSet<GridPosition> _occupiedCache = new();
+    private HashSet<GridPosition> _obstacleCache = new();
+
+    #region Unity Lifecycle & Init
+
     private void Awake()
     {
-        Managers.SceneServices.Register<IGridPlacementVisualizer>(this);
         InitializeMaterialCache();
-
-        _grid = Managers.SceneServices.Grid;
-        _update = Managers.SceneServices.GridVisualUpdateSource;
+        Managers.SceneServices.Register(this);
     }
 
     private void Start()
     {
+        Init(Managers.Grid.Width, Managers.Grid.Height, Managers.Grid.CellSize, Managers.Grid.FloorAmount);
 
-        BuildVisualTiles();
-        Refresh();
+        // 초기화
+        HideAll();
     }
 
-    private void OnEnable()
+    void OnEnable() 
+    { 
+        Managers.Grid.OnRequestVisualRefresh += Refresh;
+
+        // 오브젝트가 선택 되었으면 다시 그려!
+        Managers.Selection.OnSelectionChanged += Managers.Grid.RequestVisualRefresh;
+    }
+    void OnDisable()
     {
-        _update.OnDirty += Refresh;
+        Managers.Grid.OnRequestVisualRefresh -= Refresh;
+
+        Managers.Selection.OnSelectionChanged -= Managers.Grid.RequestVisualRefresh;
     }
 
-    private void OnDestroy()
+    private void Init(int width, int height, float cellSize, int floorAmount)
     {
-        _update.OnDirty -= Refresh;
-    }
-
-    private void BuildVisualTiles()
-    {
-        for (int floor = 0; floor < _grid.GetFloorAmount(); floor++)
+        for (int floor = 0; floor < floorAmount; floor++)
         {
-            var gridArray = new GridSystemVisualSingle[_grid.GetWidth(), _grid.GetHeight()];
+            var gridArray = new GridSystemVisualSingle[width, height];
 
-            for (int x = 0; x < _grid.GetWidth(); x++)
+            for (int x = 0; x < width; x++)
             {
-                for (int z = 0; z < _grid.GetHeight(); z++)
+                for (int z = 0; z < height; z++)
                 {
                     GridPosition gp = new GridPosition(x, z, floor);
 
                     Transform t = Instantiate(
                         gridSystemVisualSinglePrefab,
-                        _grid.GetWorldPosition(gp),
+                        Managers.Grid.GetWorldPosition(gp),
                         Quaternion.identity,
                         transform);
 
@@ -90,6 +89,8 @@ public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
             _floorVisuals[floor] = gridArray;
         }
     }
+
+    #endregion
 
     // Material cache
     private void InitializeMaterialCache()
@@ -126,17 +127,7 @@ public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
         return null;
     }
 
-    private IEnumerable<GridPosition> FilterGridReservation(IEnumerable<GridPosition> list)
-    {
-        if (!m_isShowReservationGrid)
-            return list;
-
-        var reserved = list.Where(g => _grid.IsGridPositionCheckType(g, E_GridCheckType.Reserve)).ToList();
-        Show(reserved, E_GridVisualType_Color.Blue, E_GridVisualType_Intensity.Medium);
-        return list.Except(reserved);
-    }
-
-    // Visualizer API
+    // Visualizer
     public void HideAll()
     {
         foreach (var floorPair in _floorVisuals)
@@ -168,135 +159,134 @@ public class GridSystemVisual : MonoBehaviour, IGridPlacementVisualizer
         }
     }
 
-    // Refresh entrypoint
-    private void Refresh()
+    #region Logic & Rendering
+
+    public void Refresh()
     {
-
-        // ✅ 배치 중이면 배치용 그리드만
-        if (_update.IsPlacing)
-        {
-            UpdateGridPositionPlace(_update.CurrentFloor, _update.MouseGridPosition);
-            return;
-        }
-
-        // ✅ 평소 모드
-        UpdateGridVisual(_update.SelectedActionType);
+        // 배치 중이면 배치 모드를 보여준다.
+        if (Managers.Building.IsSetuping)
+            UpdateGridPositionPlace(CurrentFloor, Util.Mouse.GetMouseWorldGridPosition());
+        // 오브젝트를 선택한 상태면 해당 오브젝트의 행동 반경(이동, 공격 범위 등)을 보여준다.
+        else if (Managers.Selection.SelectedUnits.Count > 0)
+            UpdateGridVisual();
+        // 그 외에는 아무것도 보여주지 않는다.
+        else
+            HideAll();
     }
 
-    private void UpdateGridVisual(Type selectedAction)
+    #region [Update Logic] 일반 액션 범위 표시
+
+    /// <summary>
+    /// 선택된 유닛들의 공통 액션 범위를 계산하여 그리드에 표시합니다.
+    /// </summary>
+    /// <param name="actionType">BaseAction을 상속받은 클래스 타입</param>
+
+    #endregion
+
+    // 1. 일반 모드(오브젝트 선택 후 직접 명령 반경 그려주기) 렌더링
+    private void UpdateGridVisual()
     {
+        // 초기화
         HideAll();
 
-        if (selectedAction == null)
+        // 선택된 오브젝트들의 특정 Action(행동) 범위 그리기
+        GetCommonAttackGridFromUnits<CommandMoveAction>();
+        GetCommonAttackGridFromUnits<CombatAction>();
+
+        void GetCommonAttackGridFromUnits<TAction>() where TAction : BaseAction
         {
-            GetCommonAttackGridFromUnits<CommandMoveAction>();
-            GetCommonAttackGridFromUnits<CombatAction>();
-        }
+            var filter = Util.FilterGameEntityHasAction<TAction, GameEntity>(Managers.Selection.SelectedUnitsT<GameEntity>());
 
-        // if (SelectedActionType == typeof(CommandMoveAction))
-        // (선택) selectedAction != null 일 때도 표시하고 싶으면 여기서 처리
-    }
-
-    private void GetCommonAttackGridFromUnits<TAction>() where TAction : BaseAction
-    {
-        var filter = Util.FilterGameEntityHasAction<TAction, GameEntity>(Managers.Selection.SelectedUnitsT<GameEntity>());
-
-        if (typeof(TAction) == typeof(CommandMoveAction))
-        {
-            HashSet<GridPosition> commonRange = null;
-
-            foreach (var (unit, action) in filter)
+            if (typeof(TAction) == typeof(CommandMoveAction))
             {
-                var validList = action.GetValidActionGridPositionList();
-                commonRange ??= validList.ToHashSet();
-                commonRange.IntersectWith(validList);
+                HashSet<GridPosition> commonRange = null;
+
+                foreach (var (unit, action) in filter)
+                {
+                    var validList = action.GetValidActionGridPositionList();
+                    commonRange ??= validList.ToHashSet();
+                    commonRange.IntersectWith(validList);
+                }
+
+                Show(FilterGridReservation(commonRange ?? Enumerable.Empty<GridPosition>()), E_GridVisualType_Color.White, E_GridVisualType_Intensity.Medium);
             }
-
-            Show(FilterGridReservation(commonRange ?? Enumerable.Empty<GridPosition>()), E_GridVisualType_Color.White, E_GridVisualType_Intensity.Medium);
-        }
-        else if (typeof(TAction) == typeof(CombatAction))
-        {
-            HashSet<GridPosition> rangeList = null;
-            HashSet<GridPosition> targetList = null;
-
-            foreach (var (unit, action) in filter)
+            else if (typeof(TAction) == typeof(CombatAction))
             {
-                var data = unit.GetAction<CombatAction>().m_ThisTimeAttack;
+                HashSet<GridPosition> rangeList = null;
+                HashSet<GridPosition> targetList = null;
 
-                if (data == null)
-                    continue;
+                foreach (var (unit, action) in filter)
+                {
+                    var data = unit.GetAction<CombatAction>().m_ThisTimeAttack;
 
-                var fg = Managers.Game.AttackPattern(data).GetAttackGridPositions(unit, unit.m_Target, data);
+                    if (data == null)
+                        continue;
 
-                rangeList ??= fg.attackRangeGridList.ToHashSet();
-                rangeList.IntersectWith(fg.attackRangeGridList);
+                    var fg = Managers.Game.AttackPattern(data).GetAttackGridPositions(unit, unit.m_Target, data);
 
-                targetList ??= fg.targetGridList.ToHashSet();
-                targetList.IntersectWith(fg.targetGridList);
+                    rangeList ??= fg.attackRangeGridList.ToHashSet();
+                    rangeList.IntersectWith(fg.attackRangeGridList);
+
+                    targetList ??= fg.targetGridList.ToHashSet();
+                    targetList.IntersectWith(fg.targetGridList);
+                }
+
+                Show(FilterGridReservation(rangeList ?? Enumerable.Empty<GridPosition>()), E_GridVisualType_Color.Yellow, E_GridVisualType_Intensity.Light);
+                Show(FilterGridReservation(targetList ?? Enumerable.Empty<GridPosition>()), E_GridVisualType_Color.Red, E_GridVisualType_Intensity.Medium);
             }
+        }
 
-            Show(FilterGridReservation(rangeList ?? Enumerable.Empty<GridPosition>()), E_GridVisualType_Color.Yellow, E_GridVisualType_Intensity.Light);
-            Show(FilterGridReservation(targetList ?? Enumerable.Empty<GridPosition>()), E_GridVisualType_Color.Red, E_GridVisualType_Intensity.Medium);
+        IEnumerable<GridPosition> FilterGridReservation(IEnumerable<GridPosition> list)
+        {
+            var reserved = list.Where(g => Managers.Grid.GetEntityCellType(g) == E_EntityCellType.Reserve).ToList();
+            Show(reserved, E_GridVisualType_Color.Blue, E_GridVisualType_Intensity.Medium);
+            return list.Except(reserved);
         }
     }
 
-    // ✅ 이제 외부(업데이트 소스)가 floor/mouseGrid를 넘겨준다
-    private void UpdateGridPositionPlace(int currentFloor, GridPosition mouseGrid)
+    // 2. 배치 모드 렌더링 (최적화 적용)
+    private void UpdateGridPositionPlace(int floor, GridPosition pivotGrid)
     {
-        // 현재 층의 Grid 상태 가져오기
-        var walkable = _grid.GetFloorAndTypeGridPositions(currentFloor, E_GridCheckType.Walkable);
-        var obstacle = _grid.GetFloorAndTypeGridPositions(currentFloor, E_GridCheckType.Obstacle);
-        var reserved = _grid.GetFloorAndTypeGridPositions(currentFloor, E_GridCheckType.Reserve);
-        var unitGrids = _grid.GetFloorAndTypeGridPositions(currentFloor, E_GridCheckType.GameEntity);
-        var voidGrids = _grid.GetFloorAndTypeGridPositions(currentFloor, E_GridCheckType.Void);
+        var terrainGroups = Managers.Grid.LevelGrid.GetGroupedPositionsByFloor(floor);
+        var entityGroups = Managers.Grid.EntityGrid.GetGroupedPositionsByFloor(floor);
+        var placed = Managers.Building.PlacingObject;
 
-        // 배치 중 오브젝트의 footprint는 "배치 서비스"가 제공해야 가장 깔끔하지만,
-        // 지금 단계에서는 updateSource가 IsPlacing만 주고 있으므로,
-        // BuildPlacementService에서 Current를 가져오도록 약하게 연결(인터페이스)
-        var build = Managers.SceneServices.BuildPlacementService;
-        var placed = build?.Current;
-        if (placed == null)
+        // 캐시 업데이트 (새 리스트 할당 대신 Clear 후 추가하여 GC 최소화)
+        _occupiedCache.Clear();
+        _obstacleCache.Clear();
+
+        // Terrain
+        foreach (var p in terrainGroups[E_TerrainCellType.Obstacle]) _obstacleCache.Add(p);
+        foreach (var p in terrainGroups[E_TerrainCellType.Void]) _obstacleCache.Add(p);
+
+        // Entity
+        foreach (var p in entityGroups[E_EntityCellType.GameEntity]) _occupiedCache.Add(p);
+        foreach (var p in entityGroups[E_EntityCellType.Reserve]) _occupiedCache.Add(p);
+
+        // Place Object
+        var preview = placed.GetGridPositionListAtSelectPosition(pivotGrid);
+
+        HideAll();
+
+        // 지형 가이드라인 
+        Show(terrainGroups[E_TerrainCellType.Walkable], E_GridVisualType_Color.White, E_GridVisualType_Intensity.Light);
+
+        bool isInvalid = false;
+        bool isBlocked = false;
+
+        foreach (var p in preview)
         {
-            HideAll();
-            return;
+            if (!Managers.Grid.IsValidGridPosition(p) || _obstacleCache.Contains(p)) { isInvalid = true; break; }
+            if (_occupiedCache.Contains(p)) isBlocked = true;
         }
 
-        var objectOffsets = placed.GetGridPositionListAtCurrentDir();
+        // 프리뷰 색상 결정
+        E_GridVisualType_Color color = isInvalid ? E_GridVisualType_Color.Red : (isBlocked ? E_GridVisualType_Color.Yellow : E_GridVisualType_Color.Green);
+        Show(preview, color, E_GridVisualType_Intensity.Medium);
 
-        HashSet<GridPosition> blocked = new();
-        blocked.UnionWith(obstacle);
-        blocked.UnionWith(reserved);
-        blocked.UnionWith(unitGrids);
-
-        foreach (var npos in blocked.ToList())
-        {
-            var affected = objectOffsets
-                .Select(offset => npos + offset.ReverseSign())
-                .Where(p => _grid.IsValidGridPosition(p));
-
-            blocked.UnionWith(affected);
-        }
-
-        blocked.ExceptWith(obstacle);
-        blocked.ExceptWith(voidGrids);
-
-        HashSet<GridPosition> placeable = walkable.Where(p => !blocked.Contains(p)).ToHashSet();
-
-        var preview = placed.GetGridPositionListAtSelectPosition(mouseGrid);
-
-        if (preview.All(p => _grid.IsValidGridPosition(p) && !obstacle.Contains(p)))
-        {
-            Show(preview, E_GridVisualType_Color.Green, E_GridVisualType_Intensity.Medium);
-
-            var warning = preview.Where(p => blocked.Contains(p)).ToList();
-            if (warning.Count > 0)
-                Show(warning, E_GridVisualType_Color.Yellow, E_GridVisualType_Intensity.Medium);
-
-            placeable.ExceptWith(preview);
-            blocked.ExceptWith(preview);
-        }
-
-        Show(blocked, E_GridVisualType_Color.Red, E_GridVisualType_Intensity.Medium);
-        Show(placeable, E_GridVisualType_Color.White, E_GridVisualType_Intensity.Medium);
+        // 현재 유닛 위치 강조
+        Show(entityGroups[E_EntityCellType.GameEntity], E_GridVisualType_Color.Red, E_GridVisualType_Intensity.Medium);
     }
+
+    #endregion
 }

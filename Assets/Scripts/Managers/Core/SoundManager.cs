@@ -2,10 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
-public class SoundManager
+public class SoundManager : IManager
 {
     AudioSource[] _audioSources = new AudioSource[(int)Define.Sound.MaxCount];
     Dictionary<string, AudioClip> _audioClips = new Dictionary<string, AudioClip>();
@@ -13,7 +11,6 @@ public class SoundManager
     // MP3 Player   -> AudioSource
     // MP3 음원     -> AudioClip
     // 관객(귀)     -> AudioListener
-
     public void Init()
     {
         GameObject root = GameObject.Find("@Sound");

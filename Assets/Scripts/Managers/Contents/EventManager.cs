@@ -1,11 +1,8 @@
 
 using System;
 
-public class EventManager 
+public class EventManager : IManager
 {
-    public event Action<NPCObject> NPCAppeared;
-    public event Action<NPCObject> NPCDisappeared;
-
     public void Init()
     {
     }
@@ -13,6 +10,10 @@ public class EventManager
     public void Clear()
     {
     }
+
+    public event Action<NPCObject> NPCAppeared;
+    public event Action<NPCObject> NPCDisappeared;
+
 
     public void OnNPCAppeared(NPCObject npc)
     {

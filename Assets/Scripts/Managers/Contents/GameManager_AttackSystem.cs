@@ -24,12 +24,12 @@ public partial class GameManager
                 GridPosition canAttackPos = Util.ToGridPosition(offset, targetGridPosition, dir);
 
                 // 유효한 범위만 가져오기
-                if (!Managers.SceneServices.Grid.IsValidGridPosition(canAttackPos)) // 유효한 위치만 추가
+                if (!Managers.Grid.IsValidGridPosition(canAttackPos)) // 유효한 위치만 추가
                     continue;
 
                 if (checkHasPath)
                 {
-                    if (!Managers.SceneServices.Pathfinder.HasPath(attackerGridPosition, canAttackPos))
+                    if (!Managers.Path.HasPath(attackerGridPosition, canAttackPos))
                         continue;
                 }
 

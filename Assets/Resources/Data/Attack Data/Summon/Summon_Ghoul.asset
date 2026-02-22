@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7442596ccadf5bd42af18b0bbe396f46, type: 3}
   m_Name: Summon_Ghoul
   m_EditorClassIdentifier: 
-  m_EAttackDataType: 4
   Id: 20
   AttackName: "\uAD6C\uC6B8 \uC18C\uD658"
   AttackType: 7
   EnableSelfAttack: 0
+  m_iPriority: 1
   m_ERangeFillType: 0
   m_ERangeShapeType: 0
   m_RangeOffset:
@@ -27,7 +27,8 @@ MonoBehaviour:
     z: 1
     floor: 0
   m_ArcAngle: 90
-  GridCheckTypes: 
+  m_TerrainGridCheckTypes: 00000000
+  m_EntityGridCheckTypes: 00000000
   ApplyTargetTendency: 0
   NextAttacks: []
   ConditionPrevAttack: {fileID: 0}
@@ -76,8 +77,8 @@ MonoBehaviour:
     ReadyFailAnimationClip: {fileID: 0}
   _summonUnitPrefab: {fileID: 103766868601941155, guid: 7e61593bf8511f445a2318b1e13a0236, type: 3}
   m_IsRandomSpawnCount: 0
-  _minSummonCount: 3
-  _maxSummonCount: 3
+  _minSummonCount: 1
+  _maxSummonCount: 1
   _summonInstances: []
   m_IsInfiniteSpawn: 0
   m_iThisAttackSummonCount: 0

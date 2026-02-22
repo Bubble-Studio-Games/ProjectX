@@ -27,7 +27,7 @@ public class FloorVisibility : MonoBehaviour
     private void Start()
     {
         // 시작 시 위치 기반으로 층 계산
-        floor = Managers.SceneServices.Grid.GetFloor(transform.position);
+        floor = Managers.Grid.GetGridPosition(transform.position).floor;
 
         // 0층이고, 고정 층이면 스크립트 필요 없음 → 삭제
         if (floor == 0 && !dynamicFloorPosition)
@@ -41,7 +41,7 @@ public class FloorVisibility : MonoBehaviour
         // 오브젝트가 이동할 수 있는 구조라면 매 프레임 층 다시 계산
         if (dynamicFloorPosition)
         {
-            floor = Managers.SceneServices.Grid.GetFloor(transform.position);
+            floor = Managers.Grid.GetGridPosition(transform.position).floor;
         }
 
         // 카메라의 현재 높이 가져오기

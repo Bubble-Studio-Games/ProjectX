@@ -205,7 +205,7 @@ public class RewardDownJam : BaseReward
     public override void Execute(GameEntity source)
     {
         int jam = UnityEngine.Random.Range(downJamMin, downJamMax + 1);
-        Managers.SceneServices.InventoryWrite.AddDownJam(jam);
+        Managers.Player.Inventory.AddDownJam(jam);
     }
 }
 

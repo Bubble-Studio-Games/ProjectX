@@ -36,7 +36,8 @@ public  partial class AttackData : ScriptableObject
     public float m_ArcAngle = 90f;
 
     [Header("Condition")]
-    public List<E_GridCheckType> GridCheckTypes = new();
+    public List<E_TerrainCellType> m_TerrainGridCheckTypes = new();
+    public List<E_EntityCellType> m_EntityGridCheckTypes = new();
     public E_TargetTendencyType ApplyTargetTendency;
 
     [Header("Combo / Chain Links")]

@@ -127,7 +127,7 @@ public abstract class AttackPattern
 
     protected bool IsValidTargetTendency(GridPosition grid, GameEntity attacker, AttackData checkAttackData)
     {
-        var target = Managers.SceneServices.Grid.GetCellEntity(grid);
+        var target = Managers.Grid.GetUnitAt(grid);
         if (target == null) return false;
 
         switch (checkAttackData.ApplyTargetTendency)
@@ -152,7 +152,7 @@ public abstract class AttackPattern
     protected bool CheckCanReach(GameEntity attacker, ref List<GridPosition> list)
     {
         var a = attacker.GetGridPosition();
-        list = list.Where(pos => Managers.SceneServices.Pathfinder.HasPath(a, pos)).ToList();
+        list = list.Where(pos => Managers.Path.HasPath(a, pos)).ToList();
         return list.Count > 0;
     }
 
@@ -185,10 +185,7 @@ public abstract class AttackPattern
                 {
                     GridPosition canAttackPos = Util.ToGridPosition(offset, targetGridPosition, dir);
 
-                    if (!Managers.SceneServices.Grid.IsValidGridPosition(canAttackPos))
-                        continue;
-
-                    if (!Managers.SceneServices.Grid.IsGridPositionCheckType(canAttackPos, E_GridCheckType.Walkable) &&
+                    if (!Managers.Grid.CanMoveTo(canAttackPos, attackerGridPosition) &&
                         canAttackPos != attackerGridPosition)
                         continue;
 
@@ -219,8 +216,7 @@ public abstract class AttackPattern
             bool isValid = offsets.Any(offset =>
             {
                 GridPosition pos = Util.ToGridPosition(offset, attackable, dir);
-                return Managers.SceneServices.Grid.IsValidGridPosition(pos)
-                    && GetGridListValidByCheckTypes(pos, attacker, checkAttackData);
+                return GetGridListValidByCheckTypes(pos, attacker, checkAttackData);
             });
 
             if (isValid) result.Add(attackable);
@@ -229,47 +225,64 @@ public abstract class AttackPattern
         return result;
     }
 
-    protected bool GetGridListValidByCheckTypes(GridPosition checkGridPosition, GameEntity attacker, AttackData checkAttackData)
+    protected bool GetGridListValidByCheckTypes(
+        GridPosition checkGridPosition,
+        GameEntity attacker,
+        AttackData checkAttackData)
     {
-        if (checkAttackData.GridCheckTypes.Count == 0)
+        bool hasTerrainChecks = checkAttackData.m_TerrainGridCheckTypes != null &&
+                                checkAttackData.m_TerrainGridCheckTypes.Count > 0;
+
+        bool hasEntityChecks = checkAttackData.m_EntityGridCheckTypes != null &&
+                                checkAttackData.m_EntityGridCheckTypes.Count > 0;
+
+        // ✅ 아무 조건도 없으면: "대상이 존재하고 적이면 true" (기존 동작 유지)
+        if (!hasTerrainChecks && !hasEntityChecks)
         {
-            var t = Managers.SceneServices.Grid.GetCellEntity(checkGridPosition);
-            if (t == null)
-                return false;
-            // 같은 팀원이 아닌 경우에 모두 공격 판단
+            var t = Managers.Grid.GetUnitAt(checkGridPosition);
+            if (t == null) return false;
             return !attacker.IsAlly(t);
         }
 
-        foreach (var type in checkAttackData.GridCheckTypes)
+        // 1) Terrain 체크
+        if (hasTerrainChecks)
         {
-            switch (type)
+            var terrain = Managers.Grid.GetTerrainType(checkGridPosition);
+            foreach (var type in checkAttackData.m_TerrainGridCheckTypes)
             {
-                case E_GridCheckType.Walkable:
-                    if (!Managers.SceneServices.Grid.IsGridPositionCheckType(checkGridPosition, E_GridCheckType.Walkable))
-                        return false;
-                    break;
-
-                case E_GridCheckType.GameEntity:
-                    if (!IsValidTargetTendency(checkGridPosition, attacker, checkAttackData))
-                        return false;
-                    break;
-
-                case E_GridCheckType.Reserve:
-                    if (!Managers.SceneServices.Grid.IsGridPositionCheckType(checkGridPosition, E_GridCheckType.Reserve))
-                        return false;
-                    break;
-
-                case E_GridCheckType.Obstacle:
-                    if (!Managers.SceneServices.Grid.IsGridPositionCheckType(checkGridPosition, E_GridCheckType.Obstacle))
-                        return false;
-                    break;
-
-                case E_GridCheckType.Void:
-                    if (!Managers.SceneServices.Grid.IsGridPositionCheckType(checkGridPosition, E_GridCheckType.Void))
-                        return false;
-                    break;
+                if (terrain != type)
+                    return false;
             }
         }
+
+        // 2) Entity 체크
+        if (hasEntityChecks)
+        {
+            foreach (var type in checkAttackData.m_EntityGridCheckTypes)
+            {
+                switch (type)
+                {
+                    // ✅ "유닛(공격 가능한 타겟)" 체크는 단순 점유가 아니라 성향/팀 판정이 필요
+                    case E_EntityCellType.GameEntity:
+                        if (!IsValidTargetTendency(checkGridPosition, attacker, checkAttackData))
+                            return false;
+                        break;
+
+                    // ✅ 예약 체크(플래그/단일값 여부에 따라 구현 달라짐)
+                    case E_EntityCellType.Reserve:
+                        if (Managers.Grid.GetEntityCellType(checkGridPosition) != E_EntityCellType.Reserve)
+                            return false;
+                        break;
+
+                    // 필요 시 Blocker, Building 등 추가
+                    default:
+                        if (Managers.Grid.GetEntityCellType(checkGridPosition) != type)
+                            return false;
+                        break;
+                }
+            }
+        }
+
         return true;
     }
 
@@ -313,7 +326,7 @@ public abstract class AttackPattern
     /// <returns></returns>
     public virtual IEnumerable<GameEntity>
     GetAttackTargetGridPositions(GameEntity attacker, GameEntity target, AttackData checkAttackData)
-        => GetAttackGridPositions(attacker, target, checkAttackData).targetGridList.Select(p => Managers.SceneServices.Grid.GetCellEntity(p));
+        => GetAttackGridPositions(attacker, target, checkAttackData).targetGridList.Select(p => Managers.Grid.GetUnitAt(p));
 
     /// <summary>
     /// 공격 사거리 범위 구하기
@@ -341,8 +354,7 @@ public abstract class AttackPattern
         {
             GridPosition canAttackPos = Util.ToGridPosition(offset, attackerGridPosition, dir);
 
-            // 유효한 범위만 가져오기
-            if (!Managers.SceneServices.Grid.IsValidGridPosition(canAttackPos)) // 유효한 위치만 추가
+            if (!Managers.Grid.IsValidGridPosition(canAttackPos)) // 유효한 위치만 추가
                 continue;
 
             candidates.Add(canAttackPos);

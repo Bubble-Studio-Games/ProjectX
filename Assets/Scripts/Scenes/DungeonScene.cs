@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using static Define;
 
-public class DungeonScene : BaseScene
+public class DungeonScene : BaseScene, IGridTerrainScanner
 {
     IBuildingCardUI _buildingCardUI;
     DungeonScene() => SceneType = Scene.Dungeon;
@@ -16,6 +16,8 @@ public class DungeonScene : BaseScene
 
         // Sound
         Managers.Sound.Play(m_SceneMainTemaAudioclip, 1, Sound.Bgm);
+
+        Managers.Grid.SetupTerrain(this);
     }
 
     protected override E_InputActionMap GetRequiredActionMap() => E_InputActionMap.Game;
@@ -27,12 +29,12 @@ public class DungeonScene : BaseScene
         // ✅ 데이터가 있다는 게 확정된 상태
         Managers.Object.Clear(); // 기존 씬 배치 제거
 
-        Managers.Load.ObjectInfoLoad(data.dungeondata.gameEntityDatas);
-        Managers.Load.ObjectRestoreSaveData(data.dungeondata.gameEntityDatas);
+        Managers.Game.ObjectInfoLoad(data.dungeondata.gameEntityDatas);
+        Managers.Game.ObjectRestoreSaveData(data.dungeondata.gameEntityDatas);
 
         _buildingCardUI.RestoreSaveDatas(data.dungeondata.buildingCardDatas);
 
-        Managers.SceneServices.InventoryWrite.AddDownJam(data.dungeondata.downJam);
+        Managers.Player.Inventory.AddDownJam(data.dungeondata.downJam);
 
         Managers.SceneServices.CameraInfo.SetPositionAndRotation(
             data.dungeondata.cameraPos, data.dungeondata.cameraRot);
@@ -42,16 +44,41 @@ public class DungeonScene : BaseScene
     {
         base.LoadNewGame();
 
-        var list = Managers.SceneServices.InventoryRead.EnabledCards;
+        var list = Managers.Player.Inventory.EnabledCards;
 
         for (int i = 0; i < 5; i++)
             _buildingCardUI?.AddCard(list[Random.Range(0, list.Count)], default, true);
+    }
 
-        if (Managers.SceneServices.DungeonCores.Cores.Count > 0)
+    [SerializeField] private float rayOffset = 1f;
+
+    public E_TerrainCellType Scan(GridPosition pos, Vector3 worldPos)
+    {
+        E_TerrainCellType type = E_TerrainCellType.Void;
+
+        if (Physics.Raycast(worldPos + Vector3.up * rayOffset,
+                            Vector3.down,
+                            rayOffset * 2,
+                            GameConfig.Layer.mousePlaneLayerMask))
         {
-            Managers.SceneServices.CameraInfo.SetPositionAndRotation
-                (Managers.SceneServices.DungeonCores.Cores.First().Position,
-                 Managers.SceneServices.DungeonCores.Cores.First().Rotation);
+            type = E_TerrainCellType.Walkable;
         }
+
+        if (Physics.Raycast(worldPos + Vector3.down * rayOffset,
+                            Vector3.up,
+                            out var r,
+                            rayOffset * 2,
+                            GameConfig.Layer.ObstaclesLayerMask))
+        {
+            type = E_TerrainCellType.Obstacle;
+        }
+
+        return type;
+    }
+
+    private void LateUpdate()
+    {
+        // TODO unit action tick system으로 이동 바람
+        Managers.Grid?.LateTick();
     }
 }

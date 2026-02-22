@@ -29,8 +29,9 @@ public class NPCInteractionUI : UI_Base
         return true;
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
         Clear();
     }
 

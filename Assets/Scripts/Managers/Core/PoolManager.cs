@@ -1,11 +1,19 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PoolManager
+
+// PoolManager와의 결합을 깨기 위한 인터페이스
+public interface IPooling
 {
-	#region Pool
-	class Pool
+    Poolable Pop(GameObject original, Transform parent = null);
+    void Push(Poolable go);
+    GameObject GetOriginal(string name);
+}
+
+public class PoolManager : IManager, IPooling
+{
+    #region Pool
+    class Pool
     {
         public GameObject Original { get; private set; }
         public Transform Root { get; set; }

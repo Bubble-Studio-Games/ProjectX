@@ -1,56 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Tilemaps;
 using UnityEngine;
 using static Define;
 
-public class ObjectManager
+public class ObjectManager : IManager
 {
-    #region Id를 용한 Dic
-    // 추후에 서버 붙으면 자주 이용할 오브젝트 매니저
-    //Dictionary<int, GameObject> _objects = new Dictionary<int, GameObject>();
-    //Dictionary<int, Item> _items = new Dictionary<int, Item>();
-
-    //public void Add(int id, GameObject go)
-    //{
-    //	var r = _objects.ContainsKey(id);
-    //	if (r == true)
-    //		return;
-
-    //	_objects.Add(id, go);
-
-
-    //}
-
-    //public void Remove(int id)
-    //{
-    //	_objects.Remove(id);
-    //}
-
-    //public GameObject Find(Func<GameObject, bool> condition)
-    //{
-    //	foreach (GameObject obj in _objects.Values)
-    //	{
-    //		if (condition.Invoke(obj))
-    //			return obj;
-    //	}
-
-    //	return null;
-    //}
-
-    //public GameObject Find(int id)
-    //{
-    //	GameObject obj = null;
-    //	_objects.TryGetValue(id, out obj);
-    //	if (obj == null)
-    //		return null;
-
-    //	return obj;
-    //}
-    #endregion
-
     public HashSet<GameObject> _objects { get; private set; } = new HashSet<GameObject>();
     private HashSet<GameObject> _prefabs = new HashSet<GameObject>(); // 로드된 프리팹 원본 저장
 

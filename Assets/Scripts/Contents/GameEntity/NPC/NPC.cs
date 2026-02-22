@@ -318,10 +318,10 @@ public class NPC : GameEntity
         if (_npcStat.MoveTowardsDungeonCore == false)
             return;
 
-        var core = Managers.SceneServices.DungeonCores.Cores.First();
+        var core = Managers.Player.playerHealth.Cores.FirstOrDefault();
         if(core == null) return;
 
-        SetTarget(core.Position);
+        //SetTarget(core.Position);
 
         // TODO
         //m_CommandAction = GetAction<NPCMoveAction>();

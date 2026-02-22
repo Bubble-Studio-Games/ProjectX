@@ -1,11 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
 public class GridDebugObject : MonoBehaviour
 {
-
     [SerializeField] private TextMeshPro textMeshPro;
 
     private object gridObject;
@@ -13,25 +10,32 @@ public class GridDebugObject : MonoBehaviour
     public virtual void SetGridObject(object gridObject)
     {
         this.gridObject = gridObject;
-        textMeshPro.text = $"{gridObject}";
+        UpdateGridObject();
     }
 
     public void UpdateGridObject()
     {
-        var grid = Managers.SceneServices.Grid.GetGridPosition(transform.position);
+        var grid = Managers.Grid.GetGridPosition(transform.position);
+        var unit = Managers.Grid.GetUnitAt(grid);
+        var isFullOccupied = Managers.Grid.HasUnitAt(grid);
 
-        var unit = Managers.SceneServices.Grid.GetCellEntity(grid);
-        var gridType = Managers.SceneServices.Grid.GetCellType(grid);
+        string unitText = (unit != null) ? $"{unit.name}" : " ";
 
-        if(gridType == Define.E_GridCheckType.GameEntity || gridType == Define.E_GridCheckType.Reserve)
+        if (isFullOccupied)
         {
-            textMeshPro.text = $"{gridObject} \n {gridType} \n {unit}";
-
+            textMeshPro.text =
+                $"{gridObject}\n" +
+                $"Terrain : {Managers.Grid.GetTerrainType(grid)}\n" +
+                $"Full Unit\n" +
+                $"Units : {unitText}";
         }
         else
         {
-            textMeshPro.text = $"{gridObject} \n {gridType}";
+            textMeshPro.text =
+                $"{gridObject}\n" +
+                $"Terrain : {Managers.Grid.GetTerrainType(grid)}\n" +
+                $"Units : {unitText}";
         }
-
     }
+
 }

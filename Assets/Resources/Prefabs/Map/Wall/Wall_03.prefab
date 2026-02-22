@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3147491202415928312}
   - component: {fileID: 2377274904301871174}
   - component: {fileID: -7849075047222233526}
-  m_Layer: 9
+  m_Layer: 15
   m_Name: Wall_03
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -80,7 +80,7 @@ GameObject:
   - component: {fileID: 1687516224651204326}
   - component: {fileID: 4257779577958361566}
   - component: {fileID: 6998677995750148714}
-  m_Layer: 0
+  m_Layer: 15
   m_Name: Wall2_01_Wall_02_lambert5SG1_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}

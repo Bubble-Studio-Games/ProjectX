@@ -166,7 +166,7 @@ public class MenuUI : UI_Popup
     private async void OnGoToLobbyButtonClicked()
     {
         DisableAllButtons();
-        await Managers.Save.SaveAllData();
+        await Managers.Game.SaveAllPlayRuntimeData();
         _ = Managers.Scene.LoadSceneAsync(Define.Scene.Start);
     }
 
@@ -190,7 +190,7 @@ public class MenuUI : UI_Popup
     private void OnContinueFromStart()
     {
         DisableAllButtons();
-        var data = Managers.Load.GetContinueSaveData();
+        var data = Managers.Game.GetContinueSaveData();
         Managers.UI.ClosePopupUI<MenuUI>();
         Managers.Scene.LoadScene(data.LastScene);
     }
@@ -204,7 +204,7 @@ public class MenuUI : UI_Popup
     private async void OnNewGameButtonClicked()
     {
         DisableAllButtons();
-        await Managers.Save.SaveAllData();
+        await Managers.Game.SaveAllPlayRuntimeData();
         Managers.Game.ResumeGame();
         Managers.UI.ClosePopupUI<MenuUI>();
         await Managers.Scene.LoadSceneAsync(Define.Scene.Camp,
@@ -227,7 +227,7 @@ public class MenuUI : UI_Popup
     /// </summary>
     private async void OnSaveConfirmed()
     {
-        await Managers.Save.AutoSaveSlotAsync();
+        await Managers.Game.AutoSaveSlotAsync();
         RefreshUI();
         Managers.UI.ClosePopupUI<CheckUI>();
     }

@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -9,9 +7,12 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
-
-public class SceneManagerEx
+public class SceneManagerEx : IManager
 {
+    public void Init()
+    {
+    }
+
     private const float DEFAULT_TIMEOUT_SECONDS = 30f;
 
     public BaseScene CurrentScene { get { return GameObject.FindFirstObjectByType<BaseScene>(); } }

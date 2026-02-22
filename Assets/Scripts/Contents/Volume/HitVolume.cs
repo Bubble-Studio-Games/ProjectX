@@ -1,12 +1,9 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using static Define;
 
-[EditorShowInfo("IDungeonCore가 붙은 오브젝트가 피격을 당할때마다 화면을 빨갛게 만듬")]
 public class HitVolume : MonoBehaviour
 {
     private Volume m_Volume;
@@ -15,148 +12,38 @@ public class HitVolume : MonoBehaviour
     [SerializeField] private float m_fMaxIntensity = 0.45f;
     [SerializeField] private float m_fFadeDuration = 0.5f;
 
-    private readonly List<AttributeSystem> _coreStats = new();
-    private Coroutine _fadeCoroutine;
+    private Coroutine fadeCoroutine;
 
-    private Coroutine _bindCoroutine;
-    private Define.IDungeonCoreRegistry _boundRegistry; // 현재 구독중인 "진짜" 레지스트리
-
-    private void OnEnable()
+    private void Awake()
     {
-        // NullService/순서 이슈 때문에: 즉시 접근 대신 바인딩 코루틴으로
-        _bindCoroutine = StartCoroutine(BindWhenReady());
-    }
-
-    private void OnDisable()
-    {
-        // 바인딩 대기 중이면 중단
-        if (_bindCoroutine != null)
-        {
-            StopCoroutine(_bindCoroutine);
-            _bindCoroutine = null;
-        }
-
-        // 진짜 레지스트리에 OnReady 구독했었다면 해제
-        if (_boundRegistry != null)
-        {
-            _boundRegistry.OnReady -= HandleRegistryReady;
-            _boundRegistry = null;
-        }
-
-        UnsubscribeAll();
-    }
-
-    private IEnumerator BindWhenReady()
-    {
-        while (true)
-        {
-            var reg = Managers.SceneServices.DungeonCores;
-
-            // 1) NullService면: 다음 프레임까지 기다림 (구독하지 않음)
-            if (ReferenceEquals(reg, NullService<Define.IDungeonCoreRegistry>.Instance))
-            {
-                yield return null;
-                continue;
-            }
-
-            // 2) 진짜 레지스트리면: 바인딩
-            _boundRegistry = reg;
-
-            // 이미 준비 완료면 바로 구독
-            if (_boundRegistry.IsReady)
-            {
-                SubscribeAll();
-                InitVolume();
-                yield break;
-            }
-
-            // 아직 준비 전이면 Ready 이벤트 기다리기
-            _boundRegistry.OnReady += HandleRegistryReady;
-            yield break;
-        }
-    }
-
-    private void HandleRegistryReady()
-    {
-        if (_boundRegistry == null)
-            return;
-
-        _boundRegistry.OnReady -= HandleRegistryReady;
-
-        SubscribeAll();
-        InitVolume();
-    }
-
-    private void InitVolume()
-    {
-        if (m_Volume != null) return;
-
         m_Volume = GetComponent<Volume>();
-        m_Volume.profile.TryGet(out _Vignette);
 
-        if (_Vignette == null)
-            Debug.LogError("Error: HitVolume could not find Vignette in Volume Profile!");
-        else
-            _Vignette.intensity.value = 0f;
-    }
-
-    private void CacheCoreStatsAndSubscribe()
-    {
-        _coreStats.Clear();
-
-        var cores = Managers.SceneServices.DungeonCores.Cores;
-
-        for (int i = 0; i < cores.Count; i++)
+        if (m_Volume.profile.TryGet(out _Vignette) == false)
         {
-            if (cores[i] is Component c && c != null)
-            {
-                var stat = c.GetComponent<AttributeSystem>();
-                if (stat != null)
-                    _coreStats.Add(stat);
-            }
+            Debug.LogError("Vignette not found in Volume Profile!");
         }
     }
 
-    private void SubscribeAll()
+    void OnEnable()
     {
-        CacheCoreStatsAndSubscribe();
-
-        for (int i = 0; i < _coreStats.Count; i++)
-            _coreStats[i].OnDamaged += OnDamaged;
+        Managers.Player.playerHealth.OnAnyCoreDamaged += OnCoreDamaged;
     }
 
-    private void UnsubscribeAll()
+    void OnDisable()
     {
-        for (int i = 0; i < _coreStats.Count; i++)
-            _coreStats[i].OnDamaged -= OnDamaged;
+        Managers.Player.playerHealth.OnAnyCoreDamaged -= OnCoreDamaged;
     }
 
-    private void OnDamaged(OnAttackInfoEventArgs e)
+    void OnCoreDamaged(IDungeonCore core, float healthNormalized)
     {
-        if (_fadeCoroutine != null)
-            StopCoroutine(_fadeCoroutine);
+        if (fadeCoroutine != null)
+            StopCoroutine(fadeCoroutine);
 
-        _fadeCoroutine = StartCoroutine(HitEffectCoroutine(e.Victim.m_AttributeSystem));
+        fadeCoroutine = StartCoroutine(FadeRoutine(healthNormalized));
     }
 
-    private IEnumerator HitEffectCoroutine(AttributeSystem damagedStat)
+    IEnumerator FadeRoutine(float healthNormalized)
     {
-        if (_Vignette == null || m_Volume == null)
-            yield break;
-
-        float healthNormalized = 1f;
-        if (damagedStat != null)
-        {
-            healthNormalized = damagedStat.GetHealthNormalized();
-        }
-        else
-        {
-            float min = 1f;
-            for (int i = 0; i < _coreStats.Count; i++)
-                min = Mathf.Min(min, _coreStats[i].GetHealthNormalized());
-            healthNormalized = min;
-        }
-
         _Vignette.intensity.value = m_fMaxIntensity;
         m_Volume.weight = 0.5f;
 

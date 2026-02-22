@@ -1,13 +1,9 @@
-using Data;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 [Serializable]
 public class BackupInfo
@@ -25,17 +21,18 @@ public class BackupMetaData
     public List<BackupInfo> backups = new List<BackupInfo>();
 }
 
+/// <summary>
+/// 런타임 데이터를 시간 별로 데이터를 저장한다.
+/// 백업, 덮어 쓰기, 삭제 기능 추가 예정.
+/// </summary>
 public partial class DataManager
 {
-
     // ⚙️ 백업 관련 상수 및 유틸
     private const int MAX_BACKUPS = 10; // ✅ 유지할 최대 백업 개수
     private const string BACKUP_META_FILE = "BackupList.json";
     private BackupMetaData _backupMeta = new BackupMetaData();
 
-    // ===========================================================
     // ⚙️ 백업 관련 유틸
-    // ===========================================================
     private string GetBackupRoot()
     {
         string backupRoot = Path.Combine(GetFilePath(), "Backup");

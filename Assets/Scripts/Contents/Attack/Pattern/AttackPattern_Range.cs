@@ -16,9 +16,7 @@ public sealed class AttackPattern_Range : AttackPattern<AttackData_Range>
 
         float colliderLength = Managers.Game.GetObjectColliderLongLength(data.m_ProjectilePrefab.gameObject);
         float obstacleHeight =
-            Util.GetObstacleMaxHeight(
-                Managers.SceneServices.Pathfinder,
-                Managers.SceneServices.Grid,
+            Managers.Path.GetObstacleMaxHeight(
                 attacker.GetGridPosition(), target.GetGridPosition());
 
         data.context = new LaunchContext(colliderLength, obstacleHeight);
@@ -159,7 +157,7 @@ public sealed class AttackPattern_Range : AttackPattern<AttackData_Range>
     {
         var result = GetAttackGridPositions(attacker, target, data);
 
-        List<GameEntity> targets = result.targetGridList.Select(p => Managers.SceneServices.Grid.GetCellEntity(p)).ToList();
+        List<GameEntity> targets = result.targetGridList.Select(p => Managers.Grid.GetUnitAt(p)).ToList();
 
         if (result.targetGridList.Count() == 0)
             return default;

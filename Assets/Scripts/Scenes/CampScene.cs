@@ -18,7 +18,7 @@ public class CampScene : BaseScene
         tempButton.onClick.AddListener(async () =>
         {
             tempButton.interactable = false;
-            await Managers.Save.SaveAllData();
+            await Managers.Game.SaveAllPlayRuntimeData();
             _ = Managers.Scene.LoadSceneAsync(Define.Scene.Dungeon, () =>
             {
                 Debug.Log("??");

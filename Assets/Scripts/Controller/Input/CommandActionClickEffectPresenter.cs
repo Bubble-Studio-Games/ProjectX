@@ -2,6 +2,7 @@ using UnityEngine;
 using CodeMonkey.Utils;
 using static Define;
 
+[EditorShowInfo("클릭 효과 주기")]
 public class CommandActionClickEffectPresenter : MonoBehaviour
 {
     [Header("Click Effect")]
@@ -11,28 +12,20 @@ public class CommandActionClickEffectPresenter : MonoBehaviour
 
     private GameObject _activeEffect;
 
-    private IGridQuery _grid;
-
-
-    private void Start()
-    {
-        _grid = Managers.SceneServices.Grid;
-    }
-
     private void OnEnable()
     {
-            Managers.Command.OnCommandAction += HandleCommandAction;
+        Managers.Command.OnCommandAction += HandleCommandAction;
     }
 
     private void OnDisable()
     {
-            Managers.Command.OnCommandAction -= HandleCommandAction;
+         Managers.Command.OnCommandAction -= HandleCommandAction;
     }
 
     private void HandleCommandAction(CommandManager.OnCommandActionEventArgs e)
     {
         // 안전장치
-        if (_grid == null || commandActionAtGridEffectPrefab == null || worldUITransform == null)
+        if (commandActionAtGridEffectPrefab == null || worldUITransform == null)
             return;
 
         float height = defaultHeight;
@@ -40,7 +33,7 @@ public class CommandActionClickEffectPresenter : MonoBehaviour
         // 공격이면 대상 높이에 맞춰 올려주기
         if (e.action == typeof(CommandAttackAction))
         {
-            var target = _grid.GetCellEntity(e.GridPosition);
+            var target = Managers.Grid.GetUnitAt(e.GridPosition);
             if (target == null) return;
 
             height += target.m_HitCollider.bounds.max.y;
@@ -52,7 +45,7 @@ public class CommandActionClickEffectPresenter : MonoBehaviour
 
         // 이펙트 생성
         _activeEffect = Managers.Resource.Instantiate(commandActionAtGridEffectPrefab, worldUITransform);
-        _activeEffect.transform.position = _grid.GetWorldPosition(e.GridPosition) + new Vector3(0, height, 0);
+        _activeEffect.transform.position = Managers.Grid.GetWorldPosition(e.GridPosition) + new Vector3(0, height, 0);
 
         // 5초 후 제거
         FunctionTimer.Create(() =>
